@@ -1,13 +1,13 @@
 package main
 
 import (
+	Map "AI30_-_BlackFriday/pkg/map"
 	"fmt"
 )
 
 func main() {
-	s := "gopher"
-	fmt.Println("Hello and welcome, %s!", s)
-	for i := 1; i <= 5; i++ {
-		fmt.Println("i =", 100/i)
-	}
+	item := Map.NewItem(19.99,0.1,0.8,Map.ITEM)
+	m := Map.NewMap(5,5)
+    m.Grid[0][0] = item
+	fmt.Printf(string(m.Grid[0][0].Type()))
 }
