@@ -1,8 +1,8 @@
 package Map
 
-func NewItem(price float64, reduction float64, attractiveness float64, typeItem ElementType) *Item {
+func NewItem(price float64, reduction float64, attractiveness float64) *Item {
 	return &Item{
-		Element:        Element{elementType: typeItem},
+		Element:        Element{elementType: ITEM},
 		Price:          price,
 		Reduction:      reduction,
 		Attractiveness: attractiveness,
