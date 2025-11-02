@@ -25,3 +25,9 @@ type Map struct {
 func (element *Element) Type() ElementType {
 	return element.elementType
 }
+
+type Game struct {
+	ScreenWidth, ScreenHeight int
+	CameraX, CameraY          int
+	Map                       Map
+}
