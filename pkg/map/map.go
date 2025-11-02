@@ -16,7 +16,7 @@ func NewMap(width int, height int) *Map {
 		Grid:   make([][]MapElement, height),
 	}
 	for i := range m.Grid {
-		m.Grid[i] = make([]MapElement, 5)
+		m.Grid[i] = make([]MapElement, width)
 		for y := range m.Grid[i] {
 			void := Element{elementType: VOID}
 			m.Grid[i][y] = &void
