@@ -10,6 +10,12 @@ import (
 // Si on change il faudra aussi changer les assets car sinon ils vont être déformée vu que reduit
 const CellSize = 32
 
+func (g *Game) mapToDrawCoords(mapX, mapY, offsetX, offsetY int) (float32, float32) {
+	drawX := float32(mapX*CellSize - g.CameraX + offsetX)
+	drawY := float32(mapY*CellSize - g.CameraY + offsetY)
+	return drawX, drawY
+}
+
 // Draw image at the right position with the right scale
 func drawImageAt(screen *ebiten.Image, img *ebiten.Image, x, y float32) {
 	if img == nil {
@@ -82,9 +88,7 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 	// DRAW THE GROUND FIRST
 	for y := 0; y < g.Map.Height; y++ {
 		for x := 0; x < g.Map.Width; x++ {
-			drawX := float32(x*CellSize - g.CameraX + offsetX)
-			drawY := float32(y*CellSize - g.CameraY + offsetY)
-
+			drawX, drawY := g.mapToDrawCoords(x, y, offsetX, offsetY)
 			drawImageAt(screen, groundImg, drawX, drawY)
 		}
 	}
@@ -97,8 +101,7 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 				continue
 			}
 
-			drawX := float32(x*CellSize - g.CameraX + offsetX)
-			drawY := float32(y*CellSize - g.CameraY + offsetY)
+			drawX, drawY := g.mapToDrawCoords(x, y, offsetX, offsetY)
 
 			//If image not exist, will not render !
 			switch element.Type() {
