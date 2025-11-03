@@ -2,7 +2,8 @@ package Map
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
+	//Line drawing debugging dependency
+	//"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
 )
 
@@ -57,7 +58,8 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 	offsetX := margin
 	offsetY := margin
 
-	for i := 0; i <= g.Map.Width; i++ {
+	// DRAW GRID LINES USEFUL FOR DEBUGGING
+	/*for i := 0; i <= g.Map.Width; i++ {
 		x := float32(i*CellSize - g.CameraX + offsetX)
 		vector.StrokeLine(
 			screen,
@@ -83,7 +85,7 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 			color.Gray{Y: 240},
 			false,
 		)
-	}
+	}*/
 
 	// DRAW THE GROUND FIRST
 	for y := 0; y < g.Map.Height; y++ {
