@@ -1,0 +1,101 @@
+{
+  "stocks": [
+    [
+      {
+        "name": "Chocolat premium",
+        "price": 10.99,
+        "reduction": 0.0,
+        "attractiveness": 0.8,
+        "quantity": 15
+      }
+    ],
+    [
+      {
+        "name": "Pain artisanal",
+        "price": 25.50,
+        "reduction": 0.1,
+        "attractiveness": 0.9,
+        "quantity": 8
+      },
+      {
+        "name": "Brioche",
+        "price": 12.00,
+        "reduction": 0.0,
+        "attractiveness": 0.7,
+        "quantity": 12
+      }
+    ],
+    [
+      {
+        "name": "Bonbons",
+        "price": 15.25,
+        "reduction": 0.05,
+        "attractiveness": 0.7,
+        "quantity": 20
+      }
+    ],
+    [
+      {
+        "name": "Café premium",
+        "price": 30.00,
+        "reduction": 0.2,
+        "attractiveness": 0.95,
+        "quantity": 6
+      }
+    ],
+    [
+      {
+        "name": "Fruits secs",
+        "price": 18.75,
+        "reduction": 0.0,
+        "attractiveness": 0.6,
+        "quantity": 10
+      }
+    ],
+    [
+      {
+        "name": "Boissons",
+        "price": 8.50,
+        "reduction": 0.15,
+        "attractiveness": 0.8,
+        "quantity": 25
+      }
+    ],
+    [
+      {
+        "name": "Snacks",
+        "price": 5.99,
+        "reduction": 0.0,
+        "attractiveness": 0.5,
+        "quantity": 30
+      }
+    ],
+    [
+      {
+        "name": "Produits bio",
+        "price": 22.00,
+        "reduction": 0.1,
+        "attractiveness": 0.85,
+        "quantity": 7
+      }
+    ],
+    [
+      {
+        "name": "Épices",
+        "price": 14.50,
+        "reduction": 0.0,
+        "attractiveness": 0.65,
+        "quantity": 15
+      }
+    ],
+    [
+      {
+        "name": "Conserves",
+        "price": 6.75,
+        "reduction": 0.25,
+        "attractiveness": 0.4,
+        "quantity": 40
+      }
+    ]
+  ]
+}
