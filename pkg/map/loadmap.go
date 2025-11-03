@@ -1,8 +1,9 @@
 package Map
 
 import (
+	"encoding/json"
 	"os"
-	"strconv"
+	"path/filepath"
 	"strings"
 )
 
@@ -11,11 +12,31 @@ func LoadMapFromFile(filename string) (*Map, error) {
 	if err != nil {
 		return nil, err
 	}
-	return LoadMapFromString(string(content))
+
+	m, err := LoadMapFromString(string(content))
+	if err != nil {
+		return nil, err
+	}
+
+	// Same dir
+	stockFile := filepath.Join(filepath.Dir(filename), "stocks.json")
+	stockData, err := os.ReadFile(stockFile)
+	if err != nil {
+		return nil, err
+	}
+
+	var stocks StockData
+	err = json.Unmarshal(stockData, &stocks)
+	if err != nil {
+		return nil, err
+	}
+
+	m.LoadStockData(stocks)
+	return m, nil
 }
 
 // w = WALL
-// i = ITEM
+// s = SHELF
 // c = CHECKOUT
 // d = DOOR
 // " "= VOID
@@ -23,20 +44,9 @@ func LoadMapFromString(content string) (*Map, error) {
 	lines := strings.Split(content, "\n")
 
 	mapLines := []string{} // contains every map lines
-	itemData := []string{} // contains item data (price, attractiveness)
-	inItemSection := false // when reading item
 
 	for _, line := range lines {
-		trimmed := strings.TrimSpace(line) //TODO: maybe change name of var ? idk if its clear
-
-		if trimmed == "---" {
-			inItemSection = true
-			continue
-		}
-
-		if inItemSection && len(trimmed) > 0 {
-			itemData = append(itemData, trimmed)
-		} else if len(line) > 0 {
+		if len(line) > 0 {
 			mapLines = append(mapLines, line)
 		}
 	}
@@ -48,7 +58,7 @@ func LoadMapFromString(content string) (*Map, error) {
 	}
 
 	m := NewMap(width, height)
-	itemPositions := [][]int{}
+	shelfPositions := [][]int{}
 
 	// Parsing the map
 	for y, line := range mapLines {
@@ -61,9 +71,9 @@ func LoadMapFromString(content string) (*Map, error) {
 			switch c {
 			case 'w':
 				element = &Element{elementType: WALL}
-			case 'i':
-				element = &Element{elementType: ITEM}
-				itemPositions = append(itemPositions, []int{x, y})
+			case 's':
+				element = &Element{elementType: SHELF}
+				shelfPositions = append(shelfPositions, []int{x, y})
 			case 'd':
 				element = &Element{elementType: DOOR}
 			case 'c':
@@ -80,31 +90,34 @@ func LoadMapFromString(content string) (*Map, error) {
 		}
 	}
 
-	for i, pos := range itemPositions {
+	// Will populate after with JSON File
+	for _, pos := range shelfPositions {
 		x, y := pos[0], pos[1]
-
-		// Default value
-		price := 10.0
-		attractiveness := 0.5
-
-		//custom value
-		if i < len(itemData) {
-			parts := strings.Split(itemData[i], ",")
-			if len(parts) >= 2 {
-				if p, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64); err == nil {
-					price = p
-				}
-				if a, err := strconv.ParseFloat(strings.TrimSpace(parts[1]), 64); err == nil {
-					attractiveness = a
-				}
-			}
-		}
-
 		if x < width && y < height {
-			item := NewItem(price, 0.0, attractiveness)
-			m.Grid[y][x] = item
+			// will be filled by LoadStockData
+			shelf := NewShelf([]Item{})
+			m.Grid[y][x] = shelf
 		}
 	}
 
 	return m, nil
+}
+
+func (m *Map) LoadStockData(stockData StockData) {
+	shelfIndex := 0
+
+	//HOW Stocks are assigned to shelves
+	//LEFT TO RIGHT TOP TO BOTTOM
+	for y := 0; y < m.Height; y++ {
+		for x := 0; x < m.Width; x++ {
+			if element := m.Grid[y][x]; element != nil && element.Type() == SHELF {
+				if shelfIndex < len(stockData.Stocks) {
+					if shelf, ok := element.(*Shelf); ok {
+						shelf.Items = stockData.Stocks[shelfIndex]
+					}
+					shelfIndex++
+				}
+			}
+		}
+	}
 }

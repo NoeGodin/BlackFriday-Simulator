@@ -1,11 +1,9 @@
 package Map
 
-func NewItem(price float64, reduction float64, attractiveness float64) *Item {
-	return &Item{
-		Element:        Element{elementType: ITEM},
-		Price:          price,
-		Reduction:      reduction,
-		Attractiveness: attractiveness,
+func NewShelf(items []Item) *Shelf {
+	return &Shelf{
+		Element: Element{elementType: SHELF},
+		Items:   items,
 	}
 }
 

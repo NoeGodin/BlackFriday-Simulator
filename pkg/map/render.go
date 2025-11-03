@@ -96,7 +96,7 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 			switch element.Type() {
 			case WALL:
 				drawImageAt(screen, wallImg, drawX, drawY)
-			case ITEM:
+			case SHELF:
 				drawImageAt(screen, itemImg, drawX, drawY)
 			case DOOR:
 				drawImageAt(screen, doorImg, drawX, drawY)
@@ -118,8 +118,11 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func NewGame(screenWidth, screenHeight int) *Game {
-	mapData, _ := LoadMapFromFile("maps/blackfriday_store")
-	//TODO : not catching any errors, i don't know what to do in case of error
+	mapData, err := LoadMapFromFile("maps/store/layout.txt")
+	if err != nil {
+		panic("Error loading map: " + err.Error())
+	}
+
 	return &Game{
 		ScreenWidth:  screenWidth,
 		ScreenHeight: screenHeight,
