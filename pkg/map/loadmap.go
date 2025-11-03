@@ -78,8 +78,6 @@ func LoadMapFromString(content string) (*Map, error) {
 				element = &Element{elementType: DOOR}
 			case 'c':
 				element = &Element{elementType: CHECKOUT}
-			case ' ':
-				element = &Element{elementType: VOID}
 			default:
 				element = &Element{elementType: VOID}
 			}
