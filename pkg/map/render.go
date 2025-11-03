@@ -30,20 +30,7 @@ func drawImageAt(screen *ebiten.Image, img *ebiten.Image, x, y float32) {
 }
 
 func (g *Game) Update() error {
-	//TODO : should i put that here ? i don't really know...
-	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-		g.CameraY -= 2
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		g.CameraY += 2
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		g.CameraX -= 2
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		g.CameraX += 2
-	}
-
+	g.HandleInput()
 	return nil
 }
 
