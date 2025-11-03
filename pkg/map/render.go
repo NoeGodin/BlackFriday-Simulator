@@ -46,7 +46,7 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 	offsetY := margin
 
 	// DRAW GRID LINES USEFUL FOR DEBUGGING
-	/*for i := 0; i <= g.Map.Width; i++ {
+	/*for i := range g.Map.Width {
 		x := float32(i*CellSize - g.CameraX + offsetX)
 		vector.StrokeLine(
 			screen,
@@ -60,7 +60,7 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 		)
 	}
 
-	for i := 0; i <= g.Map.Height; i++ {
+	for i := range g.Map.Height {
 		y := float32(i*CellSize - g.CameraY + offsetY)
 		vector.StrokeLine(
 			screen,
@@ -75,16 +75,16 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 	}*/
 
 	// DRAW THE GROUND FIRST
-	for y := 0; y < g.Map.Height; y++ {
-		for x := 0; x < g.Map.Width; x++ {
+	for y := range g.Map.Height {
+		for x := range g.Map.Width {
 			drawX, drawY := g.mapToDrawCoords(x, y, offsetX, offsetY)
 			drawImageAt(screen, groundImg, drawX, drawY)
 		}
 	}
 
 	// DRAW EVERY OTHER ELEMENTS, SAME LOGIC IN A WAY BUT GOOD PRACTICE TO KEEP BOTH
-	for y := 0; y < g.Map.Height; y++ {
-		for x := 0; x < g.Map.Width; x++ {
+	for y := range g.Map.Height {
+		for x := range g.Map.Width {
 			element := g.Map.Grid[y][x]
 			if element == nil || element.Type() == VOID {
 				continue
