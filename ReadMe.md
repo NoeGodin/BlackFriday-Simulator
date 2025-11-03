@@ -1,5 +1,19 @@
 # Simulateur de Black Friday
 
+## Installation
+
+**Linux (Ubuntu/Debian)**: Installer les dépendances système :
+```bash
+sudo apt install -y libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+sudo apt install -y libgl1-mesa-dev xorg-dev
+```
+
+**Exécution:**
+```bash
+go mod download
+go run cmd/blackfriday/main.go
+```
+
 ## Problématique
 
 Point de vue du magasin : Comment faire le plus de ventes ?
