@@ -2,7 +2,7 @@ package Map
 
 const (
 	WALL     ElementType = "w"
-	ITEM     ElementType = "i"
+	SHELF    ElementType = "s"
 	CHECKOUT ElementType = "c"
 	DOOR     ElementType = "d"
 	VOID     ElementType = " "

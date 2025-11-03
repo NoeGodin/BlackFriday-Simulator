@@ -1,19 +1,14 @@
 wwwwwwwwwwwwwwwwwwww
 w                  w
-w   i              w
+w   s              w
 w      www    www  w
 w      www    www  w
-w      www    wiw  w
+w      www    wsw  w
 w      www    www  w
 w                  w
-w  ii      i       w
+w  ss      s       w
 w                  w
 w                  w
-w   i    iiiiiiii  w
+w   s    ssssssss  w
 wcw                w
 wwwwwwwwwdwwwwwwwwww
----
-10.99, 0.8
-25.50, 0.9
-15.25, 0.7
-30.00, 0.95
