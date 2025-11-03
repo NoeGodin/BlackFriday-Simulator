@@ -10,10 +10,16 @@ type Element struct {
 }
 
 type Item struct {
+	Name           string  `json:"name"`
+	Price          float64 `json:"price"`
+	Reduction      float64 `json:"reduction"`
+	Attractiveness float64 `json:"attractiveness"`
+	Quantity       int     `json:"quantity"`
+}
+
+type Shelf struct {
 	Element
-	Price          float64
-	Reduction      float64
-	Attractiveness float64
+	Items []Item
 }
 
 type Map struct {
@@ -24,6 +30,10 @@ type Map struct {
 
 func (element *Element) Type() ElementType {
 	return element.elementType
+}
+
+type StockData struct {
+	Stocks [][]Item `json:"stocks"`
 }
 
 type Game struct {
