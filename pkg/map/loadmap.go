@@ -106,8 +106,8 @@ func (m *Map) LoadStockData(stockData StockData) {
 
 	//HOW Stocks are assigned to shelves
 	//LEFT TO RIGHT TOP TO BOTTOM
-	for y := 0; y < m.Height; y++ {
-		for x := 0; x < m.Width; x++ {
+	for y := range m.Height {
+		for x := range m.Width {
 			if element := m.Grid[y][x]; element != nil && element.Type() == SHELF {
 				if shelfIndex < len(stockData.Stocks) {
 					if shelf, ok := element.(*Shelf); ok {
