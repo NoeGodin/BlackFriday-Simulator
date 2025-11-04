@@ -1,10 +1,11 @@
-package Map
+package Graphics
 
 import (
+	"log"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"golang.org/x/image/font"
-	"log"
 )
 
 var (
