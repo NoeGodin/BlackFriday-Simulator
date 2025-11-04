@@ -1,11 +1,9 @@
 package Map
 
-func NewItem(price float64, reduction float64, attractiveness float64, typeItem ElementType) *Item {
-	return &Item{
-		Element:        Element{elementType: typeItem},
-		Price:          price,
-		Reduction:      reduction,
-		Attractiveness: attractiveness,
+func NewShelf(items []Item) *Shelf {
+	return &Shelf{
+		Element: Element{elementType: SHELF},
+		Items:   items,
 	}
 }
 
@@ -16,7 +14,7 @@ func NewMap(width int, height int) *Map {
 		Grid:   make([][]MapElement, height),
 	}
 	for i := range m.Grid {
-		m.Grid[i] = make([]MapElement, 5)
+		m.Grid[i] = make([]MapElement, width)
 		for y := range m.Grid[i] {
 			void := Element{elementType: VOID}
 			m.Grid[i][y] = &void

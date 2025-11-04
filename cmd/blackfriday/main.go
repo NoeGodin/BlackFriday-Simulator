@@ -1,13 +1,27 @@
 package main
 
 import (
+	"log"
+	"os"
+
 	Map "AI30_-_BlackFriday/pkg/map"
-	"fmt"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
+const SCREEN_WIDTH = 700
+const SCREEN_HEIGHT = 700
+
 func main() {
-	item := Map.NewItem(19.99,0.1,0.8,Map.ITEM)
-	m := Map.NewMap(5,5)
-    m.Grid[0][0] = item
-	fmt.Printf(string(m.Grid[0][0].Type()))
+	//NOTE : I guess its for my setup (working on mac) maybe not needed for others idk :/
+	os.Setenv("EBITEN_GRAPHICS_LIBRARY", "opengl")
+
+	ebiten.SetWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT)
+	ebiten.SetWindowTitle("Black Friday Simulator")
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+
+	game := Map.NewGame(SCREEN_WIDTH, SCREEN_HEIGHT)
+
+	if err := ebiten.RunGame(game); err != nil {
+		log.Fatal(err)
+	}
 }
