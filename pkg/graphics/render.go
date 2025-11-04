@@ -1,6 +1,8 @@
-package Map
+package Graphics
 
 import (
+	Map "AI30_-_BlackFriday/pkg/map"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	//Line drawing debugging dependency
 	//"github.com/hajimehoshi/ebiten/v2/vector"
@@ -86,7 +88,7 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 	for y := range g.Map.Height {
 		for x := range g.Map.Width {
 			element := g.Map.Grid[y][x]
-			if element == nil || element.Type() == VOID {
+			if element == nil || element.Type() == Map.VOID {
 				continue
 			}
 
@@ -94,13 +96,13 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 
 			//If image not exist, will not render !
 			switch element.Type() {
-			case WALL:
+			case Map.WALL:
 				drawImageAt(screen, wallImg, drawX, drawY)
-			case SHELF:
+			case Map.SHELF:
 				drawImageAt(screen, itemImg, drawX, drawY)
-			case DOOR:
+			case Map.DOOR:
 				drawImageAt(screen, doorImg, drawX, drawY)
-			case CHECKOUT:
+			case Map.CHECKOUT:
 				drawImageAt(screen, checkoutImg, drawX, drawY)
 			}
 		}
@@ -118,7 +120,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 }
 
 func NewGame(screenWidth, screenHeight int) *Game {
-	mapData, err := LoadMapFromFile("maps/store/layout.txt")
+	mapData, err := Map.LoadMapFromFile("maps/store/layout.txt")
 	if err != nil {
 		panic("Error loading map: " + err.Error())
 	}

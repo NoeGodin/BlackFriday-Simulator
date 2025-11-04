@@ -1,7 +1,9 @@
-package Map
+package Graphics
 
 import (
+	Map "AI30_-_BlackFriday/pkg/map"
 	"fmt"
+
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
@@ -45,8 +47,8 @@ func (g *Game) handleMouseClick() {
 		} else {
 			fmt.Printf("Element Type: %s\n", element.Type())
 
-			if element.Type() == SHELF {
-				if shelf, ok := element.(*Shelf); ok {
+			if element.Type() == Map.SHELF {
+				if shelf, ok := element.(*Map.Shelf); ok {
 					fmt.Printf("Shelf Stock (%d items):\n", len(shelf.Items))
 					for i, item := range shelf.Items {
 						fmt.Printf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
