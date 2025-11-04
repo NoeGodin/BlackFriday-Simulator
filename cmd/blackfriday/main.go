@@ -4,7 +4,8 @@ import (
 	"log"
 	"os"
 
-	Map "AI30_-_BlackFriday/pkg/map"
+	Graphics "AI30_-_BlackFriday/pkg/graphics"
+
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
@@ -19,7 +20,7 @@ func main() {
 	ebiten.SetWindowTitle("Black Friday Simulator")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
-	game := Map.NewGame(SCREEN_WIDTH, SCREEN_HEIGHT)
+	game := Graphics.NewGame(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)

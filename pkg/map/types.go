@@ -35,9 +35,3 @@ func (element *Element) Type() ElementType {
 type StockData struct {
 	Stocks [][]Item `json:"stocks"`
 }
-
-type Game struct {
-	ScreenWidth, ScreenHeight int
-	CameraX, CameraY          int
-	Map                       Map
-}
