@@ -7,11 +7,14 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
+	"golang.org/x/image/font/basicfont"
 )
 
 var (
 	hudFont        font.Face
+	hudMsg		   string
 	hudInitialized bool
 )
 
@@ -61,6 +64,8 @@ func initHUD() {
 		log.Printf("Warning: Could not load checkout.png: %v", err)
 	}
 
+	hudFont = basicfont.Face7x13
+
 	hudInitialized = true
 }
 
@@ -81,4 +86,24 @@ func initAnimation() {
 func (g *Game) DrawHUD(screen *ebiten.Image) {
 	initHUD()
 	initAnimation()
+
+	hudWidth := 200
+    hudHeight := 60
+    hudX := 470
+    hudY := 10
+
+    hudBg := ebiten.NewImage(hudWidth, hudHeight)
+    hudBg.Fill(color.RGBA{0, 0, 0, 180})
+
+    op := &ebiten.DrawImageOptions{}
+    op.GeoM.Translate(float64(hudX), float64(hudY))
+    screen.DrawImage(hudBg, op)
+
+    text.Draw(screen, hudMsg, hudFont, hudX+10, hudY+25, color.White)
+
+}
+
+func UpdateHUD(posX, posY int) {
+	hudMsg = fmt.Sprintln("DEBUG")
+    hudMsg += fmt.Sprintf("Position: (%d, %d)", posX, posY)
 }
