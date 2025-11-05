@@ -39,6 +39,8 @@ func (g *Game) handleMouseClick() {
 	if mapX >= 0 && mapX < envMap.Width && mapY >= 0 && mapY < envMap.Height {
 		elementType := envMap.GetElementType(mapX, mapY)
 
+		UpdateHUD(mapX, mapY)
+
 		fmt.Printf("=== DEBUG CLICK ===\n")
 		fmt.Printf("Position: (%d, %d)\n", mapX, mapY)
 
