@@ -2,6 +2,7 @@ package Graphics
 
 import (
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
+	Hud "AI30_-_BlackFriday/pkg/Hud"
 )
 
 type Game struct {
@@ -9,6 +10,7 @@ type Game struct {
 	CameraX, CameraY          int
 	AgentAnimator             *AgentAnimator
 	Simulation                *Simulation.Simulation
+	Hud                       Hud.HUD
 }
 
 func NewGame(screenWidth, screenHeight int, simu *Simulation.Simulation) *Game {

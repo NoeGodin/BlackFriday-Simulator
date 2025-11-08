@@ -1,6 +1,7 @@
 package Graphics
 
 import (
+	"AI30_-_BlackFriday/pkg/Hud"
 	"AI30_-_BlackFriday/pkg/constants"
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
 
@@ -41,6 +42,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.DrawPaths(screen)
 	g.DrawAgents(screen)
 	g.DrawHUD(screen)
+	g.Hud.Draw(screen)
 }
 
 func (g *Game) DrawMap(screen *ebiten.Image) {
