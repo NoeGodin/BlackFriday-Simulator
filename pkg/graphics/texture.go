@@ -12,8 +12,8 @@ import (
 )
 
 var (
-	hudFont        font.Face
-	hudInitialized bool
+	textureFont        font.Face
+	textureInitialized bool
 )
 
 // Global vars
@@ -27,8 +27,8 @@ var (
 	WalkFrameImgs [constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
 )
 
-func initHUD() {
-	if hudInitialized {
+func initTexture() {
+	if textureInitialized {
 		return
 	}
 
@@ -62,11 +62,12 @@ func initHUD() {
 		log.Printf("Warning: Could not load checkout.png: %v", err)
 	}
 
-	hudFont = basicfont.Face7x13
+	textureFont = basicfont.Face7x13
 
-	hudInitialized = true
+	textureInitialized = true
 }
 
+<<<<<<< HEAD:pkg/graphics/hud.go
 func initAnimation() {
 	walk, _, err := ebitenutil.NewImageFromFile("assets/walk.png")
 	if err != nil {
@@ -105,3 +106,8 @@ func UpdateHUD(posX, posY int) {
 	hudMsg = fmt.Sprintln("DEBUG")
     hudMsg += fmt.Sprintf("Position: (%d, %d)", posX, posY)
 }
+=======
+func (g *Game) DrawTexture(screen *ebiten.Image) {
+	initTexture()
+}
+>>>>>>> f35bd41 (rename hud to texture):pkg/graphics/texture.go

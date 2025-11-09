@@ -41,7 +41,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.DrawMap(screen)
 	g.DrawPaths(screen)
 	g.DrawAgents(screen)
-	g.DrawHUD(screen)
+	g.DrawTexture(screen)
 	g.Hud.Draw(screen)
 }
 
