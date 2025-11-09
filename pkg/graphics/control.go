@@ -37,24 +37,23 @@ func (g *Game) handleMouseClick() {
 	mapY := (mouseY - margin + g.CameraY) / CellSize
 
 	if mapX >= 0 && mapX < g.Map.Width && mapY >= 0 && mapY < g.Map.Height {
-		element := g.Map.Grid[mapY][mapX]
+		elementType := g.Map.GetElementType(mapX, mapY)
 
 		fmt.Printf("=== DEBUG CLICK ===\n")
 		fmt.Printf("Position: (%d, %d)\n", mapX, mapY)
 
-		if element == nil {
-			fmt.Printf("Element: nil\n")
-		} else {
-			fmt.Printf("Element Type: %s\n", element.Type())
+		fmt.Printf("Element Type: %s\n", elementType)
 
-			if element.Type() == Map.SHELF {
-				if shelf, ok := element.(*Map.Shelf); ok {
-					fmt.Printf("Shelf Stock (%d items):\n", len(shelf.Items))
-					for i, item := range shelf.Items {
-						fmt.Printf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
-							i+1, item.Name, item.Price, item.Quantity, item.Reduction*100, item.Attractiveness)
-					}
+		if elementType == Map.SHELF {
+			fmt.Printf("Product Zone at (%d, %d)\n", mapX, mapY)
+			if items, exists := g.Map.GetProductData(mapX, mapY); exists {
+				fmt.Printf("Shelf Stock (%d items):\n", len(items))
+				for i, item := range items {
+					fmt.Printf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
+						i+1, item.Name, item.Price, item.Quantity, item.Reduction*100, item.Attractiveness)
 				}
+			} else {
+				fmt.Printf("No stock data available\n")
 			}
 		}
 		fmt.Printf("==================\n")

@@ -87,15 +87,15 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 	// DRAW EVERY OTHER ELEMENTS, SAME LOGIC IN A WAY BUT GOOD PRACTICE TO KEEP BOTH
 	for y := range g.Map.Height {
 		for x := range g.Map.Width {
-			element := g.Map.Grid[y][x]
-			if element == nil || element.Type() == Map.VOID {
+			elementType := g.Map.GetElementType(x, y)
+			if elementType == Map.VOID {
 				continue
 			}
 
 			drawX, drawY := g.mapToDrawCoords(x, y, offsetX, offsetY)
 
 			//If image not exist, will not render !
-			switch element.Type() {
+			switch elementType {
 			case Map.WALL:
 				drawImageAt(screen, wallImg, drawX, drawY)
 			case Map.SHELF:

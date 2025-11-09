@@ -23,9 +23,13 @@ type Shelf struct {
 }
 
 type Map struct {
-	Width  int
-	Height int
-	Grid   [][]MapElement
+	Width         int
+	Height        int
+	Doors         [][2]int
+	CheckoutZones [][2]int
+	ProductZones  [][2]int
+	Walls         [][2]int
+	ProductData   map[[2]int][]Item
 }
 
 func (element *Element) Type() ElementType {
