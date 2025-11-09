@@ -22,7 +22,7 @@ type Coordinate struct {
 }
 type ClientAgent struct {
 	id         AgentID
-	Speed      int
+	Speed      float32
 	env        *Environment
 	Coordinate Coordinate
 	Direction  Direction
@@ -36,7 +36,7 @@ type ClientAgent struct {
 }
 
 func NewClientAgent(id string, env *Environment, viewChan chan ViewRequest, moveChan chan MoveRequest, pickChan chan PickRequest, syncChan chan int) *ClientAgent {
-	return &ClientAgent{AgentID(id), 1, env, Coordinate{X: 5, Y: 5}, NORTH, viewChan, pickChan, moveChan, syncChan}
+	return &ClientAgent{AgentID(id), 1.0, env, Coordinate{X: 5, Y: 5}, NORTH, viewChan, pickChan, moveChan, syncChan}
 }
 
 func (ag *ClientAgent) ID() AgentID {
