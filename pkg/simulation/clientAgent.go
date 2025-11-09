@@ -10,9 +10,9 @@ type Direction struct {
 }
 
 var (
-	NORTH = Direction{X: 0, Y: 1}
+	NORTH = Direction{X: 0, Y: -1}
 	EAST  = Direction{X: 1, Y: 0}
-	SOUTH = Direction{X: 0, Y: -1}
+	SOUTH = Direction{X: 0, Y: 1}
 	WEST  = Direction{X: -1, Y: 0}
 )
 
@@ -28,15 +28,15 @@ type ClientAgent struct {
 	Direction  Direction
 	viewChan   chan ViewRequest
 	pickChan   chan PickRequest
-	mooveChan  chan MooveRequest
+	moveChan   chan MoveRequest
 	syncChan   chan int
 
 	//rajouter un type action ?
 
 }
 
-func NewClientAgent(id string, env *Environment, viewChan chan ViewRequest, mooveChan chan MooveRequest, pickChan chan PickRequest, syncChan chan int) *ClientAgent {
-	return &ClientAgent{AgentID(id), 1, env, Coordinate{X: 5, Y: 5}, NORTH, viewChan, pickChan, mooveChan, syncChan}
+func NewClientAgent(id string, env *Environment, viewChan chan ViewRequest, moveChan chan MoveRequest, pickChan chan PickRequest, syncChan chan int) *ClientAgent {
+	return &ClientAgent{AgentID(id), 1, env, Coordinate{X: 5, Y: 5}, NORTH, viewChan, pickChan, moveChan, syncChan}
 }
 
 func (ag *ClientAgent) ID() AgentID {
@@ -51,7 +51,7 @@ func (ag *ClientAgent) Start() {
 		var step int
 		for {
 			step = <-ag.syncChan
-			pecetion := <-ag.perceptChan
+			perception := <-ag.viewChan
 
 			ag.Percept(env)
 			ag.Deliberate()
