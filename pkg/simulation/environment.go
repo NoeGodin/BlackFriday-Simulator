@@ -16,7 +16,7 @@ type PickRequest struct {
 	ResponseChannel any
 }
 
-type MooveRequest struct {
+type MoveRequest struct {
 	Agt *Agent
 	//any est temporaire
 	ResponseChannel any
@@ -26,11 +26,11 @@ type moveRequest struct {
 	Agt *Agent
 }
 type Environment struct {
-	Map          *Map.Map
-	Clients      []Agent
-	ViewChannel  chan ViewRequest
-	PickChannel  chan ViewRequest
-	MooveChannel chan ViewRequest
+	Map         *Map.Map
+	Clients     []Agent
+	ViewChannel chan ViewRequest
+	PickChannel chan ViewRequest
+	MoveChannel chan ViewRequest
 }
 
 func NewEnvironment(width int, height int) *Environment {
@@ -61,10 +61,10 @@ func (env *Environment) pickRequest() {
 }
 
 // demande pour bouger (peut être refuser si une personne où un objet n'est plus dispo)
-func (env *Environment) mooveRequest() {
+func (env *Environment) moveRequest() {
 	for {
 		select {
-		case mooveRequest := <-env.MooveChannel:
+		case moveRequest := <-env.MoveChannel:
 
 		}
 	}
@@ -73,5 +73,5 @@ func (env *Environment) mooveRequest() {
 func (env *Environment) Start() {
 	go env.viewRequest()
 	go env.pickRequest()
-	go env.mooveRequest()
+	go env.moveRequest()
 }
