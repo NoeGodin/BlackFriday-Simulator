@@ -58,7 +58,6 @@ func LoadMapFromString(content string) (*Map, error) {
 	}
 
 	m := NewMap(width, height)
-	shelfPositions := [][]int{}
 
 	// Parsing the map
 	for y, line := range mapLines {
@@ -67,34 +66,16 @@ func LoadMapFromString(content string) (*Map, error) {
 				continue
 			}
 
-			var element *Element
 			switch c {
 			case 'w':
-				element = &Element{elementType: WALL}
+				m.AddWall(x, y)
 			case 's':
-				element = &Element{elementType: SHELF}
-				shelfPositions = append(shelfPositions, []int{x, y})
+				m.AddProductZone(x, y)
 			case 'd':
-				element = &Element{elementType: DOOR}
+				m.AddDoor(x, y)
 			case 'c':
-				element = &Element{elementType: CHECKOUT}
-			default:
-				element = &Element{elementType: VOID}
+				m.AddCheckoutZone(x, y)
 			}
-
-			if element != nil {
-				m.Grid[y][x] = element
-			}
-		}
-	}
-
-	// Will populate after with JSON File
-	for _, pos := range shelfPositions {
-		x, y := pos[0], pos[1]
-		if x < width && y < height {
-			// will be filled by LoadStockData
-			shelf := NewShelf([]Item{})
-			m.Grid[y][x] = shelf
 		}
 	}
 
@@ -102,20 +83,12 @@ func LoadMapFromString(content string) (*Map, error) {
 }
 
 func (m *Map) LoadStockData(stockData StockData) {
-	shelfIndex := 0
-
 	//HOW Stocks are assigned to shelves
 	//LEFT TO RIGHT TOP TO BOTTOM
-	for y := range m.Height {
-		for x := range m.Width {
-			if element := m.Grid[y][x]; element != nil && element.Type() == SHELF {
-				if shelfIndex < len(stockData.Stocks) {
-					if shelf, ok := element.(*Shelf); ok {
-						shelf.Items = stockData.Stocks[shelfIndex]
-					}
-					shelfIndex++
-				}
-			}
+	for i, productZone := range m.ProductZones {
+		if i < len(stockData.Stocks) {
+			position := [2]int{productZone[0], productZone[1]}
+			m.ProductData[position] = stockData.Stocks[i]
 		}
 	}
 }
