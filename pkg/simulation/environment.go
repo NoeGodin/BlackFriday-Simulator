@@ -29,8 +29,8 @@ type Environment struct {
 	Map         *Map.Map
 	Clients     []Agent
 	ViewChannel chan ViewRequest
-	PickChannel chan ViewRequest
-	MoveChannel chan ViewRequest
+	PickChannel chan PickRequest
+	MoveChannel chan MoveRequest
 }
 
 func NewEnvironment(width int, height int) *Environment {

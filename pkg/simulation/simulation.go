@@ -7,7 +7,7 @@ import (
 
 type Simulation struct {
 	NClients  int
-	env       Environment
+	Env       Environment
 	Speed     *float32
 	agents    []Agent
 	syncChans sync.Map
@@ -17,15 +17,15 @@ func NewSimulation(agentCount int, width int, height int) (simu *Simulation) {
 	simu = &Simulation{}
 	simu.agents = make([]Agent, 0, agentCount)
 
-	simu.env = *NewEnvironment(width, height)
+	simu.Env = *NewEnvironment(width, height)
 	//voir quand initialiser les agents
 	return simu
 }
 
 func (s *Simulation) Run() {
-	s.env.Start()
+	s.Env.Start()
 	for i := range s.NClients {
-		go s.env.Clients[i].Start()
+		go s.Env.Clients[i].Start()
 	}
 
 	for _, agt := range s.agents {
