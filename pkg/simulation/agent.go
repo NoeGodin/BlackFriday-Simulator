@@ -1,12 +1,13 @@
 package Simulation
 
-
 type AgentID string
 
 type Agent interface {
 	Start()
-	Percept(* Environment)
+	Percept()
 	Deliberate()
-	Act(* Environment)
+	Act()
 	ID() AgentID
+	Coordinate() Coordinate
+	Move()
 }

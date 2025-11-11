@@ -17,58 +17,77 @@ var (
 )
 
 type Coordinate struct {
-	X int
-	Y int
+	X float64
+	Y float64
 }
 type ClientAgent struct {
 	id         AgentID
-	Speed      float32
+	Speed      float64
 	env        *Environment
-	Coordinate Coordinate
+	coordinate Coordinate
 	Direction  Direction
-	viewChan   chan ViewRequest
 	pickChan   chan PickRequest
 	moveChan   chan MoveRequest
-	syncChan   chan int
 
+	syncChan chan int
+	//temporaire
+	moveChanResponse chan bool
 	//rajouter un type action ?
 
 }
 
-func NewClientAgent(id string, env *Environment, viewChan chan ViewRequest, moveChan chan MoveRequest, pickChan chan PickRequest, syncChan chan int) *ClientAgent {
-	return &ClientAgent{AgentID(id), 1.0, env, Coordinate{X: 5, Y: 5}, NORTH, viewChan, pickChan, moveChan, syncChan}
+func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, syncChan chan int) *ClientAgent {
+	return &ClientAgent{
+		id:    AgentID(id),
+		Speed: 0.05, env: env,
+		coordinate:       Coordinate{X: 5, Y: 5},
+		Direction:        NORTH,
+		pickChan:         pickChan,
+		moveChan:         moveChan,
+		syncChan:         syncChan,
+		moveChanResponse: make(chan bool),
+	}
 }
 
 func (ag *ClientAgent) ID() AgentID {
 	return ag.id
 }
 
+func (ag *ClientAgent) Move() {
+	ag.coordinate.X += float64(ag.Direction.X) * ag.Speed
+	ag.coordinate.Y += float64(ag.Direction.Y) * ag.Speed
+}
+
 func (ag *ClientAgent) Start() {
 	log.Printf("%s starting...\n", ag.id)
 
 	go func() {
-		env := ag.env
 		var step int
 		for {
 			step = <-ag.syncChan
-			perception := <-ag.viewChan
+			// perception := <-ag.viewChan
 
-			ag.Percept(env)
+			ag.Percept()
 			ag.Deliberate()
-			ag.Act(env)
+			ag.Act()
 			step++
 			ag.syncChan <- step
 		}
 	}()
 }
 
-func (ag *ClientAgent) Percept(env *Environment) {
+func (ag *ClientAgent) Coordinate() Coordinate {
+	return ag.coordinate
+}
+
+func (ag *ClientAgent) Percept() {
 
 }
 
 func (ag *ClientAgent) Deliberate() {
 }
 
-func (ag *ClientAgent) Act(env *Environment) {
-
+func (ag *ClientAgent) Act() {
+	ag.moveChan <- MoveRequest{Agt: ag, ResponseChannel: ag.moveChanResponse}
+	<-ag.moveChanResponse
 }

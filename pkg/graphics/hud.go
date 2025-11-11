@@ -15,6 +15,7 @@ var (
 
 // Global vars
 var (
+	agtImg      *ebiten.Image
 	wallImg     *ebiten.Image
 	groundImg   *ebiten.Image
 	doorImg     *ebiten.Image
@@ -28,6 +29,10 @@ func initHUD() {
 	}
 
 	var err error
+	agtImg, _, err = ebitenutil.NewImageFromFile("assets/agt.png")
+	if err != nil {
+		log.Printf("Warning: Could not load agt.png: %v", err)
+	}
 	wallImg, _, err = ebitenutil.NewImageFromFile("assets/wall.png")
 	if err != nil {
 		log.Printf("Warning: Could not load wall.png: %v", err)

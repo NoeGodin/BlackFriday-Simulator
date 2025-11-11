@@ -1,9 +1,11 @@
 package Graphics
 
-import Map "AI30_-_BlackFriday/pkg/map"
+import (
+	Simulation "AI30_-_BlackFriday/pkg/simulation"
+)
 
 type Game struct {
 	ScreenWidth, ScreenHeight int
 	CameraX, CameraY          int
-	Map                       Map.Map
+	Simulation                *Simulation.Simulation
 }

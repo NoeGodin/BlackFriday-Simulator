@@ -5,6 +5,8 @@ import (
 	"os"
 
 	Graphics "AI30_-_BlackFriday/pkg/graphics"
+	Map "AI30_-_BlackFriday/pkg/map"
+	Simulation "AI30_-_BlackFriday/pkg/simulation"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -20,8 +22,16 @@ func main() {
 	ebiten.SetWindowTitle("Black Friday Simulator")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
-	game := Graphics.NewGame(SCREEN_WIDTH, SCREEN_HEIGHT)
+	mapData, err := Map.LoadMapFromFile("maps/store/layout.txt")
+	if err != nil {
+		panic("Error loading map: " + err.Error())
+	}
+	simu := Simulation.NewSimulation(0, mapData)
 
+	// Appel de la fonction
+	simu.AddClient("agent1")
+	game := Graphics.NewGame(SCREEN_WIDTH, SCREEN_HEIGHT, simu)
+	game.Simulation.Run()
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
