@@ -2,6 +2,7 @@ package Simulation
 
 import (
 	"log"
+	"math/rand"
 )
 
 type Direction struct {
@@ -88,6 +89,17 @@ func (ag *ClientAgent) Percept() {
 }
 
 func (ag *ClientAgent) Deliberate() {
+	dir := rand.Intn(4)
+	switch dir {
+	case 0:
+		ag.direction = EAST
+	case 1:
+		ag.direction = WEST
+	case 2:
+		ag.direction = NORTH
+	case 3:
+		ag.direction = SOUTH
+	}
 }
 
 func (ag *ClientAgent) Act() {
