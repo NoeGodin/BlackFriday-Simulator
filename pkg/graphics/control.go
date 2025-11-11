@@ -35,9 +35,9 @@ func (g *Game) handleMouseClick() {
 	margin := 20
 	mapX := (mouseX - margin + g.CameraX) / CellSize
 	mapY := (mouseY - margin + g.CameraY) / CellSize
-
-	if mapX >= 0 && mapX < g.Map.Width && mapY >= 0 && mapY < g.Map.Height {
-		elementType := g.Map.GetElementType(mapX, mapY)
+	envMap := g.Simulation.Env.Map
+	if mapX >= 0 && mapX < envMap.Width && mapY >= 0 && mapY < envMap.Height {
+		elementType := envMap.GetElementType(mapX, mapY)
 
 		fmt.Printf("=== DEBUG CLICK ===\n")
 		fmt.Printf("Position: (%d, %d)\n", mapX, mapY)
@@ -46,7 +46,7 @@ func (g *Game) handleMouseClick() {
 
 		if elementType == Map.SHELF {
 			fmt.Printf("Product Zone at (%d, %d)\n", mapX, mapY)
-			if items, exists := g.Map.GetProductData(mapX, mapY); exists {
+			if items, exists := envMap.GetProductData(mapX, mapY); exists {
 				fmt.Printf("Shelf Stock (%d items):\n", len(items))
 				for i, item := range items {
 					fmt.Printf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
