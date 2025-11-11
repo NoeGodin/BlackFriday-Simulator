@@ -1,0 +1,52 @@
+package Graphics
+
+import (
+	Simulation "AI30_-_BlackFriday/pkg/simulation"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
+
+type AnimationState struct {
+	animationFRAME_COUNT *[DIRECTIONS][FRAME_COUNT]*ebiten.Image
+	step                 int
+}
+type AgentAnimator struct {
+	agentStates map[Simulation.AgentID]*AnimationState
+}
+
+// il faudra reset les steps lorsque l'agent n'est pas en déplacement
+func (animator *AgentAnimator) AnimationFrame(agt Simulation.Agent) *ebiten.Image {
+	direction := 0
+	switch agt.Direction() {
+	case Simulation.SOUTH:
+		direction = 0
+	case Simulation.NORTH:
+		direction = 1
+
+	case Simulation.EAST:
+		direction = 2
+
+	case Simulation.WEST:
+		direction = 3
+
+	}
+	state, ok := animator.agentStates[agt.ID()]
+	if !ok {
+		// si on implémente de nouveaux spites on pourrait décider aléatoirement de quel sprite attribuer à l'agent
+		newState := &AnimationState{animationFRAME_COUNT: &WalkFrameImgs, step: 1}
+		animator.agentStates[agt.ID()] = newState
+		return newState.animationFRAME_COUNT[direction][0]
+	}
+	frame := (state.step / FRAME_DURATION) % FRAME_COUNT
+	image := state.animationFRAME_COUNT[direction][frame]
+	state.step++
+
+	if state.step >= FRAME_DURATION*FRAME_COUNT {
+		state.step = 0
+	}
+	return image
+}
+
+func NewAgentAnimator() *AgentAnimator {
+	return &AgentAnimator{agentStates: make(map[Simulation.AgentID]*AnimationState)}
+}

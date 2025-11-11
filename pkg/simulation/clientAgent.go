@@ -25,7 +25,7 @@ type ClientAgent struct {
 	Speed      float64
 	env        *Environment
 	coordinate Coordinate
-	Direction  Direction
+	direction  Direction
 	pickChan   chan PickRequest
 	moveChan   chan MoveRequest
 
@@ -41,7 +41,7 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 		id:    AgentID(id),
 		Speed: 0.05, env: env,
 		coordinate:       Coordinate{X: 5, Y: 5},
-		Direction:        NORTH,
+		direction:        NORTH,
 		pickChan:         pickChan,
 		moveChan:         moveChan,
 		syncChan:         syncChan,
@@ -54,8 +54,8 @@ func (ag *ClientAgent) ID() AgentID {
 }
 
 func (ag *ClientAgent) Move() {
-	ag.coordinate.X += float64(ag.Direction.X) * ag.Speed
-	ag.coordinate.Y += float64(ag.Direction.Y) * ag.Speed
+	ag.coordinate.X += float64(ag.direction.X) * ag.Speed
+	ag.coordinate.Y += float64(ag.direction.Y) * ag.Speed
 }
 
 func (ag *ClientAgent) Start() {
@@ -80,6 +80,9 @@ func (ag *ClientAgent) Coordinate() Coordinate {
 	return ag.coordinate
 }
 
+func (ag *ClientAgent) Direction() Direction {
+	return ag.direction
+}
 func (ag *ClientAgent) Percept() {
 
 }

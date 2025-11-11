@@ -26,7 +26,7 @@ func main() {
 	if err != nil {
 		panic("Error loading map: " + err.Error())
 	}
-	simu := Simulation.NewSimulation(0, mapData)
+	simu := Simulation.NewSimulation(0, 100.0, mapData)
 
 	// Appel de la fonction
 	simu.AddClient("agent1")

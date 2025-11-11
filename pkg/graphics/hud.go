@@ -1,6 +1,7 @@
 package Graphics
 
 import (
+	"image"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -15,12 +16,13 @@ var (
 
 // Global vars
 var (
-	agtImg      *ebiten.Image
-	wallImg     *ebiten.Image
-	groundImg   *ebiten.Image
-	doorImg     *ebiten.Image
-	itemImg     *ebiten.Image
-	checkoutImg *ebiten.Image
+	agtImg        *ebiten.Image
+	wallImg       *ebiten.Image
+	groundImg     *ebiten.Image
+	doorImg       *ebiten.Image
+	itemImg       *ebiten.Image
+	checkoutImg   *ebiten.Image
+	WalkFrameImgs [DIRECTIONS][FRAME_COUNT]*ebiten.Image
 )
 
 func initHUD() {
@@ -61,6 +63,21 @@ func initHUD() {
 	hudInitialized = true
 }
 
+func initAnimation() {
+	walk, _, err := ebitenutil.NewImageFromFile("assets/walk.png")
+	if err != nil {
+		log.Printf("Warning: Could not load agt.png: %v", err)
+	}
+	for dir := 0; dir < DIRECTIONS; dir++ {
+		for f := 0; f < FRAME_COUNT; f++ {
+			sx := f * CELL_SIZE
+			sy := dir * CELL_SIZE
+			sub := walk.SubImage(image.Rect(sx, sy, sx+CELL_SIZE, sy+CELL_SIZE)).(*ebiten.Image)
+			WalkFrameImgs[dir][f] = sub
+		}
+	}
+}
 func (g *Game) DrawHUD(screen *ebiten.Image) {
 	initHUD()
+	initAnimation()
 }
