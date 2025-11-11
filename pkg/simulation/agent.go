@@ -9,5 +9,6 @@ type Agent interface {
 	Act()
 	ID() AgentID
 	Coordinate() Coordinate
+	Direction() Direction
 	Move()
 }

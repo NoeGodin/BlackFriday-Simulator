@@ -33,8 +33,8 @@ func (g *Game) handleMouseClick() {
 
 	// convert screen to map coordinates
 	margin := 20
-	mapX := (mouseX - margin + g.CameraX) / CellSize
-	mapY := (mouseY - margin + g.CameraY) / CellSize
+	mapX := (mouseX - margin + g.CameraX) / CELL_SIZE
+	mapY := (mouseY - margin + g.CameraY) / CELL_SIZE
 	envMap := g.Simulation.Env.Map
 	if mapX >= 0 && mapX < envMap.Width && mapY >= 0 && mapY < envMap.Height {
 		elementType := envMap.GetElementType(mapX, mapY)

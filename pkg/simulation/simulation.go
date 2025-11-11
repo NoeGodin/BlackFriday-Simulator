@@ -10,14 +10,14 @@ import (
 type Simulation struct {
 	NClients  int
 	Env       Environment
-	Speed     *float32
+	Speed     float64
 	agents    []Agent
 	syncChans sync.Map
 }
 
-func NewSimulation(agentCount int, mapData *Map.Map) (simu *Simulation) {
+func NewSimulation(agentCount int, speed float64, mapData *Map.Map) (simu *Simulation) {
 
-	simu = &Simulation{agents: make([]Agent, agentCount), Env: *NewEnvironment(mapData)}
+	simu = &Simulation{agents: make([]Agent, agentCount), Env: *NewEnvironment(mapData), Speed: speed}
 	return simu
 }
 
@@ -55,7 +55,7 @@ func (s *Simulation) Run() {
 					return
 				}
 				c.(chan int) <- step
-				time.Sleep(1 * time.Millisecond * 100)
+				time.Sleep(1 * time.Millisecond * time.Duration(s.Speed))
 				<-c.(chan int)
 			}
 		}(agt)
