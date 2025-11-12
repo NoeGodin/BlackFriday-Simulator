@@ -13,8 +13,8 @@ import (
 // Si on change il faudra aussi changer les assets car sinon ils vont être déformée vu que reduit
 
 func (g *Game) mapToDrawCoords(mapX float64, mapY float64, offsetX, offsetY int) (float64, float64) {
-	drawX := mapX*float64(CELL_SIZE) - float64(g.CameraX+offsetX)
-	drawY := mapY*float64(CELL_SIZE) - float64(g.CameraY+offsetY)
+	drawX := mapX*float64(CELL_SIZE) + float64(g.CameraX+offsetX)
+	drawY := mapY*float64(CELL_SIZE) + float64(g.CameraY+offsetY)
 	return drawX, drawY
 }
 
@@ -76,7 +76,7 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 		)
 	}*/
 
-	// DRAW THE GROUND FIRST
+	//DRAW THE GROUND FIRST
 	envMap := g.Simulation.Env.Map
 	for y := range envMap.Height {
 		for x := range envMap.Width {
