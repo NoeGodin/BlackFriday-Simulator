@@ -40,7 +40,7 @@ type ClientAgent struct {
 func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, syncChan chan int) *ClientAgent {
 	return &ClientAgent{
 		id:    AgentID(id),
-		Speed: 0.05, env: env,
+		Speed: BASE_AGENT_SPEED, env: env,
 		coordinate:       Coordinate{X: 5, Y: 5},
 		direction:        NORTH,
 		pickChan:         pickChan,

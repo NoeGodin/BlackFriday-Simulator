@@ -40,11 +40,9 @@ func (s *Simulation) AddClient(agtId string) error {
 }
 func (s *Simulation) Run() {
 	s.Env.Start()
-	for i := range s.NClients {
-		go s.Env.Clients[i].Start()
-	}
-
 	for _, agt := range s.agents {
+		go agt.Start()
+
 		go func(agt Agent) {
 			step := 0
 			for {
