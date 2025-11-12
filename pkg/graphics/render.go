@@ -43,9 +43,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 func (g *Game) DrawMap(screen *ebiten.Image) {
-	margin := 20
-	offsetX := margin
-	offsetY := margin
+	MARGIN := 20
+	offsetX := MARGIN
+	offsetY := MARGIN
 
 	// DRAW GRID LINES USEFUL FOR DEBUGGING
 	/*for i := range g.Map.Width {
@@ -111,9 +111,9 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 }
 
 func (g *Game) DrawAgents(screen *ebiten.Image) {
-	margin := 20
-	offsetX := margin
-	offsetY := margin
+	MARGIN := 20
+	offsetX := MARGIN
+	offsetY := MARGIN
 	for _, agt := range g.Simulation.Agents() {
 		agtCoords := agt.Coordinate()
 		drawX, drawY := g.mapToDrawCoords(agtCoords.X, agtCoords.Y, offsetX, offsetY)
@@ -128,6 +128,6 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	mapHeight := envMap.Height * CELL_SIZE
 
 	// better with this :)
-	margin := 20
-	return mapWidth + margin*2, mapHeight + margin*2
+	MARGIN := 20
+	return mapWidth + MARGIN*2, mapHeight + MARGIN*2
 }
