@@ -5,16 +5,13 @@ import (
 	"math/rand"
 )
 
-type Direction struct {
-	X int
-	Y int
-}
+type Direction int
 
-var (
-	NORTH = Direction{X: 0, Y: -1}
-	EAST  = Direction{X: 1, Y: 0}
-	SOUTH = Direction{X: 0, Y: 1}
-	WEST  = Direction{X: -1, Y: 0}
+const (
+	NORTH Direction = iota
+	EAST
+	SOUTH
+	WEST
 )
 
 type Coordinate struct {
@@ -26,7 +23,7 @@ type ClientAgent struct {
 	Speed      float64
 	env        *Environment
 	coordinate Coordinate
-	direction  Direction
+	dx, dy     float64
 	pickChan   chan PickRequest
 	moveChan   chan MoveRequest
 
@@ -39,10 +36,12 @@ type ClientAgent struct {
 
 func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, syncChan chan int) *ClientAgent {
 	return &ClientAgent{
-		id:    AgentID(id),
-		Speed: BASE_AGENT_SPEED, env: env,
+		id:               AgentID(id),
+		Speed:            BASE_AGENT_SPEED,
+		env:              env,
 		coordinate:       Coordinate{X: 5, Y: 5},
-		direction:        NORTH,
+		dx:               0,
+		dy:               0,
 		pickChan:         pickChan,
 		moveChan:         moveChan,
 		syncChan:         syncChan,
@@ -55,13 +54,13 @@ func (ag *ClientAgent) ID() AgentID {
 }
 
 func (ag *ClientAgent) Move() {
-	ag.coordinate.X += float64(ag.direction.X) * ag.Speed
-	ag.coordinate.Y += float64(ag.direction.Y) * ag.Speed
+	ag.coordinate.X += ag.dx * ag.Speed
+	ag.coordinate.Y += ag.dy * ag.Speed
 }
 func (ag *ClientAgent) DryRunMove() Coordinate {
 	coordinate := ag.coordinate
-	coordinate.X += float64(ag.direction.X) * ag.Speed
-	coordinate.Y += float64(ag.direction.Y) * ag.Speed
+	coordinate.X += ag.dx * ag.Speed
+	coordinate.Y += ag.dy * ag.Speed
 	return ag.coordinate
 }
 func (ag *ClientAgent) Start() {
@@ -87,24 +86,43 @@ func (ag *ClientAgent) Coordinate() Coordinate {
 }
 
 func (ag *ClientAgent) Direction() Direction {
-	return ag.direction
+	if ag.dx == 0 && ag.dy == 0 || ag.dx == 0 && ag.dy > 0 {
+		return SOUTH
+	}
+	if ag.dx > 0 && ag.dy == 0 {
+		return EAST
+	}
+	if ag.dx < 0 && ag.dy == 0 {
+		return WEST
+	}
+	if ag.dx == 0 && ag.dy < 0 {
+		return NORTH
+	}
+	// nord-est
+	if ag.dx > 0 && ag.dy < 0 {
+		return NORTH
+	}
+	//nord-ouest
+	if ag.dx < 0 && ag.dy < 0 {
+		return NORTH
+	}
+	//sud-est
+	if ag.dx > 0 && ag.dy > 0 {
+		return SOUTH
+	}
+	//sd-ouest
+	if ag.dx < 0 && ag.dy > 0 {
+		return SOUTH
+	}
+	return SOUTH
 }
 func (ag *ClientAgent) Percept() {
 
 }
 
 func (ag *ClientAgent) Deliberate() {
-	dir := rand.Intn(4)
-	switch dir {
-	case 0:
-		ag.direction = EAST
-	case 1:
-		ag.direction = WEST
-	case 2:
-		ag.direction = NORTH
-	case 3:
-		ag.direction = SOUTH
-	}
+	ag.dx = rand.Float64()*2 - 1
+	ag.dy = rand.Float64()*2 - 1
 }
 
 func (ag *ClientAgent) Act() {
