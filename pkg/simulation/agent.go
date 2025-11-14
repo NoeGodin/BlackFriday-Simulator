@@ -11,4 +11,5 @@ type Agent interface {
 	Coordinate() Coordinate
 	Direction() Direction
 	Move()
+	DryRunMove() Coordinate
 }

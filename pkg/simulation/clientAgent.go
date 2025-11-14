@@ -58,7 +58,12 @@ func (ag *ClientAgent) Move() {
 	ag.coordinate.X += float64(ag.direction.X) * ag.Speed
 	ag.coordinate.Y += float64(ag.direction.Y) * ag.Speed
 }
-
+func (ag *ClientAgent) DryRunMove() Coordinate {
+	coordinate := ag.coordinate
+	coordinate.X += float64(ag.direction.X) * ag.Speed
+	coordinate.Y += float64(ag.direction.Y) * ag.Speed
+	return ag.coordinate
+}
 func (ag *ClientAgent) Start() {
 	log.Printf("%s starting...\n", ag.id)
 
