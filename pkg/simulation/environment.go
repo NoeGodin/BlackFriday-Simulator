@@ -2,6 +2,7 @@ package Simulation
 
 import (
 	Map "AI30_-_BlackFriday/pkg/map"
+	"math"
 )
 
 type PickRequest struct {
@@ -43,12 +44,39 @@ func (env *Environment) pickRequest() {
 	// 	}
 	// }
 }
+func (env *Environment) isCollision(agt Agent) bool {
+	coords := agt.DryRunMove()
+	//check de la collision avec les eléments collisables
+	for _, walls := range env.Map.GetCollisables() {
+		offsetX := math.Abs(float64(walls[0]) - coords.X)
+		offsetY := math.Abs(float64(walls[1]) - coords.Y)
+
+		if offsetX < 1.0 && offsetY < 1.0 {
+			return true
+		}
+	}
+	for _, neighbor := range env.Clients {
+		if agt.ID() == neighbor.ID() {
+			continue
+		}
+		offsetX := math.Abs(neighbor.coordinate.X - coords.X)
+		offsetY := math.Abs(neighbor.coordinate.Y - coords.Y)
+
+		if offsetX < 1.0 && offsetY < 1.0 {
+			return true
+		}
+	}
+	return false
+}
 
 // demande pour bouger (peut être refuser si une personne où un objet n'est plus dispo)
 func (env *Environment) moveRequest() {
 	for moveRequest := range env.moveChan {
-		moveRequest.Agt.Move()
-		moveRequest.ResponseChannel <- true
+		isCollision := env.isCollision(moveRequest.Agt)
+		if !isCollision {
+			moveRequest.Agt.Move()
+		}
+		moveRequest.ResponseChannel <- isCollision
 	}
 }
 

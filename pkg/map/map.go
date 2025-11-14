@@ -53,6 +53,18 @@ func (m *Map) IsDoor(x, y int) bool {
 	return containsCoordinate(m.Doors, x, y)
 }
 
+func (m *Map) GetCollisables() [][2]int {
+	total := len(m.CheckoutZones) + len(m.Doors) + len(m.ProductZones) + len(m.Walls)
+	collisables := make([][2]int, 0, total)
+
+	collisables = append(collisables, m.CheckoutZones...)
+	collisables = append(collisables, m.Doors...)
+	collisables = append(collisables, m.ProductZones...)
+	collisables = append(collisables, m.Walls...)
+
+	return collisables
+}
+
 func (m *Map) GetElementType(x, y int) ElementType {
 	if m.IsWall(x, y) {
 		return WALL
