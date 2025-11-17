@@ -1,7 +1,6 @@
 package Graphics
 
 import (
-	"AI30_-_BlackFriday/pkg/Hud"
 	"AI30_-_BlackFriday/pkg/constants"
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
 

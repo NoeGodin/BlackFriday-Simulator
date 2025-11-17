@@ -1,8 +1,8 @@
 package Graphics
 
 import (
+	Hud "AI30_-_BlackFriday/pkg/hud"
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
-	Hud "AI30_-_BlackFriday/pkg/Hud"
 )
 
 type Game struct {
@@ -22,5 +22,6 @@ func NewGame(screenWidth, screenHeight int, simu *Simulation.Simulation) *Game {
 		CameraY:       0,
 		AgentAnimator: NewAgentAnimator(),
 		Simulation:    simu,
+		Hud:		   *Hud.NewHud(),
 	}
 }
