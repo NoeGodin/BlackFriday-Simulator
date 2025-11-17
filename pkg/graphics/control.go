@@ -45,15 +45,17 @@ func (g *Game) handleMouseClick() {
 		fmt.Printf("Element Type: %s\n", elementType)
 
 		if elementType == Map.SHELF {
-			fmt.Printf("Product Zone at (%d, %d)\n", mapX, mapY)
-			if items, exists := envMap.GetProductData(mapX, mapY); exists {
-				fmt.Printf("Shelf Stock (%d items):\n", len(items))
-				for i, item := range items {
+			shelfChar := envMap.GetShelfCharacter(mapX, mapY)
+			fmt.Printf("Shelf Zone at (%d, %d) - Shelf Type: '%s'\n", mapX, mapY, shelfChar)
+			if shelf, exists := envMap.GetShelfData(mapX, mapY); exists {
+				fmt.Printf("Shelf '%s' Categories: %v\n", shelfChar, shelf.Categories)
+				fmt.Printf("Shelf '%s' Stock (%d items):\n", shelfChar, len(shelf.Items))
+				for i, item := range shelf.Items {
 					fmt.Printf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
 						i+1, item.Name, item.Price, item.Quantity, item.Reduction*100, item.Attractiveness)
 				}
 			} else {
-				fmt.Printf("No stock data available\n")
+				fmt.Printf("No shelf data available\n")
 			}
 		}
 		fmt.Printf("==================\n")

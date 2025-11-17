@@ -19,7 +19,8 @@ type Item struct {
 
 type Shelf struct {
 	Element
-	Items []Item
+	Items      []Item   `json:"items"`
+	Categories []string `json:"categories"`
 }
 
 type Map struct {
@@ -27,9 +28,9 @@ type Map struct {
 	Height        int
 	Doors         [][2]int
 	CheckoutZones [][2]int
-	ProductZones  [][2]int
 	Walls         [][2]int
-	ProductData   map[[2]int][]Item
+	ShelfData     map[[2]int]Shelf
+	ShelfChars    map[[2]int]string
 }
 
 func (element *Element) Type() ElementType {
@@ -37,5 +38,5 @@ func (element *Element) Type() ElementType {
 }
 
 type StockData struct {
-	Stocks [][]Item `json:"stocks"`
+	Stocks map[string]Shelf `json:"stocks"`
 }

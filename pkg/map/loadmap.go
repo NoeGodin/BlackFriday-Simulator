@@ -31,14 +31,14 @@ func LoadMapFromFile(filename string) (*Map, error) {
 		return nil, err
 	}
 
-	m.LoadStockData(stocks)
+	m.LoadStockData(stocks, string(content))
 	return m, nil
 }
 
-// w = WALL
-// s = SHELF
-// c = CHECKOUT
-// d = DOOR
+// W = WALL
+// a-z, 0-9 = SHELF (mapped to specific products)
+// C = CHECKOUT
+// D = DOOR
 // " "= VOID
 func LoadMapFromString(content string) (*Map, error) {
 	lines := strings.Split(content, "\n")
@@ -67,14 +67,14 @@ func LoadMapFromString(content string) (*Map, error) {
 			}
 
 			switch c {
-			case 'w':
+			case 'W':
 				m.AddWall(x, y)
-			case 's':
-				m.AddProductZone(x, y)
-			case 'd':
+			case 'D':
 				m.AddDoor(x, y)
-			case 'c':
+			case 'C':
 				m.AddCheckoutZone(x, y)
+			default:
+				// Shelves are handled in LoadStockData, no need to add them here
 			}
 		}
 	}
@@ -82,13 +82,27 @@ func LoadMapFromString(content string) (*Map, error) {
 	return m, nil
 }
 
-func (m *Map) LoadStockData(stockData StockData) {
-	//HOW Stocks are assigned to shelves
-	//LEFT TO RIGHT TOP TO BOTTOM
-	for i, productZone := range m.ProductZones {
-		if i < len(stockData.Stocks) {
-			position := [2]int{productZone[0], productZone[1]}
-			m.ProductData[position] = stockData.Stocks[i]
+func (m *Map) LoadStockData(stockData StockData, layoutContent string) {
+	lines := strings.Split(layoutContent, "\n")
+	mapLines := []string{}
+	for _, line := range lines {
+		if len(line) > 0 {
+			mapLines = append(mapLines, line)
+		}
+	}
+
+	// Map product to character in the layout
+	for y, line := range mapLines {
+		for x, c := range line {
+			if (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') {
+				charKey := string(c)
+				position := [2]int{x, y}
+				m.ShelfChars[position] = charKey
+				// Store shelf data
+				if shelf, exists := stockData.Stocks[charKey]; exists {
+					m.ShelfData[position] = shelf
+				}
+			}
 		}
 	}
 }
