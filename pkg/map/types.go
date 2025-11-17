@@ -4,6 +4,11 @@ import "AI30_-_BlackFriday/pkg/constants"
 
 type ElementType = constants.ElementType
 
+// Type implements MapElement.
+func (e ElementType) Type() ElementType {
+	panic("unimplemented")
+}
+
 type MapElement interface {
 	Type() ElementType
 }

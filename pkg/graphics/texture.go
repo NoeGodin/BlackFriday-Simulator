@@ -2,13 +2,15 @@ package Graphics
 
 import (
 	"AI30_-_BlackFriday/pkg/constants"
+	Hud "AI30_-_BlackFriday/pkg/hud"
 	"image"
 	"log"
+	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
+	"golang.org/x/image/font/opentype"
 )
 
 var (
@@ -62,12 +64,27 @@ func initTexture() {
 		log.Printf("Warning: Could not load checkout.png: %v", err)
 	}
 
-	textureFont = basicfont.Face7x13
+	fontBytes, err := os.ReadFile("assets/fonts/Verdana.ttf")
+	if err != nil {
+		panic(err)
+	}
+
+	ttf, err := opentype.Parse(fontBytes)
+	if err != nil {
+		panic(err)
+	}
+
+	Hud.FONT, err = opentype.NewFace(ttf, &opentype.FaceOptions{
+		Size:    9,
+		DPI:     96,
+	})
+	if err != nil {
+		panic(err)
+	}
 
 	textureInitialized = true
 }
 
-<<<<<<< HEAD:pkg/graphics/hud.go
 func initAnimation() {
 	walk, _, err := ebitenutil.NewImageFromFile("assets/walk.png")
 	if err != nil {
@@ -82,32 +99,7 @@ func initAnimation() {
 		}
 	}
 }
-func (g *Game) DrawHUD(screen *ebiten.Image) {
-	initHUD()
-	initAnimation()
-
-	hudWidth := 200
-    hudHeight := 60
-    hudX := 470
-    hudY := 10
-
-    hudBg := ebiten.NewImage(hudWidth, hudHeight)
-    hudBg.Fill(color.RGBA{0, 0, 0, 180})
-
-    op := &ebiten.DrawImageOptions{}
-    op.GeoM.Translate(float64(hudX), float64(hudY))
-    screen.DrawImage(hudBg, op)
-
-    text.Draw(screen, hudMsg, hudFont, hudX+10, hudY+25, color.White)
-
-}
-
-func UpdateHUD(posX, posY int) {
-	hudMsg = fmt.Sprintln("DEBUG")
-    hudMsg += fmt.Sprintf("Position: (%d, %d)", posX, posY)
-}
-=======
 func (g *Game) DrawTexture(screen *ebiten.Image) {
 	initTexture()
+	initAnimation()
 }
->>>>>>> f35bd41 (rename hud to texture):pkg/graphics/texture.go

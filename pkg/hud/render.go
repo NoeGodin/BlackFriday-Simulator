@@ -9,32 +9,23 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
-	"golang.org/x/image/font/basicfont"
 )
 
-func NewHud() *HUD {
-	return &HUD{
-		PositionX: 10,
-		PositionY: 10,
-		PaddingX:  10,
-		PaddingY:  5,
-		HudFont:   basicfont.Face7x13,
-	}
-}
-
-func (h *HUD) Update(posX, posY int, element Map.MapElement) {
-	h.SelectedElement = element
-
+func (h *HUD) Update(posX, posY int, elementType Map.ElementType, items []Map.Item, exists bool) {
+	h.SelectedElement = elementType
+	
 	msg := fmt.Sprintf("Position: (%d, %d)\n", posX, posY)
-	msg += fmt.Sprintf("Element Type: %s\n", element.Type())
+	msg += fmt.Sprintf("Element Type: %s\n", elementType)
 
-	if element.Type() == Map.SHELF {
-		if shelf, ok := element.(*Map.Shelf); ok {
-			msg += fmt.Sprintf("Shelf Stock (%d items):\n", len(shelf.Items))
-			for i, item := range shelf.Items {
-				msg += fmt.Sprintf("[%d] %s - Price: %.2f, Qty: %d, Red.: %.0f%%, Attract.: %.2f\n",
+	if elementType == Map.SHELF {
+		if exists {
+			msg += fmt.Sprintf("Shelf Stock (%d items):\n", len(items))
+			for i, item := range items {
+				msg += fmt.Sprintf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
 					i+1, item.Name, item.Price, item.Quantity, item.Reduction*100, item.Attractiveness)
 			}
+		} else {
+			msg += fmt.Sprintf("No stock data available\n")
 		}
 	}
 
@@ -47,11 +38,11 @@ func (h *HUD) prepareRender() {
 	lines := splitLines(h.DebugMsg)
 	h.renderLines = lines
 
-	lineHeight := h.HudFont.Metrics().Height.Ceil()
+	lineHeight := FONT.Metrics().Height.Ceil()
 
 	maxWidth := 0
 	for _, line := range lines {
-		bounds, _ := font.BoundString(h.HudFont, line)
+		bounds, _ := font.BoundString(FONT, line)
 		width := (bounds.Max.X - bounds.Min.X).Ceil()
 		if width > maxWidth {
 			maxWidth = width
@@ -74,10 +65,10 @@ func (h *HUD) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(float64(h.PositionX), float64(h.PositionY))
 	screen.DrawImage(h.HudBg, op)
 
-	y := h.PositionY + h.PaddingY + h.HudFont.Metrics().Height.Ceil()
+	y := h.PositionY + h.PaddingY + FONT.Metrics().Height.Ceil()
 	for _, line := range h.renderLines {
-		text.Draw(screen, line, h.HudFont, h.PositionX+h.PaddingX, y, color.White)
-		y += h.HudFont.Metrics().Height.Ceil()
+		text.Draw(screen, line, FONT, h.PositionX+h.PaddingX, y, color.White)
+		y += FONT.Metrics().Height.Ceil()
 	}
 }
 
