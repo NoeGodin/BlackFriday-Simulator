@@ -110,6 +110,9 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 			}
 		}
 	}
+
+	targetX, targetY := g.mapToDrawCoords(float64(g.Hud.PositionX), float64(g.Hud.PositionY), offsetX, offsetY)
+	drawImageAt(screen, targetImg, targetX, targetY)
 }
 
 func (g *Game) DrawAgents(screen *ebiten.Image) {

@@ -13,6 +13,8 @@ import (
 
 func (h *HUD) Update(posX, posY int, elementType Map.ElementType, items []Map.Item, exists bool) {
 	h.SelectedElement = elementType
+	h.PositionX = posX
+	h.PositionY = posY
 	
 	msg := fmt.Sprintf("Position: (%d, %d)\n", posX, posY)
 	msg += fmt.Sprintf("Element Type: %s\n", elementType)
