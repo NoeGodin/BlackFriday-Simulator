@@ -40,7 +40,7 @@ func (g *Game) handleMouseClick() {
 		elementType := envMap.GetElementType(mapX, mapY)
 
 		items, exists := envMap.GetProductData(mapX, mapY)
-		g.Hud.Update(mapX, mapY, elementType, items, exists)
+		g.Hud.Update(float64(mapX), float64(mapY), elementType, items, exists)
 
 		fmt.Printf("=== DEBUG CLICK ===\n")
 		fmt.Printf("Position: (%d, %d)\n", mapX, mapY)

@@ -1,10 +1,13 @@
 package Graphics
 
 import (
+	Hud "AI30_-_BlackFriday/pkg/hud"
 	"AI30_-_BlackFriday/pkg/constants"
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text"
+
 	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
 )
@@ -41,7 +44,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	g.DrawPaths(screen)
 	g.DrawAgents(screen)
 	g.DrawTexture(screen)
-	g.Hud.Draw(screen)
+	g.DrawHUD(screen)
 }
 
 func (g *Game) DrawMap(screen *ebiten.Image) {
@@ -111,8 +114,6 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 		}
 	}
 
-	targetX, targetY := g.mapToDrawCoords(float64(g.Hud.PositionX), float64(g.Hud.PositionY), offsetX, offsetY)
-	drawImageAt(screen, targetImg, targetX, targetY)
 }
 
 func (g *Game) DrawAgents(screen *ebiten.Image) {
@@ -184,6 +185,29 @@ func (g *Game) drawAgentPath(screen *ebiten.Image, agent *Simulation.ClientAgent
 		// Redline between agent and current waypoint
 		vector.StrokeLine(screen, float32(agentX), float32(agentY), float32(nextX), float32(nextY), 3, color.RGBA{255, 0, 0, 255}, false)
 	}
+}
+
+func (g *Game) DrawHUD(screen *ebiten.Image) {
+	MARGIN := 20
+	offsetX := MARGIN
+	offsetY := MARGIN
+
+	if g.Hud.HudBg == nil {
+		return
+	}
+
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(Hud.HUD_POS_X, Hud.HUD_POS_Y)
+	screen.DrawImage(g.Hud.HudBg, op)
+
+	y := int(Hud.HUD_POS_Y) + g.Hud.PaddingY + Hud.FONT.Metrics().Height.Ceil()
+	for _, line := range g.Hud.Lines {
+		text.Draw(screen, line, Hud.FONT, int(Hud.HUD_POS_X)+g.Hud.PaddingX, y, color.White)
+		y += Hud.FONT.Metrics().Height.Ceil()
+	}
+
+	targetX, targetY := g.mapToDrawCoords(g.Hud.PositionX, g.Hud.PositionY, offsetX, offsetY)
+	drawImageAt(screen, targetImg, targetX, targetY)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

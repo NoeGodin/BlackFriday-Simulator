@@ -7,16 +7,15 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text"
 	"golang.org/x/image/font"
 )
 
-func (h *HUD) Update(posX, posY int, elementType Map.ElementType, items []Map.Item, exists bool) {
+func (h *HUD) Update(posX, posY float64, elementType Map.ElementType, items []Map.Item, exists bool) {
 	h.SelectedElement = elementType
 	h.PositionX = posX
 	h.PositionY = posY
-	
-	msg := fmt.Sprintf("Position: (%d, %d)\n", posX, posY)
+
+	msg := fmt.Sprintf("Position: (%d, %d)\n", int(posX), int(posY))
 	msg += fmt.Sprintf("Element Type: %s\n", elementType)
 
 	if elementType == Map.SHELF {
@@ -31,14 +30,13 @@ func (h *HUD) Update(posX, posY int, elementType Map.ElementType, items []Map.It
 		}
 	}
 
-	h.DebugMsg = msg
-	h.prepareRender()
+	h.prepareRender(msg)
 }
 
 // Determine the width and height the background based on the text
-func (h *HUD) prepareRender() {
-	lines := splitLines(h.DebugMsg)
-	h.renderLines = lines
+func (h *HUD) prepareRender(msg string) {
+	lines := splitLines(msg)
+	h.Lines = lines
 
 	lineHeight := FONT.Metrics().Height.Ceil()
 
@@ -56,22 +54,6 @@ func (h *HUD) prepareRender() {
 
 	h.HudBg = ebiten.NewImage(h.HudWidth, h.HudHeight)
 	h.HudBg.Fill(color.RGBA{0, 0, 0, 180})
-}
-
-func (h *HUD) Draw(screen *ebiten.Image) {
-	if h.HudBg == nil {
-		return
-	}
-
-	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(float64(h.PositionX), float64(h.PositionY))
-	screen.DrawImage(h.HudBg, op)
-
-	y := h.PositionY + h.PaddingY + FONT.Metrics().Height.Ceil()
-	for _, line := range h.renderLines {
-		text.Draw(screen, line, FONT, h.PositionX+h.PaddingX, y, color.White)
-		y += FONT.Metrics().Height.Ceil()
-	}
 }
 
 func splitLines(s string) []string {
