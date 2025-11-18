@@ -7,13 +7,11 @@ import (
 )
 
 type HUD struct {
-	PositionX, PositionY int
+	PositionX, PositionY float64
 	PaddingX, PaddingY   int
 	HudWidth, HudHeight  int
 	HudBg                *ebiten.Image
-
-	DebugMsg        string
-	renderLines     []string
+	Lines           []string
 	SelectedElement Map.MapElement
 }
 
