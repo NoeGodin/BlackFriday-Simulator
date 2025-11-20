@@ -169,6 +169,130 @@
         }
       ],
       "categories": ["textile", "mode", "vêtement"]
+    },
+    "k": {
+      "items": [{"name": "Produits laitiers", "price": 7.50, "reduction": 0.0, "attractiveness": 0.65, "quantity": 20}],
+      "categories": ["frais", "laitier", "quotidien"]
+    },
+    "l": {
+      "items": [{"name": "Légumes frais", "price": 12.00, "reduction": 0.05, "attractiveness": 0.75, "quantity": 18}],
+      "categories": ["frais", "légumes", "santé"]
+    },
+    "m": {
+      "items": [{"name": "Viandes", "price": 28.50, "reduction": 0.1, "attractiveness": 0.85, "quantity": 8}],
+      "categories": ["frais", "viande", "protéine"]
+    },
+    "n": {
+      "items": [{"name": "Poissons", "price": 22.75, "reduction": 0.15, "attractiveness": 0.8, "quantity": 6}],
+      "categories": ["frais", "poisson", "protéine"]
+    },
+    "o": {
+      "items": [{"name": "Pâtes", "price": 4.25, "reduction": 0.0, "attractiveness": 0.5, "quantity": 35}],
+      "categories": ["sec", "féculents", "basique"]
+    },
+    "p": {
+      "items": [{"name": "Riz", "price": 3.80, "reduction": 0.0, "attractiveness": 0.45, "quantity": 40}],
+      "categories": ["sec", "féculents", "basique"]
+    },
+    "q": {
+      "items": [{"name": "Huiles", "price": 9.90, "reduction": 0.05, "attractiveness": 0.6, "quantity": 15}],
+      "categories": ["cuisine", "condiment", "gras"]
+    },
+    "r": {
+      "items": [{"name": "Sauces", "price": 6.50, "reduction": 0.1, "attractiveness": 0.55, "quantity": 25}],
+      "categories": ["cuisine", "condiment", "goût"]
+    },
+    "s": {
+      "items": [{"name": "Surgelés", "price": 8.75, "reduction": 0.2, "attractiveness": 0.7, "quantity": 22}],
+      "categories": ["surgelé", "pratique", "conservation"]
+    },
+    "t": {
+      "items": [{"name": "Thé", "price": 11.25, "reduction": 0.0, "attractiveness": 0.7, "quantity": 12}],
+      "categories": ["boisson", "chaude", "relaxant"]
+    },
+    "u": {
+      "items": [{"name": "Ustensiles", "price": 15.00, "reduction": 0.05, "attractiveness": 0.4, "quantity": 8}],
+      "categories": ["équipement", "cuisine", "utile"]
+    },
+    "v": {
+      "items": [{"name": "Vins", "price": 45.00, "reduction": 0.1, "attractiveness": 0.9, "quantity": 5}],
+      "categories": ["alcool", "prestige", "célébration"]
+    },
+    "w": {
+      "items": [{"name": "Whisky", "price": 65.00, "reduction": 0.0, "attractiveness": 0.95, "quantity": 3}],
+      "categories": ["alcool", "premium", "luxe"]
+    },
+    "x": {
+      "items": [{"name": "Produits exotiques", "price": 35.50, "reduction": 0.15, "attractiveness": 0.85, "quantity": 4}],
+      "categories": ["exotique", "rare", "découverte"]
+    },
+    "y": {
+      "items": [{"name": "Yaourts", "price": 5.25, "reduction": 0.0, "attractiveness": 0.6, "quantity": 30}],
+      "categories": ["frais", "laitier", "dessert"]
+    },
+    "A": {
+      "items": [{"name": "Articles de sport", "price": 75.00, "reduction": 0.2, "attractiveness": 0.8, "quantity": 3}],
+      "categories": ["sport", "équipement", "activité"]
+    },
+    "B": {
+      "items": [{"name": "Beauté", "price": 25.50, "reduction": 0.1, "attractiveness": 0.75, "quantity": 10}],
+      "categories": ["beauté", "cosmétique", "soin"]
+    },
+    "E": {
+      "items": [{"name": "Électroménager", "price": 200.00, "reduction": 0.15, "attractiveness": 0.9, "quantity": 2}],
+      "categories": ["électroménager", "maison", "équipement"]
+    },
+    "F": {
+      "items": [{"name": "Fournitures bureau", "price": 18.75, "reduction": 0.05, "attractiveness": 0.4, "quantity": 12}],
+      "categories": ["bureau", "papeterie", "travail"]
+    },
+    "G": {
+      "items": [{"name": "Jardinage", "price": 32.00, "reduction": 0.1, "attractiveness": 0.65, "quantity": 6}],
+      "categories": ["jardin", "extérieur", "nature"]
+    },
+    "H": {
+      "items": [{"name": "Hygiène", "price": 12.50, "reduction": 0.0, "attractiveness": 0.7, "quantity": 20}],
+      "categories": ["hygiène", "soin", "quotidien"]
+    },
+    "I": {
+      "items": [{"name": "Informatique", "price": 150.00, "reduction": 0.1, "attractiveness": 0.85, "quantity": 2}],
+      "categories": ["informatique", "technologie", "numérique"]
+    },
+    "J": {
+      "items": [{"name": "Jeux", "price": 40.00, "reduction": 0.15, "attractiveness": 0.8, "quantity": 8}],
+      "categories": ["jeu", "loisir", "divertissement"]
+    },
+    "K": {
+      "items": [{"name": "Cuisine équipée", "price": 85.00, "reduction": 0.05, "attractiveness": 0.7, "quantity": 3}],
+      "categories": ["cuisine", "équipement", "maison"]
+    },
+    "L": {
+      "items": [{"name": "Livres", "price": 15.99, "reduction": 0.0, "attractiveness": 0.6, "quantity": 15}],
+      "categories": ["livre", "culture", "lecture"]
+    },
+    "M": {
+      "items": [{"name": "Musique", "price": 20.00, "reduction": 0.1, "attractiveness": 0.7, "quantity": 10}],
+      "categories": ["musique", "audio", "divertissement"]
+    },
+    "N": {
+      "items": [{"name": "Nettoyage", "price": 8.25, "reduction": 0.05, "attractiveness": 0.5, "quantity": 25}],
+      "categories": ["nettoyage", "entretien", "maison"]
+    },
+    "O": {
+      "items": [{"name": "Outils", "price": 45.50, "reduction": 0.1, "attractiveness": 0.6, "quantity": 5}],
+      "categories": ["outil", "bricolage", "équipement"]
+    },
+    "P": {
+      "items": [{"name": "Pharmacie", "price": 22.00, "reduction": 0.0, "attractiveness": 0.8, "quantity": 12}],
+      "categories": ["pharmacie", "santé", "médicament"]
+    },
+    "Q": {
+      "items": [{"name": "Quincaillerie", "price": 12.75, "reduction": 0.05, "attractiveness": 0.4, "quantity": 18}],
+      "categories": ["quincaillerie", "bricolage", "matériel"]
+    },
+    "R": {
+      "items": [{"name": "Robots ménagers", "price": 120.00, "reduction": 0.2, "attractiveness": 0.85, "quantity": 2}],
+      "categories": ["robot", "électroménager", "automatisation"]
     }
   }
 }
