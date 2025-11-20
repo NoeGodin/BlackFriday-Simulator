@@ -1,7 +1,11 @@
 package Map
 
+import (
+	"math/rand"
+)
+
 func NewMap(width int, height int) *Map {
-	return &Map{
+	m := &Map{
 		Width:         width,
 		Height:        height,
 		Doors:         make([][2]int, 0),
@@ -10,18 +14,40 @@ func NewMap(width int, height int) *Map {
 		ShelfData:     make(map[[2]int]Shelf),
 		ShelfChars:    make(map[[2]int]string),
 	}
+
+	m.buildFreeCells()
+	return m
+}
+
+func (m *Map) buildFreeCells() {
+	total := m.Width * m.Height
+	m.freeCells = make([][2]int, 0, total)
+
+	for x := 0; x < m.Width; x++ {
+		for y := 0; y < m.Height; y++ {
+			if !m.IsWall(x, y) &&
+				!m.IsCheckout(x, y) &&
+				!m.IsShelf(x, y) &&
+				!m.IsDoor(x, y) {
+				m.freeCells = append(m.freeCells, [2]int{x, y})
+			}
+		}
+	}
 }
 
 func (m *Map) AddDoor(x, y int) {
 	m.Doors = append(m.Doors, [2]int{x, y})
+	m.buildFreeCells()
 }
 
 func (m *Map) AddCheckoutZone(x, y int) {
 	m.CheckoutZones = append(m.CheckoutZones, [2]int{x, y})
+	m.buildFreeCells()
 }
 
 func (m *Map) AddWall(x, y int) {
 	m.Walls = append(m.Walls, [2]int{x, y})
+	m.buildFreeCells()
 }
 
 func containsCoordinate(coordinates [][2]int, x, y int) bool {
@@ -88,6 +114,7 @@ func (m *Map) GetShelfData(x, y int) (Shelf, bool) {
 
 func (m *Map) SetShelfData(x, y int, shelf Shelf) {
 	m.ShelfData[[2]int{x, y}] = shelf
+	m.buildFreeCells()
 }
 
 func (m *Map) GetAllShelvesData() map[[2]int]Shelf {
@@ -99,4 +126,21 @@ func (m *Map) GetShelfCharacter(x, y int) string {
 		return char
 	}
 	return ""
+}
+
+func (m *Map) GetRandomFreeCoordinate() (int, int, bool) {
+	if len(m.freeCells) == 0 {
+		return 0, 0, false
+	}
+
+	idx := rand.Intn(len(m.freeCells))
+	coord := m.freeCells[idx]
+	return coord[0], coord[1], true
+}
+
+func (m *Map) IsWalkable(x, y int) bool {
+	return !m.IsWall(x, y) &&
+		!m.IsCheckout(x, y) &&
+		!m.IsShelf(x, y) &&
+		!m.IsDoor(x, y)
 }

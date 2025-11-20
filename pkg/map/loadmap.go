@@ -32,6 +32,7 @@ func LoadMapFromFile(filename string) (*Map, error) {
 	}
 
 	m.LoadStockData(stocks, string(content))
+	m.buildFreeCells()
 	return m, nil
 }
 
