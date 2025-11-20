@@ -2,10 +2,10 @@ package Graphics
 
 import (
 	Map "AI30_-_BlackFriday/pkg/map"
+	Simulation "AI30_-_BlackFriday/pkg/simulation"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	//Line drawing debugging dependency
-	//"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
 )
 
@@ -38,6 +38,7 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.White)
 	g.DrawMap(screen)
+	g.DrawPaths(screen)
 	g.DrawAgents(screen)
 	g.DrawHUD(screen)
 }
@@ -118,6 +119,66 @@ func (g *Game) DrawAgents(screen *ebiten.Image) {
 		agtCoords := agt.Coordinate()
 		drawX, drawY := g.mapToDrawCoords(agtCoords.X, agtCoords.Y, offsetX, offsetY)
 		drawImageAt(screen, g.AgentAnimator.AnimationFrame(agt), drawX, drawY)
+	}
+}
+
+func (g *Game) DrawPaths(screen *ebiten.Image) {
+	MARGIN := 20
+	offsetX := MARGIN
+	offsetY := MARGIN
+
+	for _, agt := range g.Simulation.Agents() {
+		if clientAgent, ok := agt.(*Simulation.ClientAgent); ok {
+			g.drawAgentPath(screen, clientAgent, offsetX, offsetY)
+		}
+	}
+}
+
+func (g *Game) drawAgentPath(screen *ebiten.Image, agent *Simulation.ClientAgent, offsetX, offsetY int) {
+	path := agent.GetCurrentPath()
+	if path == nil {
+		return
+	}
+
+	waypoints := path.GetWaypoints()
+	if len(waypoints) == 0 {
+		return
+	}
+
+	agentCoord := agent.Coordinate()
+	agentX := agentCoord.X*float64(CELL_SIZE) + float64(g.CameraX+offsetX) + float64(CELL_SIZE)/2
+	agentY := agentCoord.Y*float64(CELL_SIZE) + float64(g.CameraY+offsetY) + float64(CELL_SIZE)/2
+
+	for i, waypoint := range waypoints {
+		waypointX := float64(waypoint.X)*float64(CELL_SIZE) + float64(g.CameraX+offsetX) + float64(CELL_SIZE)/2
+		waypointY := float64(waypoint.Y)*float64(CELL_SIZE) + float64(g.CameraY+offsetY) + float64(CELL_SIZE)/2
+
+		// Waypoints : black circle
+		vector.FillCircle(screen, float32(waypointX), float32(waypointY), 3, color.Black, false)
+
+		// Lines between waypoints
+		if i > 0 {
+			prevWaypoint := waypoints[i-1]
+			prevX := float64(prevWaypoint.X)*float64(CELL_SIZE) + float64(g.CameraX+offsetX) + float64(CELL_SIZE)/2
+			prevY := float64(prevWaypoint.Y)*float64(CELL_SIZE) + float64(g.CameraY+offsetY) + float64(CELL_SIZE)/2
+
+			vector.StrokeLine(screen, float32(prevX), float32(prevY), float32(waypointX), float32(waypointY), 2, color.RGBA{0, 100, 255, 255}, false)
+		}
+	}
+
+	// Waypoints : green circle
+	target := path.GetTarget()
+	targetX := float64(target.X)*float64(CELL_SIZE) + float64(g.CameraX+offsetX) + float64(CELL_SIZE)/2
+	targetY := float64(target.Y)*float64(CELL_SIZE) + float64(g.CameraY+offsetY) + float64(CELL_SIZE)/2
+	vector.FillCircle(screen, float32(targetX), float32(targetY), 5, color.RGBA{0, 255, 0, 255}, false)
+
+	if len(waypoints) > 0 {
+		nextWaypoint := waypoints[0]
+		nextX := float64(nextWaypoint.X)*float64(CELL_SIZE) + float64(g.CameraX+offsetX) + float64(CELL_SIZE)/2
+		nextY := float64(nextWaypoint.Y)*float64(CELL_SIZE) + float64(g.CameraY+offsetY) + float64(CELL_SIZE)/2
+
+		// Redline between agent and current waypoint
+		vector.StrokeLine(screen, float32(agentX), float32(agentY), float32(nextX), float32(nextY), 3, color.RGBA{255, 0, 0, 255}, false)
 	}
 }
 
