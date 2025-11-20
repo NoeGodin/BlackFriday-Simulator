@@ -13,6 +13,7 @@ type HUD struct {
 	HudBg                *ebiten.Image
 	Lines           []string
 	SelectedElement Map.MapElement
+	Hidden				 bool
 }
 
 func NewHud() *HUD {
@@ -21,5 +22,6 @@ func NewHud() *HUD {
 		PositionY: 10,
 		PaddingX:  10,
 		PaddingY:  5,
+		Hidden:	   true,
 	}
 }
