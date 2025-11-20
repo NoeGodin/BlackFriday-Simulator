@@ -188,6 +188,10 @@ func (g *Game) drawAgentPath(screen *ebiten.Image, agent *Simulation.ClientAgent
 }
 
 func (g *Game) DrawHUD(screen *ebiten.Image) {
+	if g.Hud.Hidden {
+		return
+	}
+
 	MARGIN := 20
 	offsetX := MARGIN
 	offsetY := MARGIN

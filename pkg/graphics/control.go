@@ -26,6 +26,10 @@ func (g *Game) HandleInput() {
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		g.handleMouseClick()
 	}
+
+	if ebiten.IsKeyPressed(ebiten.KeyH) {
+		g.Hud.Hidden = true
+	}
 }
 
 func (g *Game) handleMouseClick() {

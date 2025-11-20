@@ -11,6 +11,8 @@ import (
 )
 
 func (h *HUD) Update(posX, posY float64, elementType Map.ElementType, items []Map.Item, exists bool) {
+	h.Hidden = false;
+	
 	h.SelectedElement = elementType
 	h.PositionX = posX
 	h.PositionY = posY
