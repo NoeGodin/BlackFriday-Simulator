@@ -4,6 +4,7 @@ go 1.25.1
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.9.3
+	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/image v0.32.0
 )
 
