@@ -2,6 +2,7 @@ package Graphics
 
 import (
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
+	"AI30_-_BlackFriday/pkg/utils"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -18,15 +19,15 @@ type AgentAnimator struct {
 func (animator *AgentAnimator) AnimationFrame(agt Simulation.Agent) *ebiten.Image {
 	direction := 0
 	switch agt.Direction() {
-	case Simulation.SOUTH:
+	case utils.SOUTH:
 		direction = 0
-	case Simulation.NORTH:
+	case utils.NORTH:
 		direction = 1
 
-	case Simulation.EAST:
+	case utils.EAST:
 		direction = 2
 
-	case Simulation.WEST:
+	case utils.WEST:
 		direction = 3
 
 	}
