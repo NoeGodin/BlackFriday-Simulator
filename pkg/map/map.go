@@ -144,3 +144,7 @@ func (m *Map) IsWalkable(x, y int) bool {
 		!m.IsShelf(x, y) &&
 		!m.IsDoor(x, y)
 }
+
+func (m *Map) IsValidAndWalkable(x, y int) bool {
+	return x >= 0 && x < m.Width && y >= 0 && y < m.Height && m.IsWalkable(x, y)
+}

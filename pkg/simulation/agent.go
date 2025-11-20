@@ -1,5 +1,7 @@
 package Simulation
 
+import "AI30_-_BlackFriday/pkg/utils"
+
 type AgentID string
 
 type Agent interface {
@@ -8,8 +10,8 @@ type Agent interface {
 	Deliberate()
 	Act()
 	ID() AgentID
-	Coordinate() Coordinate
-	Direction() Direction
+	Coordinate() utils.Coordinate
+	Direction() utils.Direction
 	Move()
-	DryRunMove() Coordinate
+	DryRunMove() utils.Coordinate
 }
