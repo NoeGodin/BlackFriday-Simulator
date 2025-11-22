@@ -2,7 +2,9 @@ package Hud
 
 import (
 	Map "AI30_-_BlackFriday/pkg/map"
+	Simulation "AI30_-_BlackFriday/pkg/simulation"
 	"fmt"
+	"strings"
 
 	"image/color"
 
@@ -10,34 +12,48 @@ import (
 	"golang.org/x/image/font"
 )
 
-func (h *HUD) Update(posX, posY float64, elementType Map.ElementType, items []Map.Item, exists bool) {
-	h.Hidden = false;
-	
-	h.SelectedElement = elementType
+func (h *HUD) SetSelectedElement(posX, posY float64, elementType Map.ElementType, items []Map.Item, exists bool) {
+	h.selectedElement = elementType
 	h.PositionX = posX
 	h.PositionY = posY
+}
 
-	msg := fmt.Sprintf("Position: (%d, %d)\n", int(posX), int(posY))
-	msg += fmt.Sprintf("Element Type: %s\n", elementType)
+func (h *HUD) SetSelectedAgent(agent Simulation.Agent) {
+	h.selectedAgent = agent
+	h.PositionX = agent.Coordinate().X
+	h.PositionY = agent.Coordinate().Y
+}
 
-	if elementType == Map.SHELF {
-		if exists {
-			msg += fmt.Sprintf("Shelf Stock (%d items):\n", len(items))
-			for i, item := range items {
-				msg += fmt.Sprintf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
-					i+1, item.Name, item.Price, item.Quantity, item.Reduction*100, item.Attractiveness)
-			}
-		} else {
-			msg += fmt.Sprintf("No stock data available\n")
-		}
+func (h *HUD) SetSelection(posX, posY float64, elementType Map.ElementType, agent Simulation.Agent, items []Map.Item, exists bool) {
+	h.clearSelection()
+	h.hidden = false
+
+	msg := ""
+	if agent == nil {
+		h.SetSelectedElement(posX, posY, elementType, items, exists)
+		msg = h.getElementSelectionMessage(items, exists)
+	} else {
+		h.SetSelectedAgent(agent)
+		msg = h.getAgentSelectionMessage()
 	}
 
 	h.prepareRender(msg)
 }
 
+// If an agent is selected, we refresh its position
+func (h *HUD) Update() {
+	if h.selectedAgent != nil {
+		h.PositionX = h.selectedAgent.Coordinate().X
+		h.PositionY = h.selectedAgent.Coordinate().Y
+
+		msg := h.getAgentSelectionMessage()
+		h.prepareRender(msg)
+	}
+}
+
 // Determine the width and height the background based on the text
 func (h *HUD) prepareRender(msg string) {
-	lines := splitLines(msg)
+	lines := strings.Split(msg, "\n")
 	h.Lines = lines
 
 	lineHeight := FONT.Metrics().Height.Ceil()
@@ -51,24 +67,40 @@ func (h *HUD) prepareRender(msg string) {
 		}
 	}
 
-	h.HudWidth = maxWidth + h.PaddingX*2
+	h.HudWidth = maxWidth + h.PaddingX*2 + h.PaddingX
 	h.HudHeight = len(lines)*lineHeight + h.PaddingY*2
 
 	h.HudBg = ebiten.NewImage(h.HudWidth, h.HudHeight)
 	h.HudBg.Fill(color.RGBA{0, 0, 0, 180})
 }
 
-func splitLines(s string) []string {
-	lines := []string{}
-	start := 0
-	for i, c := range s {
-		if c == '\n' {
-			lines = append(lines, s[start:i])
-			start = i + 1
+func (h *HUD) clearSelection() {
+	h.selectedElement = nil
+	h.selectedAgent = nil
+}
+
+func (h *HUD) getAgentSelectionMessage() string {
+	msg := fmt.Sprintf("Agent ID: %s\n", h.selectedAgent.ID())
+	msg += fmt.Sprintf("Position: (%.2f, %.2f)\n", h.PositionX, h.PositionY)
+	// In the future, we can add agent's inventory, its objectives, attitude, status...
+	return msg
+}
+
+func (h *HUD) getElementSelectionMessage(items []Map.Item, exists bool) string {
+	msg := fmt.Sprintf("Position: (%d, %d)\n", int(h.PositionX), int(h.PositionY))
+	msg += fmt.Sprintf("Element Type: %s\n", h.selectedElement)
+
+	if h.selectedElement == Map.SHELF {
+		if exists {
+			msg += fmt.Sprintf("Shelf Stock (%d items):\n", len(items))
+			for i, item := range items {
+				msg += fmt.Sprintf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
+					i+1, item.Name, item.Price, item.Quantity, item.Reduction*100, item.Attractiveness)
+			}
+		} else {
+			msg += "No stock data available\n"
 		}
 	}
-	if start < len(s) {
-		lines = append(lines, s[start:])
-	}
-	return lines
+
+	return msg
 }

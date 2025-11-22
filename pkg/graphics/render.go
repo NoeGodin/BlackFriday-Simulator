@@ -35,6 +35,7 @@ func drawImageAt(screen *ebiten.Image, img *ebiten.Image, x, y float64) {
 
 func (g *Game) Update() error {
 	g.HandleInput()
+	g.Hud.Update()
 	return nil
 }
 
@@ -188,7 +189,7 @@ func (g *Game) drawAgentPath(screen *ebiten.Image, agent *Simulation.ClientAgent
 }
 
 func (g *Game) DrawHUD(screen *ebiten.Image) {
-	if g.Hud.Hidden {
+	if g.Hud.Hidden() {
 		return
 	}
 

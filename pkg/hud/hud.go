@@ -2,6 +2,7 @@ package Hud
 
 import (
 	Map "AI30_-_BlackFriday/pkg/map"
+	Simulation "AI30_-_BlackFriday/pkg/simulation"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -11,9 +12,12 @@ type HUD struct {
 	PaddingX, PaddingY   int
 	HudWidth, HudHeight  int
 	HudBg                *ebiten.Image
-	Lines           []string
-	SelectedElement Map.MapElement
-	Hidden				 bool
+	Lines                []string
+
+	selectedElement Map.MapElement
+	selectedAgent   Simulation.Agent
+
+	hidden bool
 }
 
 func NewHud() *HUD {
@@ -22,6 +26,14 @@ func NewHud() *HUD {
 		PositionY: 10,
 		PaddingX:  10,
 		PaddingY:  5,
-		Hidden:	   true,
+		hidden:    true,
 	}
+}
+
+func (h *HUD) Hidden() bool {
+	return h.hidden
+}
+
+func (h *HUD) ToggleHidden() {
+	h.hidden = !h.hidden
 }
