@@ -2,6 +2,7 @@ package Simulation
 
 import (
 	Map "AI30_-_BlackFriday/pkg/map"
+	"fmt"
 	"math"
 )
 
@@ -55,6 +56,13 @@ func (env *Environment) isCollision(agt Agent) bool {
 			return true
 		}
 	}
+	return false
+}
+
+func (env *Environment) checkAgentCollisions(agt Agent) []*ClientAgent {
+	coords := agt.DryRunMove()
+	collidingAgents := make([]*ClientAgent, 0)
+
 	for _, neighbor := range env.Clients {
 		if agt.ID() == neighbor.ID() {
 			continue
@@ -62,21 +70,28 @@ func (env *Environment) isCollision(agt Agent) bool {
 		offsetX := math.Abs(neighbor.coordinate.X - coords.X)
 		offsetY := math.Abs(neighbor.coordinate.Y - coords.Y)
 
-		if offsetX < 0.4 && offsetY < 0.4 {
-			return true
+		if offsetX < 0.15 && offsetY < 0.15 {
+			collidingAgents = append(collidingAgents, neighbor)
 		}
 	}
-	return false
+	return collidingAgents
 }
 
 // demande pour bouger (peut être refuser si une personne où un objet n'est plus dispo)
 func (env *Environment) moveRequest() {
 	for moveRequest := range env.moveChan {
-		isCollision := env.isCollision(moveRequest.Agt)
-		if !isCollision {
-			moveRequest.Agt.Move()
+		// Check wall/shelf collisions (solid objects)
+		isWallCollision := env.isCollision(moveRequest.Agt)
+		if isWallCollision {
+			// Block movement if hitting walls/shelves
+			moveRequest.ResponseChannel <- true
+			continue
 		}
-		moveRequest.ResponseChannel <- isCollision
+		collidingAgents := env.checkAgentCollisions(moveRequest.Agt)
+		fmt.Println(collidingAgents)
+		//TODO: ici on pourrait gérer mieux la collision en regardant l'etat de la var collidingAgents
+		moveRequest.Agt.Move()
+		moveRequest.ResponseChannel <- false // Movement always succeeds unless wall collision
 	}
 }
 

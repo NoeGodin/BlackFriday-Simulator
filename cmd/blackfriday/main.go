@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -36,7 +37,10 @@ func main() {
 	simu := Simulation.NewSimulation(0, 100.0, mapData)
 
 	logger.Info("Adding agents...")
-	simu.AddClient("agent1")
+	for i := 1; i <= 50; i++ {
+		agentID := fmt.Sprintf("agent%d", i)
+		simu.AddClient(agentID)
+	}
 
 	logger.Info("Starting game...")
 	game := Graphics.NewGame(SCREEN_WIDTH, SCREEN_HEIGHT, simu)
