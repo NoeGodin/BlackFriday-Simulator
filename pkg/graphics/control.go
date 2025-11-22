@@ -2,7 +2,9 @@ package Graphics
 
 import (
 	"AI30_-_BlackFriday/pkg/constants"
+	Simulation "AI30_-_BlackFriday/pkg/simulation"
 	"fmt"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -28,7 +30,7 @@ func (g *Game) HandleInput() {
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyH) {
-		g.Hud.Hidden = !g.Hud.Hidden
+		g.Hud.ToggleHidden()
 	}
 }
 
@@ -44,7 +46,9 @@ func (g *Game) handleMouseClick() {
 		elementType := envMap.GetElementType(mapX, mapY)
 
 		items, exists := envMap.GetProductData(mapX, mapY)
-		g.Hud.Update(float64(mapX), float64(mapY), elementType, items, exists)
+
+		agt := g.isMouseClickedOnAgent(mapX, mapY)
+		g.Hud.SetSelection(float64(mapX), float64(mapY), elementType, agt, items, exists)
 
 		fmt.Printf("=== DEBUG CLICK ===\n")
 		fmt.Printf("Position: (%d, %d)\n", mapX, mapY)
@@ -67,4 +71,17 @@ func (g *Game) handleMouseClick() {
 		}
 		fmt.Printf("==================\n")
 	}
+}
+
+func (g *Game) isMouseClickedOnAgent(mapX, mapY int) Simulation.Agent {
+	for _, a := range g.Simulation.Agents() {
+		dx := math.Abs(a.Coordinate().X - float64(mapX))
+		dy := math.Abs(a.Coordinate().Y - float64(mapY))
+
+		if dx < 0.5 && dy < 0.5 {
+			return a
+		}
+	}
+
+	return nil
 }

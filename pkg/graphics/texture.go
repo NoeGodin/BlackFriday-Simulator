@@ -71,7 +71,7 @@ func initTexture() {
 		log.Printf("Warning: Could not load checkout.png: %v", err)
 	}
 
-	fontBytes, err := os.ReadFile("assets/fonts/Verdana.ttf")
+	fontBytes, err := os.ReadFile("assets/fonts/Monaco.ttf")
 	if err != nil {
 		panic(err)
 	}
@@ -82,9 +82,11 @@ func initTexture() {
 	}
 
 	Hud.FONT, err = opentype.NewFace(ttf, &opentype.FaceOptions{
-		Size:    9,
-		DPI:     96,
+		Size:    12,
+		DPI:     72,
+		Hinting: font.HintingFull,
 	})
+	
 	if err != nil {
 		panic(err)
 	}
