@@ -120,30 +120,31 @@ func (mm *MovementManager) CalculateDirection() utils.Direction {
 	if dx == 0 && dy == 0 || dx == 0 && dy > 0 {
 		return utils.SOUTH
 	}
+	if dx == 0 && dy < 0 {
+		return utils.NORTH
+	}
 	if dx > 0 && dy == 0 {
 		return utils.EAST
 	}
 	if dx < 0 && dy == 0 {
 		return utils.WEST
 	}
-	if dx == 0 && dy < 0 {
-		return utils.NORTH
+
+	// diagonal movement
+	absDx := math.Abs(dx)
+	absDy := math.Abs(dy)
+
+	if absDx > absDy {
+		if dx > 0 {
+			return utils.EAST
+		} else {
+			return utils.WEST
+		}
+	} else {
+		if dy > 0 {
+			return utils.SOUTH
+		} else {
+			return utils.NORTH
+		}
 	}
-	// nord-est
-	if dx > 0 && dy < 0 {
-		return utils.NORTH
-	}
-	//nord-ouest
-	if dx < 0 && dy < 0 {
-		return utils.NORTH
-	}
-	//sud-est
-	if dx > 0 && dy > 0 {
-		return utils.SOUTH
-	}
-	//sud-ouest
-	if dx < 0 && dy > 0 {
-		return utils.SOUTH
-	}
-	return utils.SOUTH
 }
