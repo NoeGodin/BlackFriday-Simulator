@@ -1,6 +1,7 @@
 package Map
 
 import (
+	"AI30_-_BlackFriday/pkg/constants"
 	"math/rand"
 )
 
@@ -91,20 +92,20 @@ func (m *Map) GetCollisables() [][2]int {
 	return collisables
 }
 
-func (m *Map) GetElementType(x, y int) ElementType {
+func (m *Map) GetElementType(x, y int) constants.ElementType {
 	if m.IsWall(x, y) {
-		return WALL
+		return constants.WALL
 	}
 	if m.IsCheckout(x, y) {
-		return CHECKOUT
+		return constants.CHECKOUT
 	}
 	if m.IsShelf(x, y) {
-		return SHELF
+		return constants.SHELF
 	}
 	if m.IsDoor(x, y) {
-		return DOOR
+		return constants.DOOR
 	}
-	return VOID
+	return constants.VOID
 }
 
 func (m *Map) GetShelfData(x, y int) (Shelf, bool) {

@@ -1,0 +1,36 @@
+package constants
+
+type ElementType string
+
+const (
+	// Map element types
+	WALL     ElementType = "W"
+	SHELF    ElementType = "shelf"
+	CHECKOUT ElementType = "C"
+	DOOR     ElementType = "D"
+	VOID     ElementType = " "
+
+	// Graphics constants
+	CELL_SIZE      = 32
+	FRAME_DURATION = 10
+	FRAME_COUNT    = 4
+	DIRECTIONS     = 4
+	MARGIN         = 20
+
+	// Simulation constants
+	BASE_AGENT_SPEED = 0.2
+	// StuckDistanceThreshold minimum distance to be considered moving
+	StuckDistanceThreshold = 0.1
+	// StuckCounterThreshold number of frames to consider an agent stuck (~1 second at 30 FPS)
+	StuckCounterThreshold = 30
+	// WaypointReachedThreshold distance threshold to consider a waypoint reached
+	WaypointReachedThreshold = 0.6
+	AgentToAgentHitbox       = 0.15
+	AgentToEnvironmentHitbox = 0.4
+)
+
+// MovementDirections all possible movement directions
+var MovementDirections = [][2]int{
+	{0, -1}, {1, 0}, {0, 1}, {-1, 0}, // Nord, Est, Sud, Ouest
+	{1, -1}, {1, 1}, {-1, 1}, {-1, -1}, // Diagonales
+}

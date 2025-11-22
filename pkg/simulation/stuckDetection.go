@@ -1,6 +1,7 @@
 package Simulation
 
 import (
+	"AI30_-_BlackFriday/pkg/constants"
 	"AI30_-_BlackFriday/pkg/logger"
 	"math"
 )
@@ -20,7 +21,7 @@ func (sd *StuckDetector) DetectAndResolve() {
 	distanceMoved := math.Sqrt(dx*dx + dy*dy)
 
 	//TODO:peut-être adapté le threshold avec base speed mais en même temps s'il est stuck...
-	if distanceMoved < 0.1 && sd.agent.hasDestination {
+	if distanceMoved < constants.StuckDistanceThreshold && sd.agent.hasDestination {
 		sd.agent.stuckCounter++
 		logger.Debugf("Agent %s: Potentially stuck (counter: %d, distance moved: %.3f)",
 			sd.agent.id, sd.agent.stuckCounter, distanceMoved)
@@ -28,7 +29,7 @@ func (sd *StuckDetector) DetectAndResolve() {
 		sd.agent.stuckCounter = 0
 	}
 
-	if sd.agent.stuckCounter > 30 { // ~1 second at 30 FPS
+	if sd.agent.stuckCounter > constants.StuckCounterThreshold {
 		sd.resolveStuckState()
 	}
 

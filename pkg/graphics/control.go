@@ -1,7 +1,7 @@
 package Graphics
 
 import (
-	Map "AI30_-_BlackFriday/pkg/map"
+	"AI30_-_BlackFriday/pkg/constants"
 	"fmt"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -33,8 +33,8 @@ func (g *Game) handleMouseClick() {
 
 	// convert screen to map coordinates
 	margin := 20
-	mapX := (mouseX - margin + g.CameraX) / CELL_SIZE
-	mapY := (mouseY - margin + g.CameraY) / CELL_SIZE
+	mapX := (mouseX - margin + g.CameraX) / constants.CELL_SIZE
+	mapY := (mouseY - margin + g.CameraY) / constants.CELL_SIZE
 	envMap := g.Simulation.Env.Map
 	if mapX >= 0 && mapX < envMap.Width && mapY >= 0 && mapY < envMap.Height {
 		elementType := envMap.GetElementType(mapX, mapY)
@@ -44,7 +44,7 @@ func (g *Game) handleMouseClick() {
 
 		fmt.Printf("Element Type: %s\n", elementType)
 
-		if elementType == Map.SHELF {
+		if elementType == constants.SHELF {
 			shelfChar := envMap.GetShelfCharacter(mapX, mapY)
 			fmt.Printf("Shelf Zone at (%d, %d) - Shelf Type: '%s'\n", mapX, mapY, shelfChar)
 			if shelf, exists := envMap.GetShelfData(mapX, mapY); exists {

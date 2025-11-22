@@ -1,6 +1,7 @@
 package Graphics
 
 import (
+	"AI30_-_BlackFriday/pkg/constants"
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
 	"AI30_-_BlackFriday/pkg/utils"
 
@@ -8,7 +9,7 @@ import (
 )
 
 type AnimationState struct {
-	animationFRAME_COUNT *[DIRECTIONS][FRAME_COUNT]*ebiten.Image
+	animationFRAME_COUNT *[constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
 	step                 int
 }
 type AgentAnimator struct {
@@ -38,11 +39,11 @@ func (animator *AgentAnimator) AnimationFrame(agt Simulation.Agent) *ebiten.Imag
 		animator.agentStates[agt.ID()] = newState
 		return newState.animationFRAME_COUNT[direction][0]
 	}
-	frame := (state.step / FRAME_DURATION) % FRAME_COUNT
+	frame := (state.step / constants.FRAME_DURATION) % constants.FRAME_COUNT
 	image := state.animationFRAME_COUNT[direction][frame]
 	state.step++
 
-	if state.step >= FRAME_DURATION*FRAME_COUNT {
+	if state.step >= constants.FRAME_DURATION*constants.FRAME_COUNT {
 		state.step = 0
 	}
 	return image

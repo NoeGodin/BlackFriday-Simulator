@@ -1,6 +1,7 @@
 package Simulation
 
 import (
+	"AI30_-_BlackFriday/pkg/constants"
 	Map "AI30_-_BlackFriday/pkg/map"
 	"fmt"
 	"math"
@@ -52,7 +53,7 @@ func (env *Environment) isCollision(agt Agent) bool {
 		offsetX := math.Abs(float64(walls[0]) - coords.X)
 		offsetY := math.Abs(float64(walls[1]) - coords.Y)
 
-		if offsetX < 0.4 && offsetY < 0.4 {
+		if offsetX < constants.AgentToEnvironmentHitbox && offsetY < constants.AgentToEnvironmentHitbox {
 			return true
 		}
 	}
@@ -70,7 +71,7 @@ func (env *Environment) checkAgentCollisions(agt Agent) []*ClientAgent {
 		offsetX := math.Abs(neighbor.coordinate.X - coords.X)
 		offsetY := math.Abs(neighbor.coordinate.Y - coords.Y)
 
-		if offsetX < 0.15 && offsetY < 0.15 {
+		if offsetX < constants.AgentToAgentHitbox && offsetY < constants.AgentToAgentHitbox {
 			collidingAgents = append(collidingAgents, neighbor)
 		}
 	}

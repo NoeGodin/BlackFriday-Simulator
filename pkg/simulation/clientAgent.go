@@ -1,6 +1,7 @@
 package Simulation
 
 import (
+	"AI30_-_BlackFriday/pkg/constants"
 	"AI30_-_BlackFriday/pkg/logger"
 	"AI30_-_BlackFriday/pkg/pathfinding"
 	"AI30_-_BlackFriday/pkg/utils"
@@ -42,7 +43,7 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 
 	agent := &ClientAgent{
 		id:               AgentID(id),
-		Speed:            BASE_AGENT_SPEED,
+		Speed:            constants.BASE_AGENT_SPEED,
 		env:              env,
 		coordinate:       utils.Coordinate{X: float64(startX), Y: float64(startY)},
 		dx:               0,

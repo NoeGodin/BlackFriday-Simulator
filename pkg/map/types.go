@@ -1,6 +1,8 @@
 package Map
 
-type ElementType string
+import "AI30_-_BlackFriday/pkg/constants"
+
+type ElementType = constants.ElementType
 
 type MapElement interface {
 	Type() ElementType

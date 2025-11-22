@@ -1,6 +1,7 @@
 package Simulation
 
 import (
+	"AI30_-_BlackFriday/pkg/constants"
 	"AI30_-_BlackFriday/pkg/logger"
 	"AI30_-_BlackFriday/pkg/pathfinding"
 	"AI30_-_BlackFriday/pkg/utils"
@@ -75,8 +76,7 @@ func (mm *MovementManager) FollowPath() {
 		distance := math.Sqrt(dx*dx + dy*dy) //TODO: could change with util function but used for coordinate type
 
 		// if under value consider it reached
-		//TODO: could use a constant variable but only used here and 0.6 work well
-		if distance < 0.6 {
+		if distance < constants.WaypointReachedThreshold {
 			logger.Debugf("Agent %s: Reached waypoint (%d,%d) with distance %.2f",
 				mm.agent.id, nextWaypoint.X, nextWaypoint.Y, distance)
 			mm.agent.currentPath.RemoveFirstWaypoint()
