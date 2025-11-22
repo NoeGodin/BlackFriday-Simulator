@@ -13,18 +13,18 @@ W   f    ghijjjjj   WWWWWW    stu      W
 WCW              WWWWWWWWWWW           W
 W                WWWWWWWWWWW           W
 W                                      W
-W     vw        WWWWWWWW         AB    W
+W     vw        WWWWWWWW         ab    W
 W               WWWWWWWW               W
 W                                      W
 W    klmn              opqr            W
 W                                      W
 W                      WWWW            W
-W  EF          GH            IJ        W
+W  ef          gh            ij        W
 W                                      W
 W        WWWWW                 WWWWW   W
 W        WWWWW                 WWWWW   W
 W                                      W
-W   KL         MN         OP           W
+W   kl         mn         op           W
 W                                      W
-WCW                               QRW  W
+WCW                               qrW  W
 WWWWWWWWWW D WWWWWWWWWWWWWWWWWWWWWWWWWWW
