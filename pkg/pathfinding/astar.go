@@ -1,6 +1,7 @@
 package pathfinding
 
 import (
+	"AI30_-_BlackFriday/pkg/constants"
 	"AI30_-_BlackFriday/pkg/logger"
 	Map "AI30_-_BlackFriday/pkg/map"
 	"AI30_-_BlackFriday/pkg/utils"
@@ -39,8 +40,8 @@ func FindPath(worldMap *Map.Map, startX, startY, targetX, targetY int) (*Path, b
 
 	logger.Debugf("FindPath: Created path with %d waypoints", len(waypoints))
 	return &Path{
-		Waypoints: waypoints,
-		Target:    utils.IntCoordinate{X: targetX, Y: targetY},
+		waypoints: waypoints,
+		target:    utils.IntCoordinate{X: targetX, Y: targetY},
 	}, true
 }
 
@@ -89,7 +90,7 @@ func AStar(worldMap *Map.Map, startX, startY, targetX, targetY int) ([]utils.Int
 func processNeighbors(current *Node, targetX, targetY int, worldMap *Map.Map,
 	openSet *PriorityQueue, closedSet map[[2]int]bool, nodeMap map[[2]int]*Node) {
 
-	directions := utils.GetMovementDirections()
+	directions := constants.MovementDirections
 
 	for _, dir := range directions {
 		nx, ny := current.X+dir[0], current.Y+dir[1]

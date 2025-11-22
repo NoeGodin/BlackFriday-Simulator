@@ -1,6 +1,7 @@
 package Graphics
 
 import (
+	"AI30_-_BlackFriday/pkg/constants"
 	"image"
 	"log"
 
@@ -22,7 +23,7 @@ var (
 	doorImg       *ebiten.Image
 	itemImg       *ebiten.Image
 	checkoutImg   *ebiten.Image
-	WalkFrameImgs [DIRECTIONS][FRAME_COUNT]*ebiten.Image
+	WalkFrameImgs [constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
 )
 
 func initHUD() {
@@ -68,11 +69,11 @@ func initAnimation() {
 	if err != nil {
 		log.Printf("Warning: Could not load agt.png: %v", err)
 	}
-	for dir := 0; dir < DIRECTIONS; dir++ {
-		for f := 0; f < FRAME_COUNT; f++ {
-			sx := f * CELL_SIZE
-			sy := dir * CELL_SIZE
-			sub := walk.SubImage(image.Rect(sx, sy, sx+CELL_SIZE, sy+CELL_SIZE)).(*ebiten.Image)
+	for dir := 0; dir < constants.DIRECTIONS; dir++ {
+		for f := 0; f < constants.FRAME_COUNT; f++ {
+			sx := f * constants.CELL_SIZE
+			sy := dir * constants.CELL_SIZE
+			sub := walk.SubImage(image.Rect(sx, sy, sx+constants.CELL_SIZE, sy+constants.CELL_SIZE)).(*ebiten.Image)
 			WalkFrameImgs[dir][f] = sub
 		}
 	}

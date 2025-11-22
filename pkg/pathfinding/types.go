@@ -3,8 +3,8 @@ package pathfinding
 import "AI30_-_BlackFriday/pkg/utils"
 
 type Path struct {
-	Waypoints []utils.IntCoordinate
-	Target    utils.IntCoordinate
+	waypoints []utils.IntCoordinate
+	target    utils.IntCoordinate
 }
 
 // node for A* algorithme
