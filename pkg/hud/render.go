@@ -1,6 +1,7 @@
 package Hud
 
 import (
+	"AI30_-_BlackFriday/pkg/constants"
 	Map "AI30_-_BlackFriday/pkg/map"
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
 	"fmt"
@@ -24,14 +25,14 @@ func (h *HUD) SetSelectedAgent(agent Simulation.Agent) {
 	h.PositionY = agent.Coordinate().Y
 }
 
-func (h *HUD) SetSelection(posX, posY float64, elementType Map.ElementType, agent Simulation.Agent, items []Map.Item, exists bool) {
+func (h *HUD) SetSelection(posX, posY float64, elementType Map.ElementType, agent Simulation.Agent, items Map.Shelf, exists bool) {
 	h.clearSelection()
 	h.hidden = false
 
 	msg := ""
 	if agent == nil {
-		h.SetSelectedElement(posX, posY, elementType, items, exists)
-		msg = h.getElementSelectionMessage(items, exists)
+		h.SetSelectedElement(posX, posY, elementType, items.Items, exists)
+		msg = h.getElementSelectionMessage(items.Items, exists)
 	} else {
 		h.SetSelectedAgent(agent)
 		msg = h.getAgentSelectionMessage()
@@ -75,7 +76,7 @@ func (h *HUD) prepareRender(msg string) {
 }
 
 func (h *HUD) clearSelection() {
-	h.selectedElement = nil
+	h.selectedElement = ""
 	h.selectedAgent = nil
 }
 
@@ -90,7 +91,7 @@ func (h *HUD) getElementSelectionMessage(items []Map.Item, exists bool) string {
 	msg := fmt.Sprintf("Position: (%d, %d)\n", int(h.PositionX), int(h.PositionY))
 	msg += fmt.Sprintf("Element Type: %s\n", h.selectedElement)
 
-	if h.selectedElement == Map.SHELF {
+	if h.selectedElement == constants.SHELF {
 		if exists {
 			msg += fmt.Sprintf("Shelf Stock (%d items):\n", len(items))
 			for i, item := range items {

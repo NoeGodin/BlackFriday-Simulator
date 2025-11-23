@@ -26,9 +26,8 @@ var (
 	doorImg       *ebiten.Image
 	itemImg       *ebiten.Image
 	checkoutImg   *ebiten.Image
-	WalkFrameImgs [constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
 	targetImg	  *ebiten.Image
-	WalkFrameImgs [DIRECTIONS][FRAME_COUNT]*ebiten.Image
+	WalkFrameImgs [constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
 )
 
 func initTexture() {
@@ -82,8 +81,8 @@ func initTexture() {
 	}
 
 	Hud.FONT, err = opentype.NewFace(ttf, &opentype.FaceOptions{
-		Size:    12,
-		DPI:     72,
+		Size:    16,
+		DPI:     96,
 		Hinting: font.HintingFull,
 	})
 	
