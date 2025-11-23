@@ -1,15 +1,16 @@
 package Graphics
 
 import (
-	Hud "AI30_-_BlackFriday/pkg/hud"
 	"AI30_-_BlackFriday/pkg/constants"
+	Hud "AI30_-_BlackFriday/pkg/hud"
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
 
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	"image/color"
+
+	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 // TODO : on pourrait faire plus petit, genre 10 car j'ai peur que ça fasse paté si la map devient grande, on verra
@@ -202,12 +203,12 @@ func (g *Game) DrawHUD(screen *ebiten.Image) {
 	}
 
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Translate(Hud.HUD_POS_X, Hud.HUD_POS_Y)
+	op.GeoM.Translate(constants.HUD_POS_X, constants.HUD_POS_Y)
 	screen.DrawImage(g.Hud.HudBg, op)
 
-	y := int(Hud.HUD_POS_Y) + g.Hud.PaddingY + Hud.FONT.Metrics().Height.Ceil()
+	y := int(constants.HUD_POS_Y) + g.Hud.PaddingY + Hud.FONT.Metrics().Height.Ceil()
 	for _, line := range g.Hud.Lines {
-		text.Draw(screen, line, Hud.FONT, int(Hud.HUD_POS_X)+g.Hud.PaddingX, y, color.White)
+		text.Draw(screen, line, Hud.FONT, int(constants.HUD_POS_X)+g.Hud.PaddingX, y, color.White)
 		y += Hud.FONT.Metrics().Height.Ceil()
 	}
 

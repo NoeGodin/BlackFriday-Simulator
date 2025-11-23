@@ -27,6 +27,9 @@ const (
 	WaypointReachedThreshold = 0.6
 	AgentToAgentHitbox       = 0.15
 	AgentToEnvironmentHitbox = 0.4
+
+	HUD_POS_X float64 = 10.0
+	HUD_POS_Y float64 = 10.0
 )
 
 // MovementDirections all possible movement directions
