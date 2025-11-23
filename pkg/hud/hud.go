@@ -5,7 +5,10 @@ import (
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"golang.org/x/image/font"
 )
+
+var	FONT font.Face
 
 type HUD struct {
 	PositionX, PositionY float64
