@@ -45,8 +45,7 @@ func (g *Game) handleMouseClick() {
 	if mapX >= 0 && mapX < envMap.Width && mapY >= 0 && mapY < envMap.Height {
 		elementType := envMap.GetElementType(mapX, mapY)
 
-		items, exists := envMap.GetProductData(mapX, mapY)
-
+		items, exists := envMap.GetShelfData(mapX, mapY)
 		agt := g.isMouseClickedOnAgent(mapX, mapY)
 		g.Hud.SetSelection(float64(mapX), float64(mapY), elementType, agt, items, exists)
 
