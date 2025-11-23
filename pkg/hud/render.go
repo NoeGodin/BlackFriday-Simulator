@@ -10,10 +10,10 @@ import (
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"golang.org/x/image/font"
+	"github.com/hajimehoshi/ebiten/v2/text"
 )
 
-func (h *HUD) SetSelectedElement(posX, posY float64, elementType Map.ElementType, items []Map.Item, exists bool) {
+func (h *HUD) SetSelectedElement(posX, posY float64, elementType *Map.ElementType, items []Map.Item, exists bool) {
 	h.selectedElement = elementType
 	h.PositionX = posX
 	h.PositionY = posY
@@ -25,7 +25,7 @@ func (h *HUD) SetSelectedAgent(agent Simulation.Agent) {
 	h.PositionY = agent.Coordinate().Y
 }
 
-func (h *HUD) SetSelection(posX, posY float64, elementType Map.ElementType, agent Simulation.Agent, items Map.Shelf, exists bool) {
+func (h *HUD) SetSelection(posX, posY float64, elementType *Map.ElementType, agent Simulation.Agent, items Map.Shelf, exists bool) {
 	h.clearSelection()
 	h.hidden = false
 
@@ -54,29 +54,25 @@ func (h *HUD) Update() {
 
 // Determine the width and height the background based on the text
 func (h *HUD) prepareRender(msg string) {
-	lines := strings.Split(msg, "\n")
-	h.Lines = lines
-
-	lineHeight := FONT.Metrics().Height.Ceil()
-
-	maxWidth := 0
-	for _, line := range lines {
-		bounds, _ := font.BoundString(FONT, line)
-		width := (bounds.Max.X - bounds.Min.X).Ceil()
-		if width > maxWidth {
-			maxWidth = width
-		}
-	}
-
-	h.HudWidth = maxWidth + h.PaddingX*2 + h.PaddingX
-	h.HudHeight = len(lines)*lineHeight + h.PaddingY*2
-
-	h.HudBg = ebiten.NewImage(h.HudWidth, h.HudHeight)
-	h.HudBg.Fill(color.RGBA{0, 0, 0, 180})
+    lines := strings.Split(msg, "\n")
+    h.Lines = lines
+    lineHeight := FONT.Metrics().Height.Ceil()
+    maxWidth := 0
+    for _, line := range lines {
+        bounds := text.BoundString(FONT, line)
+        width := bounds.Max.X + 1
+        if width > maxWidth {
+            maxWidth = width
+        }
+    }
+    h.HudWidth = maxWidth + h.PaddingX*2
+    h.HudHeight = len(lines)*lineHeight + h.PaddingY*2
+    h.HudBg = ebiten.NewImage(h.HudWidth, h.HudHeight)
+    h.HudBg.Fill(color.RGBA{0, 0, 0, 180})
 }
 
 func (h *HUD) clearSelection() {
-	h.selectedElement = ""
+	h.selectedElement = nil
 	h.selectedAgent = nil
 }
 
@@ -89,9 +85,9 @@ func (h *HUD) getAgentSelectionMessage() string {
 
 func (h *HUD) getElementSelectionMessage(items []Map.Item, exists bool) string {
 	msg := fmt.Sprintf("Position: (%d, %d)\n", int(h.PositionX), int(h.PositionY))
-	msg += fmt.Sprintf("Element Type: %s\n", h.selectedElement)
+	msg += fmt.Sprintf("Element Type: %s\n", *h.selectedElement)
 
-	if h.selectedElement == constants.SHELF {
+	if *h.selectedElement == constants.SHELF {
 		if exists {
 			msg += fmt.Sprintf("Shelf Stock (%d items):\n", len(items))
 			for i, item := range items {

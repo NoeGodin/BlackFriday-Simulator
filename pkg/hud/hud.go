@@ -14,7 +14,7 @@ type HUD struct {
 	HudBg                *ebiten.Image
 	Lines                []string
 
-	selectedElement Map.ElementType
+	selectedElement *Map.ElementType
 	selectedAgent   Simulation.Agent
 
 	hidden bool

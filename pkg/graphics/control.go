@@ -47,7 +47,7 @@ func (g *Game) handleMouseClick() {
 
 		items, exists := envMap.GetShelfData(mapX, mapY)
 		agt := g.isMouseClickedOnAgent(mapX, mapY)
-		g.Hud.SetSelection(float64(mapX), float64(mapY), elementType, agt, items, exists)
+		g.Hud.SetSelection(float64(mapX), float64(mapY), &elementType, agt, items, exists)
 
 		fmt.Printf("=== DEBUG CLICK ===\n")
 		fmt.Printf("Position: (%d, %d)\n", mapX, mapY)
