@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 
 	Graphics "AI30_-_BlackFriday/pkg/graphics"
 	"AI30_-_BlackFriday/pkg/logger"
@@ -20,7 +21,9 @@ func main() {
 	logger.InitLogger()
 
 	//NOTE : I guess its for my setup (working on mac) maybe not needed for others idk :/
-	os.Setenv("EBITEN_GRAPHICS_LIBRARY", "opengl")
+	if runtime.GOOS == "darwin" {
+		os.Setenv("EBITEN_GRAPHICS_LIBRARY", "opengl")
+	}
 
 	ebiten.SetWindowSize(SCREEN_WIDTH, SCREEN_HEIGHT)
 	ebiten.SetWindowTitle("Black Friday Simulator")
