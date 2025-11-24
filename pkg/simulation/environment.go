@@ -3,7 +3,6 @@ package Simulation
 import (
 	"AI30_-_BlackFriday/pkg/constants"
 	Map "AI30_-_BlackFriday/pkg/map"
-	"fmt"
 	"math"
 )
 
@@ -88,8 +87,6 @@ func (env *Environment) moveRequest() {
 			moveRequest.ResponseChannel <- true
 			continue
 		}
-		collidingAgents := env.checkAgentCollisions(moveRequest.Agt)
-		fmt.Println(collidingAgents)
 		//TODO: ici on pourrait gérer mieux la collision en regardant l'etat de la var collidingAgents
 		moveRequest.Agt.Move()
 		moveRequest.ResponseChannel <- false // Movement always succeeds unless wall collision
