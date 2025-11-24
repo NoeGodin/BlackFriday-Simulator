@@ -34,6 +34,7 @@ type Map struct {
 	ShelfData     map[[2]int]Shelf
 	ShelfChars    map[[2]int]string
 	freeCells     [][2]int
+	Items      	  []Item
 }
 
 func (element *Element) Type() ElementType {

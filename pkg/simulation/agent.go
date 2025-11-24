@@ -1,6 +1,9 @@
 package Simulation
 
-import "AI30_-_BlackFriday/pkg/utils"
+import (
+	Map "AI30_-_BlackFriday/pkg/map"
+	"AI30_-_BlackFriday/pkg/utils"
+)
 
 type AgentID string
 
@@ -14,4 +17,5 @@ type Agent interface {
 	Direction() utils.Direction
 	Move()
 	DryRunMove() utils.Coordinate
+	Preferences() []Map.Item
 }
