@@ -102,6 +102,7 @@ func (m *Map) LoadStockData(stockData StockData, layoutContent string) {
 				// Store shelf data
 				if shelf, exists := stockData.Stocks[charKey]; exists {
 					m.ShelfData[position] = shelf
+					m.Items = append(m.Items, shelf.Items...)
 				}
 			}
 		}
