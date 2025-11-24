@@ -194,9 +194,8 @@ func (g *Game) DrawHUD(screen *ebiten.Image) {
 		return
 	}
 
-	MARGIN := 20
-	offsetX := MARGIN
-	offsetY := MARGIN
+	offsetX := constants.MARGIN
+	offsetY := constants.MARGIN
 
 	if g.Hud.HudBg == nil {
 		return
@@ -212,7 +211,7 @@ func (g *Game) DrawHUD(screen *ebiten.Image) {
 		y += Hud.FONT.Metrics().Height.Ceil()
 	}
 
-	targetX, targetY := g.mapToDrawCoords(g.Hud.PositionX, g.Hud.PositionY, offsetX, offsetY)
+	targetX, targetY := g.mapToDrawCoords(g.Hud.TargetPositionX, g.Hud.TargetPositionY, offsetX, offsetY)
 	drawImageAt(screen, targetImg, targetX, targetY)
 }
 
