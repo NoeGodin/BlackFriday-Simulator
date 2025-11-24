@@ -8,14 +8,14 @@ import (
 	"golang.org/x/image/font"
 )
 
-var	FONT font.Face
+var FONT font.Face
 
 type HUD struct {
-	PositionX, PositionY float64
-	PaddingX, PaddingY   int
-	HudWidth, HudHeight  int
-	HudBg                *ebiten.Image
-	Lines                []string
+	TargetPositionX, TargetPositionY float64
+	PaddingX, PaddingY               int
+	HudWidth, HudHeight              int
+	HudBg                            *ebiten.Image
+	Lines                            []string
 
 	selectedElement *Map.ElementType
 	selectedAgent   Simulation.Agent
@@ -25,11 +25,11 @@ type HUD struct {
 
 func NewHud() *HUD {
 	return &HUD{
-		PositionX: 10,
-		PositionY: 10,
-		PaddingX:  10,
-		PaddingY:  5,
-		hidden:    true,
+		TargetPositionX: 10,
+		TargetPositionY: 10,
+		PaddingX:        10,
+		PaddingY:        5,
+		hidden:          true,
 	}
 }
 

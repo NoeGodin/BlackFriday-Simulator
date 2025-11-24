@@ -15,14 +15,14 @@ import (
 
 func (h *HUD) SetSelectedElement(posX, posY float64, elementType *Map.ElementType, items []Map.Item, exists bool) {
 	h.selectedElement = elementType
-	h.PositionX = posX
-	h.PositionY = posY
+	h.TargetPositionX = posX
+	h.TargetPositionY = posY
 }
 
 func (h *HUD) SetSelectedAgent(agent Simulation.Agent) {
 	h.selectedAgent = agent
-	h.PositionX = agent.Coordinate().X
-	h.PositionY = agent.Coordinate().Y
+	h.TargetPositionX = agent.Coordinate().X
+	h.TargetPositionY = agent.Coordinate().Y
 }
 
 func (h *HUD) SetSelection(posX, posY float64, elementType *Map.ElementType, agent Simulation.Agent, items Map.Shelf, exists bool) {
@@ -44,8 +44,8 @@ func (h *HUD) SetSelection(posX, posY float64, elementType *Map.ElementType, age
 // If an agent is selected, we refresh its position
 func (h *HUD) Update() {
 	if h.selectedAgent != nil {
-		h.PositionX = h.selectedAgent.Coordinate().X
-		h.PositionY = h.selectedAgent.Coordinate().Y
+		h.TargetPositionX = h.selectedAgent.Coordinate().X
+		h.TargetPositionY = h.selectedAgent.Coordinate().Y
 
 		msg := h.getAgentSelectionMessage()
 		h.prepareRender(msg)
@@ -54,21 +54,21 @@ func (h *HUD) Update() {
 
 // Determine the width and height the background based on the text
 func (h *HUD) prepareRender(msg string) {
-    lines := strings.Split(msg, "\n")
-    h.Lines = lines
-    lineHeight := FONT.Metrics().Height.Ceil()
-    maxWidth := 0
-    for _, line := range lines {
-        bounds := text.BoundString(FONT, line)
-        width := bounds.Max.X + 1
-        if width > maxWidth {
-            maxWidth = width
-        }
-    }
-    h.HudWidth = maxWidth + h.PaddingX*2
-    h.HudHeight = len(lines)*lineHeight + h.PaddingY*2
-    h.HudBg = ebiten.NewImage(h.HudWidth, h.HudHeight)
-    h.HudBg.Fill(color.RGBA{0, 0, 0, 180})
+	lines := strings.Split(msg, "\n")
+	h.Lines = lines
+	lineHeight := FONT.Metrics().Height.Ceil()
+	maxWidth := 0
+	for _, line := range lines {
+		bounds := text.BoundString(FONT, line)
+		width := bounds.Max.X + 1
+		if width > maxWidth {
+			maxWidth = width
+		}
+	}
+	h.HudWidth = maxWidth + h.PaddingX*2
+	h.HudHeight = len(lines)*lineHeight + h.PaddingY*2
+	h.HudBg = ebiten.NewImage(h.HudWidth, h.HudHeight)
+	h.HudBg.Fill(color.RGBA{0, 0, 0, 180})
 }
 
 func (h *HUD) clearSelection() {
@@ -78,13 +78,13 @@ func (h *HUD) clearSelection() {
 
 func (h *HUD) getAgentSelectionMessage() string {
 	msg := fmt.Sprintf("Agent ID: %s\n", h.selectedAgent.ID())
-	msg += fmt.Sprintf("Position: (%.2f, %.2f)\n", h.PositionX, h.PositionY)
+	msg += fmt.Sprintf("Position: (%.2f, %.2f)\n", h.TargetPositionX, h.TargetPositionY)
 	// In the future, we can add agent's inventory, its objectives, attitude, status...
 	return msg
 }
 
 func (h *HUD) getElementSelectionMessage(items []Map.Item, exists bool) string {
-	msg := fmt.Sprintf("Position: (%d, %d)\n", int(h.PositionX), int(h.PositionY))
+	msg := fmt.Sprintf("Position: (%d, %d)\n", int(h.TargetPositionX), int(h.TargetPositionY))
 	msg += fmt.Sprintf("Element Type: %s\n", *h.selectedElement)
 
 	if *h.selectedElement == constants.SHELF {
