@@ -9,6 +9,30 @@ import (
 	"math/rand"
 )
 
+type AgentState int
+
+const ( // enumeration
+	StateWandering AgentState = iota
+	StateMovingToShelf
+	StatePickingItem
+	StateMovingToCheckout
+	StateCheckingOut
+	StateLeaving
+)
+
+var agentStateName = map[AgentState]string{
+	StateWandering:        "wandering",
+	StateMovingToShelf:    "moving to shelf",
+	StatePickingItem:      "picking item",
+	StateMovingToCheckout: "moving to checkout",
+	StateCheckingOut:      "checking out",
+	StateLeaving:          "leaving",
+}
+
+func (as AgentState) String() string {
+	return agentStateName[as]
+}
+
 type ClientAgent struct {
 	id           AgentID
 	Speed        float64
@@ -151,7 +175,7 @@ func (ag *ClientAgent) Percept() {
 	ag.visionManager.DetectShelvesInFOV(ag.env)
 }
 
-func (ag *ClientAgent) Deliberate() {
+func (ag *ClientAgent) Deliberate() { //faire un switch case pour la FSM
 	ag.stuckDetector.DetectAndResolve()
 
 	// If no destination, generate a new one
