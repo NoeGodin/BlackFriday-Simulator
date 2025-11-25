@@ -78,7 +78,7 @@ func (h *HUD) clearSelection() {
 
 func (h *HUD) getAgentSelectionMessage() string {
 	var prefs []string
-	for _, item := range h.selectedAgent.Preferences() {
+	for _, item := range h.selectedAgent.ShoppingList() {
 		prefs = append(prefs, item.Name)
 	}
 	

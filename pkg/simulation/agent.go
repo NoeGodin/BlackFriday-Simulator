@@ -17,5 +17,5 @@ type Agent interface {
 	Direction() utils.Direction
 	Move()
 	DryRunMove() utils.Coordinate
-	Preferences() []Map.Item
+	ShoppingList() []Map.Item
 }
