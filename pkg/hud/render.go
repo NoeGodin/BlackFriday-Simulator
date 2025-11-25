@@ -84,7 +84,7 @@ func (h *HUD) getAgentSelectionMessage() string {
 	
 	// In the future, we can add agent's inventory, its objectives, attitude, status...
 	return fmt.Sprintf(
-		"Agent ID: %s\nPosition: (%.2f, %.2f)\nPreferences: %s",
+		"Agent ID: %s\nPosition: (%.2f, %.2f)\nShopping list: %s",
 		h.selectedAgent.ID(),
 		h.TargetPositionX,
 		h.TargetPositionY,
