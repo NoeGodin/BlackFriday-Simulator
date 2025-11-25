@@ -15,7 +15,7 @@ type ClientAgent struct {
 	env         *Environment
 	coordinate  utils.Coordinate
 	dx, dy      float64
-	preferences []Map.Item
+	shoppingList []Map.Item
 	pickChan   chan PickRequest
 	moveChan   chan MoveRequest
 
@@ -51,7 +51,7 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 		coordinate:       utils.Coordinate{X: float64(startX), Y: float64(startY)},
 		dx:               0,
 		dy:               0,
-		preferences:	  generatePreferences(env),
+		shoppingList:	  generateShoppingList(env),
 		pickChan:         pickChan,
 		moveChan:         moveChan,
 		syncChan:         syncChan,
@@ -66,27 +66,27 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 	return agent
 }
 
-func generatePreferences(env *Environment) ([]Map.Item) {
+func generateShoppingList(env *Environment) ([]Map.Item) {
 	totalAttractiveness := 0.0
-	prefs := []Map.Item{}
+	shopList := []Map.Item{}
 	for _, item := range env.Map.Items {
 		totalAttractiveness += item.Attractiveness
 	}
 
 	for range rand.Intn(4) + 1 {
-		pref := rand.Float64() * totalAttractiveness
+		wantedItem := rand.Float64() * totalAttractiveness
 		cumulative := 0.0
 		
 		for _, item := range env.Map.Items {
 			cumulative += item.Attractiveness
-			if pref <= cumulative {
-				prefs = append(prefs, item)
+			if wantedItem <= cumulative {
+				shopList = append(shopList, item)
 				break
 			}
 		}
 	}
 
-	return prefs
+	return shopList
 }
 
 func (ag *ClientAgent) ID() AgentID {
@@ -160,5 +160,5 @@ func (ag *ClientAgent) GetCurrentPath() *pathfinding.Path {
 }
 
 func (ag *ClientAgent) Preferences() []Map.Item {
-	return ag.preferences
+	return ag.shoppingList
 }
