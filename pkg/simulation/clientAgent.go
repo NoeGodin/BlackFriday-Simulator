@@ -159,6 +159,6 @@ func (ag *ClientAgent) GetCurrentPath() *pathfinding.Path {
 	return ag.currentPath
 }
 
-func (ag *ClientAgent) Preferences() []Map.Item {
+func (ag *ClientAgent) ShoppingList() []Map.Item {
 	return ag.shoppingList
 }
