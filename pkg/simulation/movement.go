@@ -24,16 +24,16 @@ func (mm *MovementManager) GenerateNewDestination() {
 		return
 	}
 
-	currentX, currentY := mm.agent.coordinate.ToInt()
+	currentX, currentY := mm.agent.coordinate.X, mm.agent.coordinate.Y
 
-	logger.Debugf("Agent %s: Current position (%d,%d) - Wall:%t Shelf:%t Checkout:%t Door:%t",
+	logger.Debugf("Agent %s: Current position (%.2f,%.2f) - Wall:%t Shelf:%t Checkout:%t Door:%t",
 		mm.agent.id, currentX, currentY,
 		mm.agent.env.Map.IsWall(currentX, currentY),
 		mm.agent.env.Map.IsShelf(currentX, currentY),
 		mm.agent.env.Map.IsCheckout(currentX, currentY),
 		mm.agent.env.Map.IsDoor(currentX, currentY))
 
-	logger.Debugf("Agent %s: Target position (%d,%d) - Wall:%t Shelf:%t Checkout:%t Door:%t",
+	logger.Debugf("Agent %s: Target position (%.2f,%.2f) - Wall:%t Shelf:%t Checkout:%t Door:%t",
 		mm.agent.id, targetX, targetY,
 		mm.agent.env.Map.IsWall(targetX, targetY),
 		mm.agent.env.Map.IsShelf(targetX, targetY),
@@ -46,11 +46,11 @@ func (mm *MovementManager) GenerateNewDestination() {
 		return
 	}
 
-	logger.Debugf("Agent %s: Generating path from (%d,%d) to (%d,%d)", mm.agent.id, currentX, currentY, targetX, targetY)
+	logger.Debugf("Agent %s: Generating path from (%.2f,%.2f) to (%.2f,%.2f)", mm.agent.id, currentX, currentY, targetX, targetY)
 
 	path, pathFound := pathfinding.FindPath(mm.agent.env.Map, currentX, currentY, targetX, targetY)
 	if !pathFound {
-		logger.Warnf("Agent %s: No path found to destination (%d,%d)", mm.agent.id, targetX, targetY)
+		logger.Warnf("Agent %s: No path found to destination (%.2f,%.2f)", mm.agent.id, targetX, targetY)
 		mm.agent.hasDestination = false
 		return
 	}
@@ -62,7 +62,7 @@ func (mm *MovementManager) GenerateNewDestination() {
 	mm.agent.targetY = targetY
 	mm.agent.hasDestination = true
 
-	logger.Debugf("Agent %s: New destination set to (%d,%d) with %d waypoints", mm.agent.id, targetX, targetY, len(path.GetWaypoints()))
+	logger.Debugf("Agent %s: New destination set to (%.2f,%.2f) with %d waypoints", mm.agent.id, targetX, targetY, len(path.GetWaypoints()))
 }
 
 // FollowPath makes the agent follow its current path
@@ -71,17 +71,17 @@ func (mm *MovementManager) FollowPath() {
 	// Check wayoint reached
 	if waypoints := mm.agent.currentPath.GetWaypoints(); len(waypoints) > 0 {
 		nextWaypoint := waypoints[0]
-		dx := mm.agent.coordinate.X - float64(nextWaypoint.X)
-		dy := mm.agent.coordinate.Y - float64(nextWaypoint.Y)
+		dx := mm.agent.coordinate.X - nextWaypoint.X
+		dy := mm.agent.coordinate.Y - nextWaypoint.Y
 		distance := math.Sqrt(dx*dx + dy*dy) //TODO: could change with util function but used for coordinate type
 
 		// if under value consider it reached
 		if distance < constants.WaypointReachedThreshold {
-			logger.Debugf("Agent %s: Reached waypoint (%d,%d) with distance %.2f",
+			logger.Debugf("Agent %s: Reached waypoint (%.2f,%.2f) with distance %.2f",
 				mm.agent.id, nextWaypoint.X, nextWaypoint.Y, distance)
 			mm.agent.currentPath.RemoveFirstWaypoint()
 			if mm.agent.currentPath.IsComplete() {
-				logger.Debugf("Agent %s: Reached final destination (%d,%d)", mm.agent.id, mm.agent.targetX, mm.agent.targetY)
+				logger.Debugf("Agent %s: Reached final destination (%.2f,%.2f)", mm.agent.id, mm.agent.targetX, mm.agent.targetY)
 				mm.agent.hasDestination = false
 				mm.agent.currentPath = nil
 				return
@@ -92,20 +92,20 @@ func (mm *MovementManager) FollowPath() {
 	nextWaypoint, hasNext := mm.agent.currentPath.GetNextWaypoint()
 
 	if !hasNext {
-		logger.Debugf("Agent %s: Reached destination (%d,%d)", mm.agent.id, mm.agent.targetX, mm.agent.targetY)
+		logger.Debugf("Agent %s: Reached destination (%.2f,%.2f)", mm.agent.id, mm.agent.targetX, mm.agent.targetY)
 		mm.agent.hasDestination = false
 		mm.agent.currentPath = nil
 		return
 	}
 
 	//direction next waypoint
-	dx := float64(nextWaypoint.X) - mm.agent.coordinate.X
-	dy := float64(nextWaypoint.Y) - mm.agent.coordinate.Y
+	dx := nextWaypoint.X - mm.agent.coordinate.X
+	dy := nextWaypoint.Y - mm.agent.coordinate.Y
 	distance := math.Sqrt(dx*dx + dy*dy)
 	if distance > 0 {
 		mm.agent.dx = dx / distance
 		mm.agent.dy = dy / distance
-		logger.Debugf("Agent %s: Moving towards waypoint (%d,%d), direction: (%.2f,%.2f)",
+		logger.Debugf("Agent %s: Moving towards waypoint (%.2f,%.2f), direction: (%.2f,%.2f)",
 			mm.agent.id, nextWaypoint.X, nextWaypoint.Y, mm.agent.dx, mm.agent.dy)
 	} else {
 		mm.agent.dx = 0

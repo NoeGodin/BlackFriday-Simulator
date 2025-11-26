@@ -9,7 +9,7 @@ func Abs(x int) int {
 }
 
 // CalculateMovementCost movement cost
-func CalculateMovementCost(dx, dy int) float64 {
+func CalculateMovementCost(dx, dy float64) float64 {
 	if dx != 0 && dy != 0 {
 		return 1.414 // sqrt(2) for diagonals
 	}

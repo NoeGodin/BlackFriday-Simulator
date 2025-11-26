@@ -38,11 +38,11 @@ func (sd *StuckDetector) DetectAndResolve() {
 }
 
 func (sd *StuckDetector) resolveStuckState() {
-	currentX, currentY := sd.agent.coordinate.ToInt()
+	currentX, currentY := sd.agent.coordinate.X, sd.agent.coordinate.Y
 
 	// Check if agent is on non-walkable tile (shelf, wall, etc.)
 	if !sd.agent.env.Map.IsWalkable(currentX, currentY) {
-		logger.Warnf("Agent %s: Stuck on non-walkable tile (%d,%d)! Relocating to nearest free position", sd.agent.id, currentX, currentY)
+		logger.Warnf("Agent %s: Stuck on non-walkable tile (%.2f,%.2f)! Relocating to nearest free position", sd.agent.id, currentX, currentY)
 		sd.relocateAgent()
 	} else {
 		logger.Warnf("Agent %s: Stuck detected! Regenerating destination", sd.agent.id)
@@ -57,22 +57,22 @@ func (sd *StuckDetector) resolveStuckState() {
 
 // relocateAgent moves the agent to a free position
 func (sd *StuckDetector) relocateAgent() {
-	currentX, currentY := sd.agent.coordinate.ToInt()
+	currentX, currentY := sd.agent.coordinate.X, sd.agent.coordinate.Y
 
 	newX, newY, found := FindNearestFreePosition(sd.agent.env, currentX, currentY)
 	if found {
-		logger.Infof("Agent %s: Relocating from (%d,%d) to (%d,%d)", sd.agent.id, currentX, currentY, newX, newY)
-		sd.agent.coordinate.X = float64(newX)
-		sd.agent.coordinate.Y = float64(newY)
+		logger.Infof("Agent %s: Relocating from (%.2f,%.2f) to (%.2f,%.2f)", sd.agent.id, currentX, currentY, newX, newY)
+		sd.agent.coordinate.X = newX
+		sd.agent.coordinate.Y = newY
 		sd.agent.lastPosition = sd.agent.coordinate
 	} else {
 		// If no free position found, use GetRandomFreeCoordinate as last resort
 		//TODO: faudrait vraiment changer ça mais pour l'instant ça suffira
 		newX, newY, found = sd.agent.env.Map.GetRandomFreeCoordinate()
 		if found {
-			logger.Warnf("Agent %s: No nearby free position found, teleporting to random position (%d,%d)", sd.agent.id, newX, newY)
-			sd.agent.coordinate.X = float64(newX)
-			sd.agent.coordinate.Y = float64(newY)
+			logger.Warnf("Agent %s: No nearby free position found, teleporting to random position (%.2f,%.2f)", sd.agent.id, newX, newY)
+			sd.agent.coordinate.X = newX
+			sd.agent.coordinate.Y = newY
 			sd.agent.lastPosition = sd.agent.coordinate
 		}
 	}

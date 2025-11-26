@@ -33,7 +33,7 @@ const (
 )
 
 // MovementDirections all possible movement directions
-var MovementDirections = [][2]int{
+var MovementDirections = [][2]float64{
 	{0, -1}, {1, 0}, {0, 1}, {-1, 0}, // Nord, Est, Sud, Ouest
 	{1, -1}, {1, 1}, {-1, 1}, {-1, -1}, // Diagonales
 }

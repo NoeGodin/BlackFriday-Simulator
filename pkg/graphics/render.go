@@ -85,22 +85,22 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 
 	//DRAW THE GROUND FIRST
 	envMap := g.Simulation.Env.Map
-	for y := range envMap.Height {
-		for x := range envMap.Width {
-			drawX, drawY := g.mapToDrawCoords(float64(x), float64(y), offsetX, offsetY)
+	for y := 0.0; y < float64(envMap.Height); y++ {
+		for x := 0.0; x < float64(envMap.Width); x++ {
+			drawX, drawY := g.mapToDrawCoords(x, y, offsetX, offsetY)
 			drawImageAt(screen, groundImg, drawX, drawY)
 		}
 	}
 
 	// DRAW EVERY OTHER ELEMENTS, SAME LOGIC IN A WAY BUT GOOD PRACTICE TO KEEP BOTH
-	for y := range envMap.Height {
-		for x := range envMap.Width {
+	for y := 0.0; y < float64(envMap.Height); y++ {
+		for x := 0.0; x < float64(envMap.Width); x++ {
 			elementType := envMap.GetElementType(x, y)
 			if elementType == constants.VOID {
 				continue
 			}
 
-			drawX, drawY := g.mapToDrawCoords(float64(x), float64(y), offsetX, offsetY)
+			drawX, drawY := g.mapToDrawCoords(x, y, offsetX, offsetY)
 
 			//If image not exist, will not render !
 			switch elementType {
