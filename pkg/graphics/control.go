@@ -38,25 +38,25 @@ func (g *Game) handleMouseClick() {
 	mouseX, mouseY := ebiten.CursorPosition()
 
 	// convert screen to map coordinates
-	margin := 20
-	mapX := (mouseX - margin + g.CameraX) / constants.CELL_SIZE
-	mapY := (mouseY - margin + g.CameraY) / constants.CELL_SIZE
+	margin := 20.0
+	mapX := float64((mouseX - int(margin) + g.CameraX) / constants.CELL_SIZE)
+	mapY := float64((mouseY - int(margin) + g.CameraY) / constants.CELL_SIZE)
 	envMap := g.Simulation.Env.Map
-	if mapX >= 0 && mapX < envMap.Width && mapY >= 0 && mapY < envMap.Height {
+	if mapX >= 0 && mapX < float64(envMap.Width) && mapY >= 0 && mapY < float64(envMap.Height) {
 		elementType := envMap.GetElementType(mapX, mapY)
 
 		items, exists := envMap.GetShelfData(mapX, mapY)
 		agt := g.isMouseClickedOnAgent(mapX, mapY)
-		g.Hud.SetSelection(float64(mapX), float64(mapY), &elementType, agt, items, exists)
+		g.Hud.SetSelection(mapX, mapY, &elementType, agt, items, exists)
 
 		fmt.Printf("=== DEBUG CLICK ===\n")
-		fmt.Printf("Position: (%d, %d)\n", mapX, mapY)
+		fmt.Printf("Position: (%.0f, %.0f)\n", mapX, mapY)
 
 		fmt.Printf("Element Type: %s\n", elementType)
 
 		if elementType == constants.SHELF {
 			shelfChar := envMap.GetShelfCharacter(mapX, mapY)
-			fmt.Printf("Shelf Zone at (%d, %d) - Shelf Type: '%s'\n", mapX, mapY, shelfChar)
+			fmt.Printf("Shelf Zone at (%.0f, %.0f) - Shelf Type: '%s'\n", mapX, mapY, shelfChar)
 			if shelf, exists := envMap.GetShelfData(mapX, mapY); exists {
 				fmt.Printf("Shelf '%s' Categories: %v\n", shelfChar, shelf.Categories)
 				fmt.Printf("Shelf '%s' Stock (%d items):\n", shelfChar, len(shelf.Items))
@@ -72,10 +72,10 @@ func (g *Game) handleMouseClick() {
 	}
 }
 
-func (g *Game) isMouseClickedOnAgent(mapX, mapY int) Simulation.Agent {
+func (g *Game) isMouseClickedOnAgent(mapX, mapY float64) Simulation.Agent {
 	for _, a := range g.Simulation.Agents() {
-		dx := math.Abs(a.Coordinate().X - float64(mapX))
-		dy := math.Abs(a.Coordinate().Y - float64(mapY))
+		dx := math.Abs(a.Coordinate().X - mapX)
+		dy := math.Abs(a.Coordinate().Y - mapY)
 
 		if dx < 0.5 && dy < 0.5 {
 			return a

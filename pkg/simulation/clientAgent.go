@@ -10,14 +10,14 @@ import (
 )
 
 type ClientAgent struct {
-	id          AgentID
-	Speed       float64
-	env         *Environment
-	coordinate  utils.Coordinate
-	dx, dy      float64
+	id           AgentID
+	Speed        float64
+	env          *Environment
+	coordinate   utils.Coordinate
+	dx, dy       float64
 	shoppingList []Map.Item
-	pickChan   chan PickRequest
-	moveChan   chan MoveRequest
+	pickChan     chan PickRequest
+	moveChan     chan MoveRequest
 
 	syncChan chan int
 	//temporaire
@@ -26,7 +26,7 @@ type ClientAgent struct {
 
 	// Pathfinding
 	currentPath      *pathfinding.Path
-	targetX, targetY int
+	targetX, targetY float64
 	hasDestination   bool
 
 	// Anti-blocage
@@ -51,7 +51,7 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 		coordinate:       utils.Coordinate{X: float64(startX), Y: float64(startY)},
 		dx:               0,
 		dy:               0,
-		shoppingList:	  generateShoppingList(env),
+		shoppingList:     generateShoppingList(env),
 		pickChan:         pickChan,
 		moveChan:         moveChan,
 		syncChan:         syncChan,
@@ -66,7 +66,7 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 	return agent
 }
 
-func generateShoppingList(env *Environment) ([]Map.Item) {
+func generateShoppingList(env *Environment) []Map.Item {
 	totalAttractiveness := 0.0
 	shopList := []Map.Item{}
 	for _, item := range env.Map.Items {
@@ -76,7 +76,7 @@ func generateShoppingList(env *Environment) ([]Map.Item) {
 	for range rand.Intn(4) + 1 {
 		wantedItem := rand.Float64() * totalAttractiveness
 		cumulative := 0.0
-		
+
 		for _, item := range env.Map.Items {
 			cumulative += item.Attractiveness
 			if wantedItem <= cumulative {

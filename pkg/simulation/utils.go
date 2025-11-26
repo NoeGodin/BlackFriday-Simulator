@@ -6,7 +6,7 @@ import (
 )
 
 // FindNearestFreePosition finds the nearest free position around the given position
-func FindNearestFreePosition(env *Environment, centerX, centerY int) (int, int, bool) {
+func FindNearestFreePosition(env *Environment, centerX, centerY float64) (float64, float64, bool) {
 	// spiral research around center tile
 	maxRadius := 10 // Limit search to a radius of 10 cells
 
@@ -18,13 +18,13 @@ func FindNearestFreePosition(env *Environment, centerX, centerY int) (int, int, 
 					continue
 				}
 
-				x := centerX + dx
-				y := centerY + dy
+				x := centerX + float64(dx)
+				y := centerY + float64(dy)
 
 				// position is within map bounds
-				if x >= 0 && x < env.Map.Width && y >= 0 && y < env.Map.Height {
+				if x >= 0 && x < float64(env.Map.Width) && y >= 0 && y < float64(env.Map.Height) {
 					if env.Map.IsWalkable(x, y) {
-						logger.Debugf("Found free position (%d,%d) at radius %d", x, y, radius)
+						logger.Debugf("Found free position (%.2f,%.2f) at radius %d", x, y, radius)
 						return x, y, true
 					}
 				}

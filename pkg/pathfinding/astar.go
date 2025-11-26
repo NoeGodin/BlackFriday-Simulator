@@ -9,23 +9,23 @@ import (
 )
 
 // FindPath path between two points with A*
-func FindPath(worldMap *Map.Map, startX, startY, targetX, targetY int) (*Path, bool) {
-	logger.Debugf("FindPath called from (%d,%d) to (%d,%d)", startX, startY, targetX, targetY)
+func FindPath(worldMap *Map.Map, startX, startY, targetX, targetY float64) (*Path, bool) {
+	logger.Debugf("FindPath called from (%.2f,%.2f) to (%.2f,%.2f)", startX, startY, targetX, targetY)
 
 	// If agent is stuck in a non-walkable position, find nearest walkable position first
 	//TODO: on pourrait remove à la fin du projet, car ce sera plus possible d'avoir coord invalide
 	if !worldMap.IsValidAndWalkable(startX, startY) {
-		logger.Debugf("FindPath: Start position (%d,%d) is invalid or not walkable, finding nearest walkable position", startX, startY)
+		logger.Debugf("FindPath: Start position (%.2f,%.2f) is invalid or not walkable, finding nearest walkable position", startX, startY)
 		nearestX, nearestY, found := findNearestWalkablePosition(worldMap, startX, startY)
 		if !found {
-			logger.Debugf("FindPath: No walkable position found near (%d,%d)", startX, startY)
+			logger.Debugf("FindPath: No walkable position found near (%.2f,%.2f)", startX, startY)
 			return nil, false
 		}
-		logger.Debugf("FindPath: Using nearest walkable position (%d,%d) instead of (%d,%d)", nearestX, nearestY, startX, startY)
+		logger.Debugf("FindPath: Using nearest walkable position (%.2f,%.2f) instead of (%.2f,%.2f)", nearestX, nearestY, startX, startY)
 		startX, startY = nearestX, nearestY
 	}
 	if !worldMap.IsValidAndWalkable(targetX, targetY) {
-		logger.Debugf("FindPath: Target position (%d,%d) is invalid or not walkable", targetX, targetY)
+		logger.Debugf("FindPath: Target position (%.2f,%.2f) is invalid or not walkable", targetX, targetY)
 		return nil, false
 	}
 
@@ -41,18 +41,18 @@ func FindPath(worldMap *Map.Map, startX, startY, targetX, targetY int) (*Path, b
 	logger.Debugf("FindPath: Created path with %d waypoints", len(waypoints))
 	return &Path{
 		waypoints: waypoints,
-		target:    utils.IntCoordinate{X: targetX, Y: targetY},
+		target:    utils.Coordinate{X: targetX, Y: targetY},
 	}, true
 }
 
-func AStar(worldMap *Map.Map, startX, startY, targetX, targetY int) ([]utils.IntCoordinate, bool) {
-	logger.Debugf("A*: Finding path from (%d,%d) to (%d,%d)", startX, startY, targetX, targetY)
+func AStar(worldMap *Map.Map, startX, startY, targetX, targetY float64) ([]utils.Coordinate, bool) {
+	logger.Debugf("A*: Finding path from (%.2f,%.2f) to (%.2f,%.2f)", startX, startY, targetX, targetY)
 
 	// Initialize
 	openSet := &PriorityQueue{}
 	heap.Init(openSet)
-	closedSet := make(map[[2]int]bool)
-	nodeMap := make(map[[2]int]*Node)
+	closedSet := make(map[[2]float64]bool)
+	nodeMap := make(map[[2]float64]*Node)
 
 	startNode := &Node{
 		X:      startX,
@@ -63,12 +63,12 @@ func AStar(worldMap *Map.Map, startX, startY, targetX, targetY int) ([]utils.Int
 	}
 
 	heap.Push(openSet, startNode)
-	nodeMap[[2]int{startX, startY}] = startNode
+	nodeMap[[2]float64{startX, startY}] = startNode
 
 	// Main A* algorithm loop
 	for openSet.Len() > 0 {
 		current := heap.Pop(openSet).(*Node)
-		currentKey := [2]int{current.X, current.Y}
+		currentKey := [2]float64{current.X, current.Y}
 
 		// is destination reached
 		if current.X == targetX && current.Y == targetY {
@@ -87,8 +87,8 @@ func AStar(worldMap *Map.Map, startX, startY, targetX, targetY int) ([]utils.Int
 }
 
 // processNeighbors processes all neighbors of a node
-func processNeighbors(current *Node, targetX, targetY int, worldMap *Map.Map,
-	openSet *PriorityQueue, closedSet map[[2]int]bool, nodeMap map[[2]int]*Node) {
+func processNeighbors(current *Node, targetX, targetY float64, worldMap *Map.Map,
+	openSet *PriorityQueue, closedSet map[[2]float64]bool, nodeMap map[[2]float64]*Node) {
 
 	directions := constants.MovementDirections
 
@@ -113,7 +113,7 @@ func processNeighbors(current *Node, targetX, targetY int, worldMap *Map.Map,
 			}
 		}
 
-		neighborKey := [2]int{nx, ny}
+		neighborKey := [2]float64{nx, ny}
 		if closedSet[neighborKey] {
 			continue
 		}
@@ -129,9 +129,9 @@ func processNeighbors(current *Node, targetX, targetY int, worldMap *Map.Map,
 }
 
 // handleNeighbor handles adding or updating a neighbor
-func handleNeighbor(nx, ny int, tentativeG float64, current *Node,
-	targetX, targetY int, openSet *PriorityQueue,
-	nodeMap map[[2]int]*Node, neighborKey [2]int) {
+func handleNeighbor(nx, ny float64, tentativeG float64, current *Node,
+	targetX, targetY float64, openSet *PriorityQueue,
+	nodeMap map[[2]float64]*Node, neighborKey [2]float64) {
 
 	neighbor, exists := nodeMap[neighborKey]
 	if !exists {
@@ -154,10 +154,10 @@ func handleNeighbor(nx, ny int, tentativeG float64, current *Node,
 }
 
 // findNearestWalkablePosition finds the nearest walkable position
-func findNearestWalkablePosition(worldMap *Map.Map, startX, startY int) (int, int, bool) {
-	queue := [][2]int{{startX, startY}}
-	visited := make(map[[2]int]bool)
-	visited[[2]int{startX, startY}] = true
+func findNearestWalkablePosition(worldMap *Map.Map, startX, startY float64) (float64, float64, bool) {
+	queue := [][2]float64{{startX, startY}}
+	visited := make(map[[2]float64]bool)
+	visited[[2]float64{startX, startY}] = true
 
 	// Search in expanding squares
 	for len(queue) > 0 {
@@ -170,13 +170,13 @@ func findNearestWalkablePosition(worldMap *Map.Map, startX, startY int) (int, in
 		}
 
 		// Add neighbors to queue
-		for _, dir := range [][2]int{{0, 1}, {0, -1}, {1, 0}, {-1, 0}} {
+		for _, dir := range [][2]float64{{0, 1}, {0, -1}, {1, 0}, {-1, 0}} {
 			nx, ny := x+dir[0], y+dir[1]
-			key := [2]int{nx, ny}
+			key := [2]float64{nx, ny}
 
-			if !visited[key] && nx >= 0 && ny >= 0 && nx < worldMap.Width && ny < worldMap.Height {
+			if !visited[key] && nx >= 0 && ny >= 0 && nx < float64(worldMap.Width) && ny < float64(worldMap.Height) {
 				visited[key] = true
-				queue = append(queue, [2]int{nx, ny})
+				queue = append(queue, [2]float64{nx, ny})
 			}
 		}
 	}

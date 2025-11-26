@@ -61,9 +61,10 @@ func LoadMapFromString(content string) (*Map, error) {
 	m := NewMap(width, height)
 
 	// Parsing the map
-	for y, line := range mapLines {
-		for x, c := range line {
-			if x >= width || y >= height {
+	for yInt, line := range mapLines {
+		for xInt, c := range line {
+			x, y := float64(xInt), float64(yInt)
+			if xInt >= width || yInt >= height {
 				continue
 			}
 
@@ -93,11 +94,11 @@ func (m *Map) LoadStockData(stockData StockData, layoutContent string) {
 	}
 
 	// Map product to character in the layout
-	for y, line := range mapLines {
-		for x, c := range line {
+	for yInt, line := range mapLines {
+		for xInt, c := range line {
 			if (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') {
 				charKey := string(c)
-				position := [2]int{x, y}
+				position := [2]float64{float64(xInt), float64(yInt)}
 				m.ShelfChars[position] = charKey
 				// Store shelf data
 				if shelf, exists := stockData.Stocks[charKey]; exists {
