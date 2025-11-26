@@ -65,6 +65,25 @@ func (mm *MovementManager) GenerateNewDestination() {
 	logger.Debugf("Agent %s: New destination set to (%.2f,%.2f) with %d waypoints", mm.agent.id, targetX, targetY, len(path.GetWaypoints()))
 }
 
+func (mm *MovementManager) SetDestination(targetX, targetY int) { //écrire cette fonc
+	currentX, currentY := mm.agent.coordinate.ToInt()
+	if targetX == currentX && targetY == currentY {
+		mm.agent.hasDestination = false
+		return
+	}
+
+	path, pathFound := pathfinding.FindPath(mm.agent.env.Map, currentX, currentY, targetX, targetY)
+	if !pathFound {
+		mm.agent.hasDestination = false
+		return
+	}
+
+	mm.agent.currentPath = path
+	mm.agent.targetX = targetX
+	mm.agent.targetY = targetY
+	mm.agent.hasDestination = true
+}
+
 // FollowPath makes the agent follow its current path
 func (mm *MovementManager) FollowPath() {
 
