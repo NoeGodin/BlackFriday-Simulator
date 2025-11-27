@@ -1,5 +1,7 @@
 package utils
 
+import "math"
+
 // Abs Absolute value
 func Abs(x int) int {
 	if x < 0 {
@@ -14,4 +16,10 @@ func CalculateMovementCost(dx, dy float64) float64 {
 		return 1.414 // sqrt(2) for diagonals
 	}
 	return 1.0 // Horizontal/vertical movement
+}
+
+func EuclideanDistance(c1, c2 [2]int) float64 {
+	dx := float64((c1[0] - c2[0]))
+	dy := float64((c1[1] - c2[1]))
+	return math.Sqrt(dx*dx + dy*dy)
 }
