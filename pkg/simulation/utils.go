@@ -1,8 +1,11 @@
 package Simulation
 
 import (
+	"AI30_-_BlackFriday/pkg/constants"
 	"AI30_-_BlackFriday/pkg/logger"
 	"AI30_-_BlackFriday/pkg/utils"
+	"fmt"
+	"math"
 )
 
 // FindNearestFreePosition finds the nearest free position around the given position
@@ -34,4 +37,74 @@ func FindNearestFreePosition(env *Environment, centerX, centerY float64) (float6
 
 	logger.Warnf("No free position found within radius %d", maxRadius)
 	return 0, 0, false
+}
+
+func FindNearestElementPosition(env *Environment, a Agent, elementType constants.ElementType) (int, int, bool) {
+	agentX, agentY := a.Coordinate().ToInt()
+	agentCoords := [2]int{agentX, agentY}
+
+	minDist := math.MaxFloat64
+	nearestElement := [2]int{-1, -1}
+
+	switch elementType {
+	case "shelf":
+		agent, isClientAgent := a.(*ClientAgent)
+		for k := range env.Map.ShelfData {
+			if isClientAgent {
+				_, alreadyVisited := agent.visitedShelves[k]
+				if alreadyVisited {
+					continue
+				}
+			}
+			tempDist := utils.EuclideanDistance(agentCoords, k)
+			if minDist > tempDist {
+				minDist = tempDist
+				nearestElement = k
+			}
+		}
+
+	case "C":
+		for _, v := range env.Map.CheckoutZones {
+			tempDist := utils.EuclideanDistance(agentCoords, v)
+			if minDist > tempDist {
+				minDist = tempDist
+				nearestElement = v
+			}
+		}
+	case "D":
+		for _, v := range env.Map.Doors {
+			tempDist := utils.EuclideanDistance(agentCoords, v)
+			if minDist > tempDist {
+				minDist = tempDist
+				nearestElement = v
+			}
+		}
+	default:
+		logger.Warnf("This element (%s) cannot be used as a parameter for this function", elementType)
+		return 0, 0, false
+	}
+
+	if (nearestElement[0] | nearestElement[1]) == -1 {
+		logger.Warnf("No element (%s) position found", elementType)
+		return 0, 0, false
+	}
+
+	fmt.Println(agentCoords, nearestElement)
+	return nearestElement[0], nearestElement[1], true
+}
+
+func FindWalkablePositionNearbyElement(env *Environment, a Agent, elementType constants.ElementType) (int, int, bool) {
+	nearestElementX, nearestElementY, res := FindNearestElementPosition(env, a, elementType)
+
+	if res != true {
+		logger.Warnf("No position found for this element (%s), cannot find nearest free position", elementType)
+		return 0, 0, false
+	}
+
+	targetX, targetY, res := FindNearestFreePosition(env, nearestElementX, nearestElementY)
+	if res != true {
+		logger.Warnf("Cannot find nearest free position around element %s", elementType)
+	}
+	fmt.Printf("Walkable tile : [%d %d]\n", targetX, targetY)
+	return targetX, targetY, res
 }
