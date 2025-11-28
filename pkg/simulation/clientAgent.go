@@ -39,6 +39,10 @@ type ClientAgent struct {
 	// Gestionnaires
 	movementManager *MovementManager
 	stuckDetector   *StuckDetector
+
+	// Manage vision and agent memory
+	visionManager  *VisionManager
+	visitedShelves map[[2]int]bool
 }
 
 func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, syncChan chan int) *ClientAgent {
@@ -62,9 +66,11 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 		hasDestination:   false,
 		stuckCounter:     0,
 		lastPosition:     utils.Vec2{X: float64(startX), Y: float64(startY)},
+		visitedShelves:	  make(map[[2]int]bool),
 	}
 	agent.movementManager = NewMovementManager(agent)
 	agent.stuckDetector = NewStuckDetector(agent)
+	agent.visionManager = NewVisionManager(agent)
 
 	return agent
 }
@@ -140,7 +146,9 @@ func (ag *ClientAgent) Direction() utils.Direction {
 	return ag.movementManager.CalculateDirection()
 }
 func (ag *ClientAgent) Percept() {
-
+	// ag.visionManager.UpdateFOVRays(ag.dx, ag.dy, 10, ag.env)
+	ag.visionManager.UpdateFOV(ag.dx, ag.dy)
+	ag.visionManager.DetectShelvesInFOV(ag.env)
 }
 
 func (ag *ClientAgent) Deliberate() {
@@ -174,4 +182,8 @@ func (ag *ClientAgent) GetCurrentPath() *pathfinding.Path {
 
 func (ag *ClientAgent) ShoppingList() []Map.Item {
 	return ag.shoppingList
+}
+
+func (ag *ClientAgent) VisionManager() VisionManager {
+	return *ag.visionManager
 }

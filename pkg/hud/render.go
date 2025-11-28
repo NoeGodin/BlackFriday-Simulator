@@ -13,6 +13,10 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text"
 )
 
+func (h *HUD) GetSelectedAgent() Simulation.Agent {
+	return h.selectedAgent
+}
+
 func (h *HUD) SetSelectedElement(posX, posY float64, elementType *Map.ElementType, items []Map.Item, exists bool) {
 	h.selectedElement = elementType
 	h.TargetPositionX = posX
