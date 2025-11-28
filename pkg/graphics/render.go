@@ -201,6 +201,36 @@ func (g *Game) DrawHUD(screen *ebiten.Image) {
 		return
 	}
 
+	if agt := g.Hud.GetSelectedAgent(); agt != nil {
+		// Draw Raycasts
+		// ax := agt.Coordinate().X + constants.CENTER_OF_CELL
+		// ay := agt.Coordinate().Y + constants.CENTER_OF_CELL
+		// axDraw, ayDraw := g.mapToDrawCoords(ax, ay, offsetX, offsetY)
+
+		// for _, end := range agt.VisionManager().RaysEndPoints {
+		// 	exDraw, eyDraw := g.mapToDrawCoords(end.X, end.Y, offsetX, offsetY)
+		// 	vector.StrokeLine(screen, float32(axDraw), float32(ayDraw),
+		// 		float32(exDraw), float32(eyDraw),
+		// 		1, color.RGBA{0, 255, 255, 128}, false)
+		// }
+
+		// Draw rectangle
+		p1 := agt.VisionManager().P1
+		p2 := agt.VisionManager().P2
+		p3 := agt.VisionManager().P3
+		p4 := agt.VisionManager().P4
+
+		x1, y1 := g.mapToDrawCoords(p1.X, p1.Y, offsetX, offsetY)
+		x2, y2 := g.mapToDrawCoords(p2.X, p2.Y, offsetX, offsetY)
+		x3, y3 := g.mapToDrawCoords(p3.X, p3.Y, offsetX, offsetY)
+		x4, y4 := g.mapToDrawCoords(p4.X, p4.Y, offsetX, offsetY)
+
+		vector.StrokeLine(screen, float32(x1), float32(y1), float32(x2), float32(y2), 1, color.RGBA{0, 0, 0, 255}, false)
+		vector.StrokeLine(screen, float32(x2), float32(y2), float32(x3), float32(y3), 1, color.RGBA{0, 0, 0, 255}, false)
+		vector.StrokeLine(screen, float32(x3), float32(y3), float32(x4), float32(y4), 1, color.RGBA{0, 0, 0, 255}, false)
+		vector.StrokeLine(screen, float32(x4), float32(y4), float32(x1), float32(y1), 1, color.RGBA{0, 0, 0, 255}, false)
+	}
+
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(constants.HUD_POS_X, constants.HUD_POS_Y)
 	screen.DrawImage(g.Hud.HudBg, op)

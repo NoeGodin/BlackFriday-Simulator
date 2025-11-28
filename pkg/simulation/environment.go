@@ -160,3 +160,21 @@ func (env *Environment) Start() {
 	go env.pickRequest()
 	go env.moveRequest()
 }
+
+func (env *Environment) IsObstacleAt(x, y float64) bool {
+    for _, wall := range env.Map.GetCollisables() {
+        if math.Abs(wall[0] - x) < constants.CENTER_OF_CELL && math.Abs(wall[1] - y) < constants.CENTER_OF_CELL {
+            return true
+        }
+    }
+    return false
+}
+
+func (env *Environment) IsShelfAt(x, y float64) bool {
+    for coords := range env.Map.ShelfData {
+        if x == coords[0] && y == coords[1] {
+            return true
+        }
+    }
+    return false
+}

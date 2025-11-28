@@ -43,6 +43,12 @@ const (
 	FRICTION_COEF     = 10.0
 	RELAXATION_FACTOR = 30.0
 	SPEED_MULTIPLIER  = 1.1
+
+	VISION_DISTANCE = 10
+	VISION_HEIGHT = 6
+	ANGLE_VISION = 90.0 // For Raycast FOV
+
+	CENTER_OF_CELL = 0.5
 )
 
 // MovementDirections all possible movement directions

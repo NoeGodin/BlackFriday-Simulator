@@ -21,4 +21,5 @@ type Agent interface {
 	Move()
 	DryRunMove() utils.Vec2
 	ShoppingList() []Map.Item
+	VisionManager() VisionManager
 }
