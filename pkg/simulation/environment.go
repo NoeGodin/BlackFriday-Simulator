@@ -5,12 +5,20 @@ import (
 	Map "AI30_-_BlackFriday/pkg/map"
 	"AI30_-_BlackFriday/pkg/utils"
 	"math"
+	"sync"
 )
 
-type PickRequest struct {
-	Agt Agent
-	//any est temporaire
-	ResponseChannel any
+type PickResponse struct {
+	Status       bool
+	PickedAmount int
+}
+
+type PickRequest struct { // une pick request par item
+	Agt             Agent
+	ItemName        string
+	ShelfCoords     [2]int
+	WantedAmount    int
+	ResponseChannel chan PickResponse
 }
 
 type MoveRequest struct {
@@ -26,6 +34,7 @@ type Environment struct {
 	moveChan             chan MoveRequest
 	deltaTime            float64
 	neighborSearchRadius float64
+	Mutex    sync.RWMutex
 }
 
 func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64) *Environment {
@@ -39,15 +48,6 @@ func (env *Environment) AddClient(agtId string, syncChan chan int) Agent {
 	return client
 }
 
-// demande pour prendre un objet (peut être réfusé si l'objet n'est plus dispo)
-func (env *Environment) pickRequest() {
-	// for {
-	// 	select {
-	// 	case pickRequest := <-env.PickChannel:
-
-	// 	}
-	// }
-}
 func (env *Environment) isCollision(agt Agent) bool {
 	coords := agt.DryRunMove()
 	//check de la collision avec les eléments collisables
@@ -153,6 +153,54 @@ func (env *Environment) moveRequest() {
 
 		clientAgent.Move()
 		moveRequest.ResponseChannel <- true
+	}
+}
+
+func (env *Environment) pickRequest() {
+	for pickRequest := range env.pickChan {
+		if pickRequest.ItemName == "" {
+			pickRequest.ResponseChannel <- PickResponse{false, 0}
+			continue
+		}
+
+		if pickRequest.WantedAmount <= 0 {
+			pickRequest.ResponseChannel <- PickResponse{false, 0}
+			continue
+		}
+
+		env.Mutex.Lock() // potentiellement à refacto
+
+		shelf, ok := env.Map.ShelfData[pickRequest.ShelfCoords]
+		if !ok {
+			env.Mutex.Unlock()
+			pickRequest.ResponseChannel <- PickResponse{false, 0}
+			continue
+		}
+
+		targetedShelf := shelf.Items
+		var itemToPick *Map.Item
+
+		for itemIndex := range targetedShelf {
+			if targetedShelf[itemIndex].Name == pickRequest.ItemName {
+				itemToPick = &targetedShelf[itemIndex]
+				break
+			}
+		}
+
+		if itemToPick == nil {
+			env.Mutex.Unlock()
+			pickRequest.ResponseChannel <- PickResponse{false, 0}
+			continue
+		}
+		if itemToPick.Quantity >= pickRequest.WantedAmount {
+			pickRequest.ResponseChannel <- PickResponse{true, pickRequest.WantedAmount}
+			itemToPick.Quantity -= pickRequest.WantedAmount
+
+		} else {
+			pickRequest.ResponseChannel <- PickResponse{true, itemToPick.Quantity}
+			itemToPick.Quantity = 0
+		}
+		env.Mutex.Unlock()
 	}
 }
 
