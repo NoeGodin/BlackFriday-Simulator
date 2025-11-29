@@ -45,11 +45,11 @@ func FindPath(worldMap *Map.Map, startX, startY, targetX, targetY float64) (*Pat
 	logger.Debugf("FindPath: Created path with %d waypoints", len(waypoints))
 	return &Path{
 		waypoints: waypoints,
-		target:    utils.IntVec2{X: targetX, Y: targetY},
+		target:    utils.Vec2{X: targetX, Y: targetY},
 	}, true
 }
 
-func AStar(worldMap *Map.Map, startX, startY, targetX, targetY int) ([]utils.IntVec2, bool) {
+func AStar(worldMap *Map.Map, startX, startY, targetX, targetY int) ([]utils.Vec2, bool) {
 	logger.Debugf("A*: Finding path from (%d,%d) to (%d,%d)", startX, startY, targetX, targetY)
 
 	// Initialize
