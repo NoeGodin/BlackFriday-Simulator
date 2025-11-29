@@ -15,9 +15,9 @@ type Simulation struct {
 	syncChans sync.Map
 }
 
-func NewSimulation(agentCount int, speed float64, mapData *Map.Map) (simu *Simulation) {
+func NewSimulation(agentCount int, speed float64, mapData *Map.Map, deltaTime float64, searchRadius float64) (simu *Simulation) {
 
-	simu = &Simulation{agents: make([]Agent, agentCount), Env: *NewEnvironment(mapData), Speed: speed}
+	simu = &Simulation{agents: make([]Agent, agentCount), Env: *NewEnvironment(mapData, deltaTime, searchRadius), Speed: speed}
 	return simu
 }
 

@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 
+	"AI30_-_BlackFriday/pkg/constants"
 	Graphics "AI30_-_BlackFriday/pkg/graphics"
 	"AI30_-_BlackFriday/pkg/logger"
 	Map "AI30_-_BlackFriday/pkg/map"
@@ -37,7 +38,7 @@ func main() {
 	}
 
 	logger.Info("Creating simulation...")
-	simu := Simulation.NewSimulation(0, 100.0, mapData)
+	simu := Simulation.NewSimulation(0, 100.0, mapData, constants.DELTA_TIME, constants.AGENT_SEARCH_RADIUS)
 
 	logger.Info("Adding agents...")
 	for i := 1; i <= 50; i++ {

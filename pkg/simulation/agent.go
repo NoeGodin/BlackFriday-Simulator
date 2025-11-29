@@ -13,9 +13,12 @@ type Agent interface {
 	Deliberate()
 	Act()
 	ID() AgentID
-	Coordinate() utils.Coordinate
+	Coordinate() utils.Vec2
+	DesiredVelocity() *utils.Vec2
+	Velocity() *utils.Vec2
+
 	Direction() utils.Direction
 	Move()
-	DryRunMove() utils.Coordinate
+	DryRunMove() utils.Vec2
 	ShoppingList() []Map.Item
 }

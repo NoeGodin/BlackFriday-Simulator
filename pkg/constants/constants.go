@@ -30,6 +30,18 @@ const (
 
 	HUD_POS_X float64 = 10.0
 	HUD_POS_Y float64 = 10.0
+
+	DELTA_TIME          = 1.0 / 60.0
+	AGENT_SEARCH_RADIUS = 5.0
+
+	//SFC
+	SOCIAL_STRENGTH   = 1.0
+	AGT_RANGE         = 0.2
+	AGT_STRENGTH      = 50.0
+	AGT_RADIUS        = 0.3
+	FRICTION_COEF     = 10.0
+	RELAXATION_FACTOR = 30.0
+	SPEED_MULTIPLIER  = 1.1
 )
 
 // MovementDirections all possible movement directions
