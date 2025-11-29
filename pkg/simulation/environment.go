@@ -3,6 +3,7 @@ package Simulation
 import (
 	"AI30_-_BlackFriday/pkg/constants"
 	Map "AI30_-_BlackFriday/pkg/map"
+	"AI30_-_BlackFriday/pkg/utils"
 	"math"
 )
 
@@ -19,16 +20,18 @@ type MoveRequest struct {
 }
 
 type Environment struct {
-	Map      *Map.Map
-	Clients  []*ClientAgent
-	pickChan chan PickRequest
-	moveChan chan MoveRequest
+	Map                  *Map.Map
+	Clients              []*ClientAgent
+	pickChan             chan PickRequest
+	moveChan             chan MoveRequest
+	deltaTime            float64
+	neighborSearchRadius float64
 }
 
-func NewEnvironment(mapData *Map.Map) *Environment {
+func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64) *Environment {
 	pickChan := make(chan PickRequest)
 	moveChan := make(chan MoveRequest)
-	return &Environment{Map: mapData, Clients: make([]*ClientAgent, 0), pickChan: pickChan, moveChan: moveChan}
+	return &Environment{Map: mapData, Clients: make([]*ClientAgent, 0), pickChan: pickChan, moveChan: moveChan, deltaTime: deltaTime, neighborSearchRadius: searchRadius}
 }
 func (env *Environment) AddClient(agtId string, syncChan chan int) Agent {
 	client := NewClientAgent(agtId, env, env.moveChan, env.pickChan, syncChan)
@@ -77,19 +80,86 @@ func (env *Environment) checkAgentCollisions(agt Agent) []*ClientAgent {
 	return collidingAgents
 }
 
+func (env *Environment) getNearbyAgents(agt Agent, radius float64) []*ClientAgent {
+	nearbyAgents := make([]*ClientAgent, 0)
+	for _, neighbor := range env.Clients {
+		if agt.ID() == neighbor.ID() {
+			continue
+		}
+		if agt.Coordinate().Distance(neighbor.Coordinate()) <= radius {
+			nearbyAgents = append(nearbyAgents, neighbor)
+		}
+	}
+	return nearbyAgents
+}
+
+func ClosestPointToObstacle(agentPos utils.Vec2, obstacle Vec2) (pos utils.Vec2) {
+	minX := obstacle.X - 0.5
+	maxX := obstacle.X + 0.5
+	minY := obstacle.Y - 0.5
+	maxY := obstacle.Y + 0.5
+
+	if agentPos.X <= minX {
+		pos.X = minX
+	} else {
+		pos.X = maxX
+	}
+	if agentPos.Y <= minY {
+		pos.Y = minY
+	} else {
+		pos.Y = maxY
+	}
+	return
+}
+
 // demande pour bouger (peut être refuser si une personne où un objet n'est plus dispo)
 func (env *Environment) moveRequest() {
 	for moveRequest := range env.moveChan {
-		// Check wall/shelf collisions (solid objects)
-		isWallCollision := env.isCollision(moveRequest.Agt)
-		if isWallCollision {
-			// Block movement if hitting walls/shelves
-			moveRequest.ResponseChannel <- true
+		clientAgent, ok := moveRequest.Agt.(*ClientAgent)
+		if !ok {
+			isWallCollision := env.isCollision(moveRequest.Agt)
+			if isWallCollision {
+				moveRequest.ResponseChannel <- true
+				continue
+			}
+			moveRequest.Agt.Move()
+			moveRequest.ResponseChannel <- false
 			continue
 		}
-		//TODO: ici on pourrait gérer mieux la collision en regardant l'etat de la var collidingAgents
-		moveRequest.Agt.Move()
-		moveRequest.ResponseChannel <- false // Movement always succeeds unless wall collision
+
+		neighbors := env.getNearbyAgents(clientAgent, env.neighborSearchRadius)
+
+		socialForces := CalculateSocialForces(clientAgent, neighbors)
+		ApplySocialForce(clientAgent, socialForces, env.deltaTime)
+		P_new := clientAgent.DryRunMove()
+		for _, obstacle := range env.Map.GetCollisables() {
+			pObstacle := ClosestPointToObstacle(P_new, Vec2{X: float64(obstacle[0]), Y: float64(obstacle[1])})
+
+			dx := P_new.X - pObstacle.X
+			dy := P_new.Y - pObstacle.Y
+			d := math.Sqrt(dx*dx + dy*dy)
+
+			if d < constants.AGT_RADIUS {
+				penetrationDepth := constants.AGT_RADIUS - d
+
+				n := utils.Vec2{
+					X: (P_new.X - pObstacle.X) / d,
+					Y: (P_new.Y - pObstacle.Y) / d,
+				}
+
+				P_new.X += n.X * penetrationDepth
+				P_new.Y += n.Y * penetrationDepth
+				clientAgent.coordinate.X = P_new.X
+				clientAgent.coordinate.Y = P_new.Y
+
+				dotProduct := clientAgent.velocity.X*n.X + clientAgent.velocity.Y*n.Y
+				clientAgent.velocity.X -= dotProduct * n.X
+				clientAgent.velocity.X -= dotProduct * n.Y
+			}
+		}
+
+		clientAgent.Move()
+		moveRequest.ResponseChannel <- true
 	}
 }
 

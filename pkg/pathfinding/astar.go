@@ -45,11 +45,11 @@ func FindPath(worldMap *Map.Map, startX, startY, targetX, targetY float64) (*Pat
 	logger.Debugf("FindPath: Created path with %d waypoints", len(waypoints))
 	return &Path{
 		waypoints: waypoints,
-		target:    utils.Coordinate{X: targetX, Y: targetY},
+		target:    utils.IntVec2{X: targetX, Y: targetY},
 	}, true
 }
 
-func AStar(worldMap *Map.Map, startX, startY, targetX, targetY int) ([]utils.Coordinate, bool) {
+func AStar(worldMap *Map.Map, startX, startY, targetX, targetY int) ([]utils.IntVec2, bool) {
 	logger.Debugf("A*: Finding path from (%d,%d) to (%d,%d)", startX, startY, targetX, targetY)
 
 	// Initialize
@@ -62,7 +62,7 @@ func AStar(worldMap *Map.Map, startX, startY, targetX, targetY int) ([]utils.Coo
 		X:      float64(startX),
 		Y:      float64(startY),
 		GScore: 0, //c'est long mais f score c'est juste la distance entre 2 points
-		FScore: utils.Coordinate{X: float64(startX), Y: float64(startY)}.Distance(utils.Coordinate{X: float64(targetX), Y: float64(targetY)}),
+		FScore: utils.Vec2{X: float64(startX), Y: float64(startY)}.Distance(utils.Vec2{X: float64(targetX), Y: float64(targetY)}),
 		Parent: nil,
 	}
 
@@ -143,7 +143,7 @@ func handleNeighbor(nx, ny float64, tentativeG float64, current *Node,
 			X:      nx,
 			Y:      ny,
 			GScore: tentativeG,
-			FScore: tentativeG + utils.Coordinate{X: float64(nx), Y: float64(ny)}.Distance(utils.Coordinate{X: float64(targetX), Y: float64(targetY)}),
+			FScore: tentativeG + utils.Vec2{X: float64(nx), Y: float64(ny)}.Distance(utils.Vec2{X: float64(targetX), Y: float64(targetY)}),
 			Parent: current,
 		}
 		nodeMap[neighborKey] = neighbor
@@ -151,7 +151,7 @@ func handleNeighbor(nx, ny float64, tentativeG float64, current *Node,
 	} else if tentativeG < neighbor.GScore {
 		// Update existing node with better path
 		neighbor.GScore = tentativeG
-		neighbor.FScore = tentativeG + utils.Coordinate{X: float64(nx), Y: float64(ny)}.Distance(utils.Coordinate{X: float64(targetX), Y: float64(targetY)})
+		neighbor.FScore = tentativeG + utils.Vec2{X: float64(nx), Y: float64(ny)}.Distance(utils.Vec2{X: float64(targetX), Y: float64(targetY)})
 		neighbor.Parent = current
 		openSet.Update(neighbor, neighbor.FScore)
 	}

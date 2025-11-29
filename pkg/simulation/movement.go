@@ -105,11 +105,16 @@ func (mm *MovementManager) FollowPath() {
 	if distance > 0 {
 		mm.agent.dx = dx / distance
 		mm.agent.dy = dy / distance
+		mm.agent.desiredVelocity.X = mm.agent.dx * mm.agent.Speed
+		mm.agent.desiredVelocity.Y = mm.agent.dy * mm.agent.Speed
+
 		logger.Debugf("Agent %s: Moving towards waypoint (%.2f,%.2f), direction: (%.2f,%.2f)",
 			mm.agent.id, nextWaypoint.X, nextWaypoint.Y, mm.agent.dx, mm.agent.dy)
 	} else {
 		mm.agent.dx = 0
 		mm.agent.dy = 0
+		mm.agent.desiredVelocity.X = 0
+		mm.agent.desiredVelocity.Y = 0
 	}
 }
 

@@ -13,7 +13,7 @@ type ClientAgent struct {
 	id           AgentID
 	Speed        float64
 	env          *Environment
-	coordinate   utils.Coordinate
+	coordinate   utils.Vec2
 	dx, dy       float64
 	shoppingList []Map.Item
 	pickChan     chan PickRequest
@@ -31,7 +31,10 @@ type ClientAgent struct {
 
 	// Anti-blocage
 	stuckCounter int
-	lastPosition utils.Coordinate
+	lastPosition utils.Vec2
+
+	velocity        utils.Vec2
+	desiredVelocity utils.Vec2
 
 	// Gestionnaires
 	movementManager *MovementManager
@@ -48,7 +51,7 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 		id:               AgentID(id),
 		Speed:            constants.BASE_AGENT_SPEED,
 		env:              env,
-		coordinate:       utils.Coordinate{X: float64(startX), Y: float64(startY)},
+		coordinate:       utils.Vec2{X: float64(startX), Y: float64(startY)},
 		dx:               0,
 		dy:               0,
 		shoppingList:     generateShoppingList(env),
@@ -58,7 +61,7 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 		moveChanResponse: make(chan bool),
 		hasDestination:   false,
 		stuckCounter:     0,
-		lastPosition:     utils.Coordinate{X: float64(startX), Y: float64(startY)},
+		lastPosition:     utils.Vec2{X: float64(startX), Y: float64(startY)},
 	}
 	agent.movementManager = NewMovementManager(agent)
 	agent.stuckDetector = NewStuckDetector(agent)
@@ -94,14 +97,14 @@ func (ag *ClientAgent) ID() AgentID {
 }
 
 func (ag *ClientAgent) Move() {
-	ag.coordinate.X += ag.dx * ag.Speed
-	ag.coordinate.Y += ag.dy * ag.Speed
+	ag.coordinate.X += ag.velocity.X
+	ag.coordinate.Y += ag.velocity.Y
 }
-func (ag *ClientAgent) DryRunMove() utils.Coordinate {
+func (ag *ClientAgent) DryRunMove() utils.Vec2 {
 	coordinate := ag.coordinate
-	coordinate.X += ag.dx * ag.Speed
-	coordinate.Y += ag.dy * ag.Speed
-	return ag.coordinate
+	coordinate.X += ag.velocity.X
+	coordinate.Y += ag.velocity.Y
+	return coordinate
 }
 func (ag *ClientAgent) Start() {
 	logger.Infof("Agent %s starting at position (%.1f, %.1f)", ag.id, ag.coordinate.X, ag.coordinate.Y)
@@ -121,8 +124,16 @@ func (ag *ClientAgent) Start() {
 	}()
 }
 
-func (ag *ClientAgent) Coordinate() utils.Coordinate {
+func (ag *ClientAgent) Coordinate() utils.Vec2 {
 	return ag.coordinate
+}
+
+func (ag *ClientAgent) DesiredVelocity() *utils.Vec2 {
+	return &ag.desiredVelocity
+}
+
+func (ag *ClientAgent) Velocity() *utils.Vec2 {
+	return &ag.velocity
 }
 
 func (ag *ClientAgent) Direction() utils.Direction {
@@ -147,6 +158,8 @@ func (ag *ClientAgent) Deliberate() {
 		// Stop movement
 		ag.dx = 0
 		ag.dy = 0
+		ag.desiredVelocity.X = 0
+		ag.desiredVelocity.Y = 0
 	}
 }
 
