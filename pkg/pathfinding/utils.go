@@ -5,12 +5,12 @@ import (
 )
 
 // reconstructs the path from the final node
-func ReconstructPath(node *Node) []utils.IntVec2 {
-	var path []utils.IntVec2
+func ReconstructPath(node *Node) []utils.Vec2 {
+	var path []utils.Vec2
 	current := node
 
 	for current != nil {
-		path = append([]utils.IntVec2{{X: current.X, Y: current.Y}}, path...)
+		path = append([]utils.Vec2{{X: current.X, Y: current.Y}}, path...)
 		current = current.Parent
 	}
 

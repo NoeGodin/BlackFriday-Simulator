@@ -3,9 +3,9 @@ package pathfinding
 import "AI30_-_BlackFriday/pkg/utils"
 
 // GetNextWaypoint returns the next waypoint to reach
-func (p *Path) GetNextWaypoint() (utils.IntVec2, bool) {
+func (p *Path) GetNextWaypoint() (utils.Vec2, bool) {
 	if len(p.waypoints) == 0 {
-		return utils.IntVec2{}, false
+		return utils.Vec2{}, false
 	}
 	return p.waypoints[0], true
 }
@@ -14,11 +14,11 @@ func (p *Path) IsComplete() bool {
 	return len(p.waypoints) == 0
 }
 
-func (p *Path) GetWaypoints() []utils.IntVec2 {
+func (p *Path) GetWaypoints() []utils.Vec2 {
 	return p.waypoints
 }
 
-func (p *Path) GetTarget() utils.IntVec2 {
+func (p *Path) GetTarget() utils.Vec2 {
 	return p.target
 }
 
