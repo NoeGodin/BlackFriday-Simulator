@@ -93,21 +93,36 @@ func (env *Environment) getNearbyAgents(agt Agent, radius float64) []*ClientAgen
 	return nearbyAgents
 }
 
-func ClosestPointToObstacle(agentPos utils.Vec2, obstacle Vec2) (pos utils.Vec2) {
+func (env *Environment) getNearbyCollisables(agt Agent, radius float64) []utils.Vec2 {
+	nearbyCollisables := make([]utils.Vec2, 0)
+	for _, collisable := range env.Map.GetCollisables() {
+		point := ClosestPointToObstacle(agt.Coordinate(), utils.Vec2{X: collisable[0], Y: collisable[1]})
+		if agt.Coordinate().Distance(point) <= radius {
+			nearbyCollisables = append(nearbyCollisables, point)
+		}
+	}
+	return nearbyCollisables
+}
+
+func ClosestPointToObstacle(agentPos utils.Vec2, obstacle utils.Vec2) (pos utils.Vec2) {
 	minX := obstacle.X - 0.5
 	maxX := obstacle.X + 0.5
 	minY := obstacle.Y - 0.5
 	maxY := obstacle.Y + 0.5
 
-	if agentPos.X <= minX {
+	if agentPos.X < minX {
 		pos.X = minX
-	} else {
+	} else if agentPos.X > maxX {
 		pos.X = maxX
-	}
-	if agentPos.Y <= minY {
-		pos.Y = minY
 	} else {
+		pos.X = agentPos.X
+	}
+	if agentPos.Y < minY {
+		pos.Y = minY
+	} else if agentPos.Y > maxY {
 		pos.Y = maxY
+	} else {
+		pos.Y = agentPos.Y
 	}
 	return
 }
@@ -128,35 +143,13 @@ func (env *Environment) moveRequest() {
 		}
 
 		neighbors := env.getNearbyAgents(clientAgent, env.neighborSearchRadius)
+		collisables := env.getNearbyCollisables(clientAgent, env.neighborSearchRadius*2)
 
 		socialForces := CalculateSocialForces(clientAgent, neighbors)
+		obstaclesForces := CalculateObstacleForces(clientAgent, collisables)
+		socialForces.X += obstaclesForces.X
+		socialForces.Y += obstaclesForces.Y
 		ApplySocialForce(clientAgent, socialForces, env.deltaTime)
-		P_new := clientAgent.DryRunMove()
-		for _, obstacle := range env.Map.GetCollisables() {
-			pObstacle := ClosestPointToObstacle(P_new, Vec2{X: float64(obstacle[0]), Y: float64(obstacle[1])})
-
-			dx := P_new.X - pObstacle.X
-			dy := P_new.Y - pObstacle.Y
-			d := math.Sqrt(dx*dx + dy*dy)
-
-			if d < constants.AGT_RADIUS {
-				penetrationDepth := constants.AGT_RADIUS - d
-
-				n := utils.Vec2{
-					X: (P_new.X - pObstacle.X) / d,
-					Y: (P_new.Y - pObstacle.Y) / d,
-				}
-
-				P_new.X += n.X * penetrationDepth
-				P_new.Y += n.Y * penetrationDepth
-				clientAgent.coordinate.X = P_new.X
-				clientAgent.coordinate.Y = P_new.Y
-
-				dotProduct := clientAgent.velocity.X*n.X + clientAgent.velocity.Y*n.Y
-				clientAgent.velocity.X -= dotProduct * n.X
-				clientAgent.velocity.X -= dotProduct * n.Y
-			}
-		}
 
 		clientAgent.Move()
 		moveRequest.ResponseChannel <- true
