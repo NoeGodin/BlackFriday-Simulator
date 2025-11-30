@@ -41,7 +41,7 @@ func main() {
 	simu := Simulation.NewSimulation(0, 100.0, mapData, constants.DELTA_TIME, constants.AGENT_SEARCH_RADIUS)
 
 	logger.Info("Adding agents...")
-	for i := 1; i <= 50; i++ {
+	for i := 1; i <= 2; i++ {
 		agentID := fmt.Sprintf("agent%d", i)
 		simu.AddClient(agentID)
 	}
