@@ -30,6 +30,7 @@ type MoveRequest struct {
 type Environment struct {
 	Map                  *Map.Map
 	Clients              []*ClientAgent
+	Profit   float64
 	pickChan             chan PickRequest
 	moveChan             chan MoveRequest
 	deltaTime            float64
@@ -225,4 +226,10 @@ func (env *Environment) IsShelfAt(x, y float64) bool {
         }
     }
     return false
+}
+
+func (env *Environment) ProcessPayment(amout float64) {
+	env.Mutex.Lock()
+	defer env.Mutex.Unlock()
+	env.Profit += amout
 }

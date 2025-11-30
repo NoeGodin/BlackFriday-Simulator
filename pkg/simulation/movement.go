@@ -58,14 +58,14 @@ func (mm *MovementManager) GenerateNewDestination() {
 	logger.Debugf("Agent %s: Path found successfully!", mm.agent.id)
 
 	mm.agent.currentPath = path
-	mm.agent.targetX = targetX
-	mm.agent.targetY = targetY
+	mm.agent.moveTargetX = targetX
+	mm.agent.moveTargetY = targetY
 	mm.agent.hasDestination = true
 
 	logger.Debugf("Agent %s: New destination set to (%.2f,%.2f) with %d waypoints", mm.agent.id, targetX, targetY, len(path.GetWaypoints()))
 }
 
-func (mm *MovementManager) SetDestination(targetX, targetY int) { //écrire cette fonc
+func (mm *MovementManager) SetDestination(targetX, targetY int) {
 	currentX, currentY := mm.agent.coordinate.ToInt()
 	if targetX == currentX && targetY == currentY {
 		mm.agent.hasDestination = false
@@ -79,8 +79,8 @@ func (mm *MovementManager) SetDestination(targetX, targetY int) { //écrire cett
 	}
 
 	mm.agent.currentPath = path
-	mm.agent.targetX = targetX
-	mm.agent.targetY = targetY
+	mm.agent.moveTargetX = targetX
+	mm.agent.moveTargetY = targetY
 	mm.agent.hasDestination = true
 }
 
