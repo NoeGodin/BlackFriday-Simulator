@@ -36,8 +36,9 @@ const (
 
 	//SFC
 	SOCIAL_STRENGTH   = 1.0
+	WALL_RESISTANCE   = 3.0
 	AGT_RANGE         = 0.2
-	AGT_STRENGTH      = 50.0
+	AGT_STRENGTH      = 10.0
 	AGT_RADIUS        = 0.3
 	FRICTION_COEF     = 10.0
 	RELAXATION_FACTOR = 30.0

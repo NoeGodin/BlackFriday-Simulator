@@ -6,11 +6,6 @@ import (
 	"math"
 )
 
-type Vec2 struct {
-	X float64
-	Y float64
-}
-
 // https://pedestriandynamics.org/models/social_force_model/ refer to
 func CalculateSocialForces(agt *ClientAgent, neighbors []*ClientAgent) utils.Vec2 {
 	socialForce := utils.Vec2{
@@ -21,18 +16,18 @@ func CalculateSocialForces(agt *ClientAgent, neighbors []*ClientAgent) utils.Vec
 		if agt.ID() == neighbor.ID() {
 			continue
 		}
-		//positions relatives
+		//relative postions
 		agtCoord := agt.Coordinate()
 		neighborCoord := neighbor.Coordinate()
-		p := Vec2{X: agtCoord.X - neighborCoord.X, Y: agtCoord.Y - neighborCoord.Y}
+		p := utils.Vec2{X: agtCoord.X - neighborCoord.X, Y: agtCoord.Y - neighborCoord.Y}
 		distance := math.Sqrt(math.Pow(p.X, 2) + math.Pow(p.Y, 2))
 		sumRadius := constants.AGT_RADIUS * 2
 
 		if distance < 0.0001 {
 			continue
 		}
-		//vecteur normalisé
-		n := Vec2{X: p.X / distance, Y: p.Y / distance}
+		//normalized vector
+		n := utils.Vec2{X: p.X / distance, Y: p.Y / distance}
 
 		socialForceMag := constants.SOCIAL_STRENGTH * math.Exp((sumRadius-distance)/constants.AGT_RANGE)
 		//pushing force 1
@@ -48,12 +43,12 @@ func CalculateSocialForces(agt *ClientAgent, neighbors []*ClientAgent) utils.Vec
 			socialForce.Y += n.Y * contactForce
 
 			// sliding force
-			// vecteur tengentiel
-			t := Vec2{X: -n.Y, Y: n.X}
-			//vecteur de vitesse
+			// tangent vector
+			t := utils.Vec2{X: -n.Y, Y: n.X}
+			// speed vector
 			agtV := agt.velocity
 			neighborV := neighbor.velocity
-			vi := Vec2{X: agtV.X - neighborV.X, Y: agtV.Y - neighborV.Y}
+			vi := utils.Vec2{X: agtV.X - neighborV.X, Y: agtV.Y - neighborV.Y}
 			deltaVT := vi.X*t.X + vi.Y*t.Y
 			frictionMag := -constants.FRICTION_COEF * overlap * deltaVT
 
@@ -63,6 +58,52 @@ func CalculateSocialForces(agt *ClientAgent, neighbors []*ClientAgent) utils.Vec
 	}
 
 	return socialForce
+}
+
+func CalculateObstacleForces(agent *ClientAgent, obstacles []utils.Vec2) utils.Vec2 {
+	totalForce := utils.Vec2{X: 0.0, Y: 0.0}
+	coords := agent.Coordinate()
+
+	for _, o := range obstacles {
+		// Relative position vector
+		p := utils.Vec2{X: coords.X - o.X, Y: coords.Y - o.Y}
+		distance := math.Sqrt(math.Pow(p.X, 2) + math.Pow(p.Y, 2))
+		sumRadius := constants.AGT_RADIUS
+
+		if distance < 0.0001 {
+			continue
+		}
+
+		// Normalized vector
+		n := utils.Vec2{X: p.X / distance, Y: p.Y / distance}
+
+		socialForceMag := constants.WALL_RESISTANCE * math.Exp((sumRadius-distance)/constants.AGT_RANGE)
+		totalForce.X += n.X * socialForceMag
+		totalForce.Y += n.Y * socialForceMag
+
+		if distance < sumRadius {
+			overlap := sumRadius - distance
+
+			contactForce := constants.AGT_STRENGTH * overlap
+			totalForce.X += n.X * contactForce
+			totalForce.Y += n.Y * contactForce
+
+			// tangent vector
+			t := utils.Vec2{X: -n.Y, Y: n.X}
+			// speed vector
+			agtV := agent.velocity
+			deltaVT := agtV.X*t.X + agtV.Y*t.Y
+			frictionMag := -constants.FRICTION_COEF * overlap * deltaVT
+			totalForce.X += t.X * frictionMag
+			totalForce.Y += t.Y * frictionMag
+
+			correctionFactor := overlap + 0.000
+			agent.coordinate.X += n.X * correctionFactor
+			agent.coordinate.Y += n.Y * correctionFactor
+		}
+	}
+
+	return totalForce
 }
 
 func ApplySocialForce(agt *ClientAgent, socialForce utils.Vec2, dt float64) {
