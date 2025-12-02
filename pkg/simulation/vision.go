@@ -13,8 +13,8 @@ type VisionManager struct {
 	// to add agents obstruction (with walls or other agents)
 	visionDistance float64
 	visionHeight   float64
-	P1, P2, P3, P4 utils.Coordinate
-	RaysEndPoints  []utils.Coordinate
+	P1, P2, P3, P4 utils.Vec2
+	RaysEndPoints  []utils.Vec2
 }
 
 func NewVisionManager(ag *ClientAgent) *VisionManager {
@@ -29,7 +29,7 @@ func NewVisionManager(ag *ClientAgent) *VisionManager {
 func (v *VisionManager) UpdateFOVRays(dx, dy float64, numRays int, env *Environment) {
     ax := v.agent.Coordinate().X + constants.CENTER_OF_CELL
     ay := v.agent.Coordinate().Y + constants.CENTER_OF_CELL
-	v.RaysEndPoints = make([]utils.Coordinate, numRays)
+	v.RaysEndPoints = make([]utils.Vec2, numRays)
 
 	fovAngle := constants.ANGLE_VISION * math.Pi / 180.0
 	halfFOV := fovAngle / 2
@@ -54,7 +54,7 @@ func (v *VisionManager) UpdateFOVRays(dx, dy float64, numRays int, env *Environm
             }
         }
 
-		v.RaysEndPoints[i] = utils.Coordinate{X: rayX, Y: rayY}
+		v.RaysEndPoints[i] = utils.Vec2{X: rayX, Y: rayY}
     }
 }
 
@@ -78,16 +78,16 @@ func (v *VisionManager) UpdateFOV(dx, dy float64) {
 
 	halfH := v.visionHeight / 2
 
-	v.P1 = utils.Coordinate{X: ax + px * halfH, Y: ay + py * halfH}
-	v.P2 = utils.Coordinate{X: ax - px * halfH, Y: ay - py * halfH}
-	v.P3 = utils.Coordinate{X: fx - px * halfH, Y: fy - py * halfH}
-	v.P4 = utils.Coordinate{X: fx + px * halfH, Y: fy + py * halfH}
+	v.P1 = utils.Vec2{X: ax + px * halfH, Y: ay + py * halfH}
+	v.P2 = utils.Vec2{X: ax - px * halfH, Y: ay - py * halfH}
+	v.P3 = utils.Vec2{X: fx - px * halfH, Y: fy - py * halfH}
+	v.P4 = utils.Vec2{X: fx + px * halfH, Y: fy + py * halfH}
 }
 
-func pointInTriangle(p, a, b, c utils.Coordinate) bool {
-	v0 := utils.Coordinate{X: c.X - a.X, Y: c.Y - a.Y}
-	v1 := utils.Coordinate{X: b.X - a.X, Y: b.Y - a.Y}
-	v2 := utils.Coordinate{X: p.X - a.X, Y: p.Y - a.Y}
+func pointInTriangle(p, a, b, c utils.Vec2) bool {
+	v0 := utils.Vec2{X: c.X - a.X, Y: c.Y - a.Y}
+	v1 := utils.Vec2{X: b.X - a.X, Y: b.Y - a.Y}
+	v2 := utils.Vec2{X: p.X - a.X, Y: p.Y - a.Y}
 
 	dot00 := v0.X * v0.X + v0.Y * v0.Y
 	dot01 := v0.X * v1.X + v0.Y * v1.Y
@@ -102,7 +102,7 @@ func pointInTriangle(p, a, b, c utils.Coordinate) bool {
 	return (u >= 0) && (v >= 0) && (u+v < 1)
 }
 
-func (v *VisionManager) areCoordinatesIntersectingFOV(p utils.Coordinate) bool {
+func (v *VisionManager) areCoordinatesIntersectingFOV(p utils.Vec2) bool {
 	return pointInTriangle(p, v.P1, v.P2, v.P3) ||
 		pointInTriangle(p, v.P1, v.P3, v.P4)
 }
@@ -116,7 +116,7 @@ func (v *VisionManager) DetectShelvesInFOV(env *Environment) {
 		cx := float64(coords[0]) + constants.CENTER_OF_CELL
 		cy := float64(coords[1]) + constants.CENTER_OF_CELL
 
-		p := utils.Coordinate{X: cx, Y: cy}
+		p := utils.Vec2{X: cx, Y: cy}
 
 		if v.areCoordinatesIntersectingFOV(p) {
 			v.agent.visitedShelves[[2]int{int(p.X), int(p.Y)}] = false
@@ -124,8 +124,8 @@ func (v *VisionManager) DetectShelvesInFOV(env *Environment) {
 		}
 	}
 	// for _, s := range shelves {
-	//     for _, i := range s.Items {
-	// 			fmt.Println(i.Name)
+		//     for _, i := range s.Items {
+			// 			fmt.Println(i.Name)
 	//     }
 	// }
 }
