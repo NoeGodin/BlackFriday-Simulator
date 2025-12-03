@@ -19,6 +19,7 @@ type ClientAgent struct {
 	cart         map[string]*Map.Item
 	pickChan     chan PickRequest
 	moveChan     chan MoveRequest
+	startChan	 chan StartRequest
 	exitChan 	 chan ExitRequest
 
 	syncChan chan int
@@ -26,6 +27,7 @@ type ClientAgent struct {
 	moveChanResponse chan bool
 	//rajouter un type action ?
 	pickChanResponse chan PickResponse
+	startChanResponse chan bool
 	exitChanResponse chan bool
 
 	// Pathfinding
@@ -55,33 +57,37 @@ type ClientAgent struct {
 	visitedShelves map[[2]float64]Map.Shelf
 }
 
-func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, exitChan chan ExitRequest, syncChan chan int) *ClientAgent {
-	startX, startY, found := env.Map.GetRandomFreeCoordinate()
-	if !found {
-		startX, startY = 5, 5 // no free coordinate
-	}
+func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int) *ClientAgent {
+	// startX, startY, found := env.Map.GetRandomFreeCoordinate()
+	// if !found {
+	// 	startX, startY = 5, 5 // no free coordinate
+	// }
+
+	p := env.GetRandomDoor()
 
 	agent := &ClientAgent{
 		id:               AgentID(id),
 		Speed:            constants.BASE_AGENT_SPEED,
 		env:              env,
-		coordinate:       utils.Vec2{X: startX, Y: startY},
+		coordinate:       utils.Vec2{X: p[0], Y: p[1]},
 		dx:               0,
 		dy:               0,
 		shoppingList:     generateShoppingList(env),
 		cart:             make(map[string]*Map.Item),
 		pickChan:         pickChan,
 		moveChan:         moveChan,
+		startChan:		  startChan,
 		exitChan: 		  exitChan,
 		syncChan:         syncChan,
 		moveChanResponse: make(chan bool),
 		pickChanResponse: make(chan PickResponse),
+		startChanResponse:make(chan bool),
 		exitChanResponse: make(chan bool),
 		hasDestination:   false,
 		stuckCounter:     0,
-		lastPosition:     utils.Vec2{X: startX, Y: startY},
 		state:            StateWandering,
 		visitedShelves:   make(map[[2]float64]Map.Shelf),
+		lastPosition:     utils.Vec2{X: p[0], Y: p[1]},
 	}
 	agent.movementManager = NewMovementManager(agent)
 	agent.stuckDetector = NewStuckDetector(agent)
@@ -135,8 +141,11 @@ func (ag *ClientAgent) DryRunMove() utils.Vec2 {
 	coordinate.Y += ag.velocity.Y
 	return coordinate
 }
+
 func (ag *ClientAgent) Start() {
 	logger.Infof("Agent %s starting at position (%.1f, %.1f)", ag.id, ag.coordinate.X, ag.coordinate.Y)
+	ag.startChan <- StartRequest{Agt: ag, ResponseChannel: ag.startChanResponse}
+	<- ag.startChanResponse
 
 	go func() {
 		var step int

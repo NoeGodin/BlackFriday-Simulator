@@ -5,6 +5,8 @@ import (
 	Map "AI30_-_BlackFriday/pkg/map"
 	"AI30_-_BlackFriday/pkg/utils"
 	"math"
+	"math/rand"
+	"time"
 	"sync"
 )
 
@@ -27,6 +29,11 @@ type MoveRequest struct {
 	ResponseChannel chan bool
 }
 
+type StartRequest struct {
+	Agt Agent
+	ResponseChannel chan bool
+}
+
 type ExitRequest struct {
 	Agt Agent
 	//temporaire : structure à définir
@@ -39,6 +46,7 @@ type Environment struct {
 	Profit               float64
 	pickChan             chan PickRequest
 	moveChan             chan MoveRequest
+	startChan			 chan StartRequest
 	exitChan             chan ExitRequest
 	deltaTime            float64
 	neighborSearchRadius float64
@@ -48,11 +56,12 @@ type Environment struct {
 func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64) *Environment {
 	pickChan := make(chan PickRequest)
 	moveChan := make(chan MoveRequest)
+	startChan := make(chan StartRequest, 50)
 	exitChan := make(chan ExitRequest)
-	return &Environment{Map: mapData, Clients: make([]*ClientAgent, 0), pickChan: pickChan, moveChan: moveChan, exitChan: exitChan, deltaTime: deltaTime, neighborSearchRadius: searchRadius}
+	return &Environment{Map: mapData, Clients: make([]*ClientAgent, 0), pickChan: pickChan, moveChan: moveChan, startChan: startChan, exitChan: exitChan, deltaTime: deltaTime, neighborSearchRadius: searchRadius}
 }
 func (env *Environment) AddClient(agtId string, syncChan chan int) Agent {
-	client := NewClientAgent(agtId, env, env.moveChan, env.pickChan, env.exitChan, syncChan)
+	client := NewClientAgent(agtId, env, env.moveChan, env.pickChan, env.startChan, env.exitChan, syncChan)
 	env.Clients = append(env.Clients, client)
 	return client
 }
@@ -213,6 +222,13 @@ func (env *Environment) pickRequest() {
 	}
 }
 
+func (env *Environment) startRequest() {
+	for startRequest := range env.startChan {
+		startRequest.ResponseChannel <- true
+		time.Sleep(constants.AGENT_SPAWN_INTERVAL_MS * time.Millisecond)
+	}
+}
+
 func remove(name Agent, nations []*ClientAgent) []*ClientAgent {
 	i := 0
 	for idx, item := range nations {
@@ -239,6 +255,7 @@ func removeAgentFromClients(agentID AgentID, clients []*ClientAgent) []*ClientAg
 func (env *Environment) Start() {
 	go env.pickRequest()
 	go env.moveRequest()
+	go env.startRequest()
 }
 
 func (env *Environment) IsObstacleAt(x, y float64) bool {
@@ -263,4 +280,9 @@ func (env *Environment) ProcessPayment(amout float64) {
 	env.Mutex.Lock()
 	defer env.Mutex.Unlock()
 	env.Profit += amout
+}
+
+func (env *Environment) GetRandomDoor() [2]float64 {
+	idx := rand.Intn(len(env.Map.Doors))
+	return env.Map.Doors[idx]
 }

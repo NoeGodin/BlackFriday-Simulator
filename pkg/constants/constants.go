@@ -51,6 +51,8 @@ const (
 	ANGLE_VISION = 90.0 // For Raycast FOV
 
 	CENTER_OF_CELL = 0.5
+
+	AGENT_SPAWN_INTERVAL_MS = 210
 )
 
 // MovementDirections all possible movement directions
