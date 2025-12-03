@@ -112,7 +112,7 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 		id:               AgentID(id),
 		Speed:            constants.BASE_AGENT_SPEED,
 		env:              env,
-		coordinate:       utils.Vec2{X: float64(startX), Y: float64(startY)},
+		coordinate:       utils.Vec2{X: startX, Y: startY},
 		dx:               0,
 		dy:               0,
 		shoppingList:     generateShoppingList(env),
@@ -124,7 +124,7 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 		pickChanResponse: make(chan PickResponse),
 		hasDestination:   false,
 		stuckCounter:     0,
-		lastPosition:     utils.Vec2{X: float64(startX), Y: float64(startY)},
+		lastPosition:     utils.Vec2{X: startX, Y: startY},
 		state:            StateWandering,
 		visitedShelves:   make(map[[2]float64]Map.Shelf),
 	}

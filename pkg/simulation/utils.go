@@ -6,12 +6,14 @@ import (
 	"AI30_-_BlackFriday/pkg/utils"
 	"fmt"
 	"math"
+	"math/rand"
 )
 
 // FindNearestFreePosition finds the nearest free position around the given position
 func FindNearestFreePosition(env *Environment, centerX, centerY float64) (float64, float64, bool) {
 	// spiral research around center tile
 	maxRadius := 10 // Limit search to a radius of 10 cells
+	walkableTiles := [][2]float64{}
 
 	for radius := 1; radius <= maxRadius; radius++ {
 		for dx := -radius; dx <= radius; dx++ {
@@ -27,11 +29,16 @@ func FindNearestFreePosition(env *Environment, centerX, centerY float64) (float6
 				// position is within map bounds
 				if x >= 0 && x < float64(env.Map.Width) && y >= 0 && y < float64(env.Map.Height) {
 					if env.Map.IsWalkable(x, y) {
-						logger.Debugf("Found free position (%.2f,%.2f) at radius %d", x, y, radius)
-						return x, y, true
+						walkableTiles = append(walkableTiles, [2]float64{x, y})
+
 					}
 				}
 			}
+		}
+		if len(walkableTiles) > 0 {
+			randomTile := walkableTiles[rand.Intn(len(walkableTiles))]
+			logger.Debugf("Found free position (%.2f,%.2f) at radius %d", randomTile[0], randomTile[0], radius)
+			return randomTile[0], randomTile[1], true
 		}
 	}
 
@@ -56,7 +63,7 @@ func FindNearestElementPosition(env *Environment, a Agent, elementType constants
 					continue
 				}
 			}
-			tempDist := math.Hypot(agentCoords[0]-k[0], agentCoords[1]-k[1])
+			tempDist := utils.EuclideanDistance(agentCoords, k)
 			if minDist > tempDist {
 				minDist = tempDist
 				nearestElement = k
@@ -65,20 +72,18 @@ func FindNearestElementPosition(env *Environment, a Agent, elementType constants
 
 	case "C":
 		for _, v := range env.Map.CheckoutZones {
-			vx, vy := float64(v[0]), float64(v[1])
-			tempDist := math.Hypot(agentCoords[0]-vx, agentCoords[1]-vy)
+			tempDist := utils.EuclideanDistance(agentCoords, v)
 			if minDist > tempDist {
 				minDist = tempDist
-				nearestElement = [2]float64{vx, vy}
+				nearestElement = v
 			}
 		}
 	case "D":
 		for _, v := range env.Map.Doors {
-			vx, vy := float64(v[0]), float64(v[1])
-			tempDist := math.Hypot(agentCoords[0]-vx, agentCoords[1]-vy)
+			tempDist := utils.EuclideanDistance(agentCoords, v)
 			if minDist > tempDist {
 				minDist = tempDist
-				nearestElement = [2]float64{vx, vy}
+				nearestElement = v
 			}
 		}
 	default:
