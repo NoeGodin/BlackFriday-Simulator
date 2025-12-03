@@ -39,12 +39,12 @@ func FindNearestFreePosition(env *Environment, centerX, centerY float64) (float6
 	return 0, 0, false
 }
 
-func FindNearestElementPosition(env *Environment, a Agent, elementType constants.ElementType) (int, int, bool) {
-	agentX, agentY := a.Coordinate().ToInt()
-	agentCoords := [2]int{agentX, agentY}
+func FindNearestElementPosition(env *Environment, a Agent, elementType constants.ElementType) (float64, float64, bool) {
+	agentX, agentY := a.Coordinate().X, a.Coordinate().Y
+	agentCoords := [2]float64{agentX, agentY}
 
 	minDist := math.MaxFloat64
-	nearestElement := [2]int{-1, -1}
+	nearestElement := [2]float64{-1, -1}
 
 	switch elementType {
 	case "shelf":
@@ -56,7 +56,7 @@ func FindNearestElementPosition(env *Environment, a Agent, elementType constants
 					continue
 				}
 			}
-			tempDist := utils.EuclideanDistance(agentCoords, k)
+			tempDist := math.Hypot(agentCoords[0]-k[0], agentCoords[1]-k[1])
 			if minDist > tempDist {
 				minDist = tempDist
 				nearestElement = k
@@ -65,18 +65,20 @@ func FindNearestElementPosition(env *Environment, a Agent, elementType constants
 
 	case "C":
 		for _, v := range env.Map.CheckoutZones {
-			tempDist := utils.EuclideanDistance(agentCoords, v)
+			vx, vy := float64(v[0]), float64(v[1])
+			tempDist := math.Hypot(agentCoords[0]-vx, agentCoords[1]-vy)
 			if minDist > tempDist {
 				minDist = tempDist
-				nearestElement = v
+				nearestElement = [2]float64{vx, vy}
 			}
 		}
 	case "D":
 		for _, v := range env.Map.Doors {
-			tempDist := utils.EuclideanDistance(agentCoords, v)
+			vx, vy := float64(v[0]), float64(v[1])
+			tempDist := math.Hypot(agentCoords[0]-vx, agentCoords[1]-vy)
 			if minDist > tempDist {
 				minDist = tempDist
-				nearestElement = v
+				nearestElement = [2]float64{vx, vy}
 			}
 		}
 	default:
@@ -84,7 +86,7 @@ func FindNearestElementPosition(env *Environment, a Agent, elementType constants
 		return 0, 0, false
 	}
 
-	if (nearestElement[0] | nearestElement[1]) == -1 {
+	if nearestElement[0] == -1 && nearestElement[1] == -1 {
 		logger.Warnf("No element (%s) position found", elementType)
 		return 0, 0, false
 	}
@@ -93,7 +95,7 @@ func FindNearestElementPosition(env *Environment, a Agent, elementType constants
 	return nearestElement[0], nearestElement[1], true
 }
 
-func FindWalkablePositionNearbyElement(env *Environment, a Agent, elementType constants.ElementType) (int, int, bool) {
+func FindWalkablePositionNearbyElement(env *Environment, a Agent, elementType constants.ElementType) (float64, float64, bool) {
 	nearestElementX, nearestElementY, res := FindNearestElementPosition(env, a, elementType)
 
 	if res != true {
@@ -105,6 +107,6 @@ func FindWalkablePositionNearbyElement(env *Environment, a Agent, elementType co
 	if res != true {
 		logger.Warnf("Cannot find nearest free position around element %s", elementType)
 	}
-	fmt.Printf("Walkable tile : [%d %d]\n", targetX, targetY)
+	fmt.Printf("Walkable tile : [%.2f %.2f]\n", targetX, targetY)
 	return targetX, targetY, res
 }

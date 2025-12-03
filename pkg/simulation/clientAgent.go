@@ -92,14 +92,14 @@ type ClientAgent struct {
 	stuckDetector   *StuckDetector
 
 	// Behavior
-	state      AgentState
-	nextAction ActionType
+	state                            AgentState
+	nextAction                       ActionType
 	itemsToPick                      []Map.Item
-	interactTargetX, interactTargetY int
+	interactTargetX, interactTargetY float64
 
 	// Manage vision and agent memory
 	visionManager  *VisionManager
-	visitedShelves map[[2]int]Map.Shelf
+	visitedShelves map[[2]float64]Map.Shelf
 }
 
 func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, syncChan chan int) *ClientAgent {
@@ -115,7 +115,7 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 		coordinate:       utils.Vec2{X: float64(startX), Y: float64(startY)},
 		dx:               0,
 		dy:               0,
-		shoppingList:     []Map.Item{}, //generateShoppingList(env),
+		shoppingList:     generateShoppingList(env),
 		cart:             make(map[string]*Map.Item),
 		pickChan:         pickChan,
 		moveChan:         moveChan,
@@ -126,7 +126,7 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 		stuckCounter:     0,
 		lastPosition:     utils.Vec2{X: float64(startX), Y: float64(startY)},
 		state:            StateWandering,
-		visitedShelves:   make(map[[2]int]Map.Shelf),
+		visitedShelves:   make(map[[2]float64]Map.Shelf),
 	}
 	agent.movementManager = NewMovementManager(agent)
 	agent.stuckDetector = NewStuckDetector(agent)
@@ -243,7 +243,7 @@ func (ag *ClientAgent) Deliberate() {
 		if shelfX, shelfY, exists := ag.findWantedItemLocation(); exists {
 			moveTargetX, moveTargetY, found := FindNearestFreePosition(ag.env, shelfX, shelfY)
 			if !found {
-				logger.Warnf("No path found to a location near this destination (%d %d) ", shelfX, shelfY)
+				logger.Warnf("No path found to a location near this destination (%.2f %.2f) ", shelfX, shelfY)
 				ag.nextAction = ActionWait
 			} else {
 				ag.interactTargetX, ag.interactTargetY = shelfX, shelfY
@@ -327,7 +327,7 @@ func (ag *ClientAgent) Act() {
 		<-ag.moveChanResponse
 
 	case ActionPick:
-		targetShelf := [2]int{ag.interactTargetX, ag.interactTargetY}
+		targetShelf := [2]float64{ag.interactTargetX, ag.interactTargetY}
 		for _, item := range ag.itemsToPick {
 			ag.pickChan <- PickRequest{
 				Agt:             ag,
@@ -339,7 +339,7 @@ func (ag *ClientAgent) Act() {
 			amount := <-ag.pickChanResponse
 
 			if !amount.Status {
-				logger.Warnf("Bad request, PickRequest denied for (%s) at shelf (%d, %d)", item.Name, targetShelf[0], targetShelf[1])
+				logger.Warnf("Bad request, PickRequest denied for (%s) at shelf (%.2f, %.2f)", item.Name, targetShelf[0], targetShelf[1])
 				continue
 			}
 
@@ -386,7 +386,7 @@ func (ag *ClientAgent) VisionManager() VisionManager {
 	return *ag.visionManager
 }
 
-func (ag *ClientAgent) findWantedItemLocation() (int, int, bool) {
+func (ag *ClientAgent) findWantedItemLocation() (float64, float64, bool) {
 	missingItems := ag.GetMissingItems()
 
 	for k, shelf := range ag.visitedShelves {
@@ -414,7 +414,7 @@ func (ag *ClientAgent) processPathMovement() {
 
 func (ag *ClientAgent) chooseItemToPickFromTargetedShelf(env *Environment) {
 	ag.itemsToPick = []Map.Item{}
-	shelfCoords := [2]int{ag.interactTargetX, ag.interactTargetY}
+	shelfCoords := [2]float64{ag.interactTargetX, ag.interactTargetY}
 
 	env.Mutex.RLock()
 	defer env.Mutex.RUnlock()
@@ -422,7 +422,7 @@ func (ag *ClientAgent) chooseItemToPickFromTargetedShelf(env *Environment) {
 	shelf, ok := env.Map.ShelfData[shelfCoords]
 
 	if !ok {
-		logger.Warnf("Shelf (%d %d) does not exist in the current environment", shelfCoords[0], shelfCoords[1])
+		logger.Warnf("Shelf (%.2f %.2f) does not exist in the current environment", shelfCoords[0], shelfCoords[1])
 		return
 	}
 

@@ -27,8 +27,8 @@ func NewVisionManager(ag *ClientAgent) *VisionManager {
 
 // Update for Raycast FOV
 func (v *VisionManager) UpdateFOVRays(dx, dy float64, numRays int, env *Environment) {
-    ax := v.agent.Coordinate().X + constants.CENTER_OF_CELL
-    ay := v.agent.Coordinate().Y + constants.CENTER_OF_CELL
+	ax := v.agent.Coordinate().X + constants.CENTER_OF_CELL
+	ay := v.agent.Coordinate().Y + constants.CENTER_OF_CELL
 	v.RaysEndPoints = make([]utils.Vec2, numRays)
 
 	fovAngle := constants.ANGLE_VISION * math.Pi / 180.0
@@ -36,41 +36,44 @@ func (v *VisionManager) UpdateFOVRays(dx, dy float64, numRays int, env *Environm
 
 	// Angle direction
 	baseAngle := math.Atan2(dy, dx)
-    for i := 0; i < numRays; i++ {
-        angle := baseAngle - halfFOV + (float64(i) / float64(numRays - 1)) * fovAngle
-        rayX, rayY := ax, ay
-        step := 0.1
+	for i := 0; i < numRays; i++ {
+		angle := baseAngle - halfFOV + (float64(i)/float64(numRays-1))*fovAngle
+		rayX, rayY := ax, ay
+		step := 0.1
 
-        for d := 0.0; d < v.visionDistance; d += step {
-            rayX = math.Ceil(ax + math.Cos(angle) * d)
-            rayY = math.Ceil(ay + math.Sin(angle) * d)
+		for d := 0.0; d < v.visionDistance; d += step {
+			rayX = math.Ceil(ax + math.Cos(angle)*d)
+			rayY = math.Ceil(ay + math.Sin(angle)*d)
 
-            if env.IsObstacleAt(rayX, rayY) {
-                break
-            }
+			if env.IsObstacleAt(rayX, rayY) {
+				break
+			}
 
-            if env.IsShelfAt(rayX, rayY) {
-                v.agent.visitedShelves[[2]int{int(rayX), int(rayY)}] = false
-            }
-        }
+			if env.IsShelfAt(rayX, rayY) {
+				coords := [2]float64{rayX, rayY}
+				if shelf, ok := env.Map.ShelfData[coords]; ok {
+					v.agent.visitedShelves[coords] = shelf
+				}
+			}
+		}
 
 		v.RaysEndPoints[i] = utils.Vec2{X: rayX, Y: rayY}
-    }
+	}
 }
 
 // Update for rectangle FOV
 func (v *VisionManager) UpdateFOV(dx, dy float64) {
-								 // Add with the center of the agent's sprite
+	// Add with the center of the agent's sprite
 	ax := v.agent.Coordinate().X + constants.CENTER_OF_CELL
 	ay := v.agent.Coordinate().Y + constants.CENTER_OF_CELL
 
-	fx := ax + dx * v.visionDistance
-	fy := ay + dy * v.visionDistance
+	fx := ax + dx*v.visionDistance
+	fy := ay + dy*v.visionDistance
 
 	px := -dy
 	py := dx
 
-	length := math.Sqrt(px * px + py * py)
+	length := math.Sqrt(px*px + py*py)
 	if length != 0 {
 		px /= length
 		py /= length
@@ -78,10 +81,10 @@ func (v *VisionManager) UpdateFOV(dx, dy float64) {
 
 	halfH := v.visionHeight / 2
 
-	v.P1 = utils.Vec2{X: ax + px * halfH, Y: ay + py * halfH}
-	v.P2 = utils.Vec2{X: ax - px * halfH, Y: ay - py * halfH}
-	v.P3 = utils.Vec2{X: fx - px * halfH, Y: fy - py * halfH}
-	v.P4 = utils.Vec2{X: fx + px * halfH, Y: fy + py * halfH}
+	v.P1 = utils.Vec2{X: ax + px*halfH, Y: ay + py*halfH}
+	v.P2 = utils.Vec2{X: ax - px*halfH, Y: ay - py*halfH}
+	v.P3 = utils.Vec2{X: fx - px*halfH, Y: fy - py*halfH}
+	v.P4 = utils.Vec2{X: fx + px*halfH, Y: fy + py*halfH}
 }
 
 func pointInTriangle(p, a, b, c utils.Vec2) bool {
@@ -89,15 +92,15 @@ func pointInTriangle(p, a, b, c utils.Vec2) bool {
 	v1 := utils.Vec2{X: b.X - a.X, Y: b.Y - a.Y}
 	v2 := utils.Vec2{X: p.X - a.X, Y: p.Y - a.Y}
 
-	dot00 := v0.X * v0.X + v0.Y * v0.Y
-	dot01 := v0.X * v1.X + v0.Y * v1.Y
-	dot02 := v0.X * v2.X + v0.Y * v2.Y
-	dot11 := v1.X * v1.X + v1.Y * v1.Y
-	dot12 := v1.X * v2.X + v1.Y * v2.Y
+	dot00 := v0.X*v0.X + v0.Y*v0.Y
+	dot01 := v0.X*v1.X + v0.Y*v1.Y
+	dot02 := v0.X*v2.X + v0.Y*v2.Y
+	dot11 := v1.X*v1.X + v1.Y*v1.Y
+	dot12 := v1.X*v2.X + v1.Y*v2.Y
 
-	invDenom := 1 / (dot00 * dot11 - dot01 * dot01)
-	u := (dot11 * dot02 - dot01 * dot12) * invDenom
-	v := (dot00 * dot12 - dot01 * dot02) * invDenom
+	invDenom := 1 / (dot00*dot11 - dot01*dot01)
+	u := (dot11*dot02 - dot01*dot12) * invDenom
+	v := (dot00*dot12 - dot01*dot02) * invDenom
 
 	return (u >= 0) && (v >= 0) && (u+v < 1)
 }
@@ -119,13 +122,13 @@ func (v *VisionManager) DetectShelvesInFOV(env *Environment) {
 		p := utils.Vec2{X: cx, Y: cy}
 
 		if v.areCoordinatesIntersectingFOV(p) {
-			v.agent.visitedShelves[[2]int{int(p.X), int(p.Y)}] = false
+			v.agent.visitedShelves[coords] = env.Map.ShelfData[coords]
 			// shelves = append(shelves, shelf)
 		}
 	}
 	// for _, s := range shelves {
-		//     for _, i := range s.Items {
-			// 			fmt.Println(i.Name)
+	//     for _, i := range s.Items {
+	// 			fmt.Println(i.Name)
 	//     }
 	// }
 }
