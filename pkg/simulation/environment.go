@@ -16,7 +16,7 @@ type PickResponse struct {
 type PickRequest struct { // une pick request par item
 	Agt             Agent
 	ItemName        string
-	ShelfCoords     [2]int
+	ShelfCoords     [2]float64
 	WantedAmount    int
 	ResponseChannel chan PickResponse
 }
@@ -30,12 +30,12 @@ type MoveRequest struct {
 type Environment struct {
 	Map                  *Map.Map
 	Clients              []*ClientAgent
-	Profit   float64
+	Profit               float64
 	pickChan             chan PickRequest
 	moveChan             chan MoveRequest
 	deltaTime            float64
 	neighborSearchRadius float64
-	Mutex    sync.RWMutex
+	Mutex                sync.RWMutex
 }
 
 func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64) *Environment {
@@ -97,7 +97,7 @@ func (env *Environment) getNearbyAgents(agt Agent, radius float64) []*ClientAgen
 func (env *Environment) getNearbyCollisables(agt Agent, radius float64) []utils.Vec2 {
 	nearbyCollisables := make([]utils.Vec2, 0)
 	for _, collisable := range env.Map.GetCollisables() {
-		point := ClosestPointToObstacle(agt.Coordinate(), utils.Vec2{X: collisable[0], Y: collisable[1]})
+		point := ClosestPointToObstacle(agt.Coordinate(), utils.Vec2{X: float64(collisable[0]), Y: float64(collisable[1])})
 		if agt.Coordinate().Distance(point) <= radius {
 			nearbyCollisables = append(nearbyCollisables, point)
 		}
@@ -211,21 +211,21 @@ func (env *Environment) Start() {
 }
 
 func (env *Environment) IsObstacleAt(x, y float64) bool {
-    for _, wall := range env.Map.GetCollisables() {
-        if math.Abs(wall[0] - x) < constants.CENTER_OF_CELL && math.Abs(wall[1] - y) < constants.CENTER_OF_CELL {
-            return true
-        }
-    }
-    return false
+	for _, wall := range env.Map.GetCollisables() {
+		if math.Abs(float64(wall[0])-x) < constants.CENTER_OF_CELL && math.Abs(float64(wall[1])-y) < constants.CENTER_OF_CELL {
+			return true
+		}
+	}
+	return false
 }
 
 func (env *Environment) IsShelfAt(x, y float64) bool {
-    for coords := range env.Map.ShelfData {
-        if x == coords[0] && y == coords[1] {
-            return true
-        }
-    }
-    return false
+	for coords := range env.Map.ShelfData {
+		if x == coords[0] && y == coords[1] {
+			return true
+		}
+	}
+	return false
 }
 
 func (env *Environment) ProcessPayment(amout float64) {

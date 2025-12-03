@@ -65,8 +65,9 @@ func (mm *MovementManager) GenerateNewDestination() {
 	logger.Debugf("Agent %s: New destination set to (%.2f,%.2f) with %d waypoints", mm.agent.id, targetX, targetY, len(path.GetWaypoints()))
 }
 
-func (mm *MovementManager) SetDestination(targetX, targetY int) {
-	currentX, currentY := mm.agent.coordinate.ToInt()
+func (mm *MovementManager) SetDestination(targetX, targetY float64) {
+	currentX := mm.agent.coordinate.X
+	currentY := mm.agent.coordinate.Y
 	if targetX == currentX && targetY == currentY {
 		mm.agent.hasDestination = false
 		return
@@ -100,7 +101,7 @@ func (mm *MovementManager) FollowPath() {
 				mm.agent.id, nextWaypoint.X, nextWaypoint.Y, distance)
 			mm.agent.currentPath.RemoveFirstWaypoint()
 			if mm.agent.currentPath.IsComplete() {
-				logger.Debugf("Agent %s: Reached final destination (%.2f,%.2f)", mm.agent.id, mm.agent.targetX, mm.agent.targetY)
+				logger.Debugf("Agent %s: Reached final destination (%.2f,%.2f)", mm.agent.id, mm.agent.moveTargetX, mm.agent.moveTargetY)
 				mm.agent.hasDestination = false
 				mm.agent.currentPath = nil
 				return
@@ -111,7 +112,7 @@ func (mm *MovementManager) FollowPath() {
 	nextWaypoint, hasNext := mm.agent.currentPath.GetNextWaypoint()
 
 	if !hasNext {
-		logger.Debugf("Agent %s: Reached destination (%.2f,%.2f)", mm.agent.id, mm.agent.targetX, mm.agent.targetY)
+		logger.Debugf("Agent %s: Reached destination (%.2f,%.2f)", mm.agent.id, mm.agent.moveTargetX, mm.agent.moveTargetY)
 		mm.agent.hasDestination = false
 		mm.agent.currentPath = nil
 		return
