@@ -1,6 +1,9 @@
 package Map
 
-import "AI30_-_BlackFriday/pkg/constants"
+import (
+	"AI30_-_BlackFriday/pkg/constants"
+	"fmt"
+)
 
 type ElementType = constants.ElementType
 
@@ -43,4 +46,8 @@ func (element *Element) Type() ElementType {
 
 type StockData struct {
 	Stocks map[string]Shelf `json:"stocks"`
+}
+
+func (i *Item) String() string {
+	return fmt.Sprintf("Name: %s, Price: %.2f, Reduction: %.2f, Attractiveness: %.2f, Quantity: %d\n", i.Name, i.Price, i.Reduction, i.Attractiveness, i.Quantity)
 }
