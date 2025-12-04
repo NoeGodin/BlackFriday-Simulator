@@ -16,6 +16,7 @@ type Agent interface {
 	Coordinate() utils.Vec2
 	DesiredVelocity() *utils.Vec2
 	Velocity() *utils.Vec2
+	HasSpawned() bool
 
 	Direction() utils.Direction
 	Move()

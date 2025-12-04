@@ -127,6 +127,7 @@ func (g *Game) DrawAgents(screen *ebiten.Image) {
 	offsetX := MARGIN
 	offsetY := MARGIN
 	for _, agt := range g.Simulation.Agents() {
+		if !agt.HasSpawned() { continue }
 		agtCoords := agt.Coordinate()
 		drawX, drawY := g.mapToDrawCoords(agtCoords.X, agtCoords.Y, offsetX, offsetY)
 		drawImageAt(screen, g.AgentAnimator.AnimationFrame(agt), drawX, drawY)

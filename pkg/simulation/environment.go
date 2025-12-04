@@ -46,7 +46,7 @@ type Environment struct {
 	Profit               float64
 	pickChan             chan PickRequest
 	moveChan             chan MoveRequest
-	startChan			 chan StartRequest
+	startChans			 map[[2]float64]chan StartRequest
 	exitChan             chan ExitRequest
 	deltaTime            float64
 	neighborSearchRadius float64
@@ -56,14 +56,34 @@ type Environment struct {
 func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64) *Environment {
 	pickChan := make(chan PickRequest)
 	moveChan := make(chan MoveRequest)
-	startChan := make(chan StartRequest, 50)
+	startChan := make(map[[2]float64]chan StartRequest)
+	for _, co := range mapData.Doors {
+		startChan[co] = make(chan StartRequest)
+	}
+
 	exitChan := make(chan ExitRequest)
-	return &Environment{Map: mapData, Clients: make([]*ClientAgent, 0), pickChan: pickChan, moveChan: moveChan, startChan: startChan, exitChan: exitChan, deltaTime: deltaTime, neighborSearchRadius: searchRadius}
+	return &Environment{Map: mapData, Clients: make([]*ClientAgent, 0), pickChan: pickChan, moveChan: moveChan, startChans: startChan, exitChan: exitChan, deltaTime: deltaTime, neighborSearchRadius: searchRadius}
 }
 func (env *Environment) AddClient(agtId string, syncChan chan int) Agent {
-	client := NewClientAgent(agtId, env, env.moveChan, env.pickChan, env.startChan, env.exitChan, syncChan)
+	doorCo := env.GetRandomDoor()
+
+	client := NewClientAgent(agtId, env.getSpawnablePos(doorCo), env, env.moveChan, env.pickChan, env.startChans[doorCo], env.exitChan, syncChan)
 	env.Clients = append(env.Clients, client)
 	return client
+}
+
+func (env* Environment) getSpawnablePos(co [2]float64) [2]float64 {
+	if co[0] == 0 {
+		co[0] += constants.SPAWN_OFFSET_FROM_DOOR
+	} else if co[1] == 0 {
+		co[1] += constants.SPAWN_OFFSET_FROM_DOOR
+	} else if co[1] == float64(env.Map.Height - 1) {
+		co[1] -= constants.SPAWN_OFFSET_FROM_DOOR
+	} else if co[0] == float64(env.Map.Width - 1) {
+		co[0] -= constants.SPAWN_OFFSET_FROM_DOOR
+	}
+
+	return co
 }
 
 func (env *Environment) isCollision(agt Agent) bool {
@@ -222,10 +242,15 @@ func (env *Environment) pickRequest() {
 	}
 }
 
-func (env *Environment) startRequest() {
-	for startRequest := range env.startChan {
-		startRequest.ResponseChannel <- true
-		time.Sleep(constants.AGENT_SPAWN_INTERVAL_MS * time.Millisecond)
+// Launch all start requests from all doors
+func (env *Environment) startRequests() {
+	for _, startRequest := range env.startChans {
+		go func(startRequest chan StartRequest) {
+			for s := range startRequest {
+				s.ResponseChannel <- true
+				time.Sleep(constants.AGENT_SPAWN_INTERVAL_MS * time.Millisecond)
+			}
+		}(startRequest)
 	}
 }
 
@@ -255,7 +280,7 @@ func removeAgentFromClients(agentID AgentID, clients []*ClientAgent) []*ClientAg
 func (env *Environment) Start() {
 	go env.pickRequest()
 	go env.moveRequest()
-	go env.startRequest()
+	env.startRequests()
 }
 
 func (env *Environment) IsObstacleAt(x, y float64) bool {
