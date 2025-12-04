@@ -3,6 +3,8 @@ package constants
 type ElementType string
 
 const (
+	NB_AGENTS 		= 50
+
 	// Map element types
 	WALL     ElementType = "W"
 	SHELF    ElementType = "shelf"
@@ -52,7 +54,8 @@ const (
 
 	CENTER_OF_CELL = 0.5
 
-	AGENT_SPAWN_INTERVAL_MS = 210
+	AGENT_SPAWN_INTERVAL_MS = 200
+	SPAWN_OFFSET_FROM_DOOR = 0.5 // Avoid spawning behind a door
 )
 
 // MovementDirections all possible movement directions
