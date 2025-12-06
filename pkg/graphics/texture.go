@@ -26,6 +26,7 @@ var (
 	groundImg     *ebiten.Image
 	doorImg       *ebiten.Image
 	itemImg       *ebiten.Image
+	itemEmptyImg  *ebiten.Image
 	checkoutImg   *ebiten.Image
 	targetImg     *ebiten.Image
 	WalkFrameImgs [constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
@@ -65,6 +66,11 @@ func initTexture() {
 	itemImg, _, err = ebitenutil.NewImageFromFile("assets/item.png")
 	if err != nil {
 		log.Printf("Warning: Could not load item.png: %v", err)
+	}
+	
+	itemEmptyImg, _, err = ebitenutil.NewImageFromFile("assets/item_empty.png")
+	if err != nil {
+		log.Printf("Warning: Could not load item_empty.png: %v", err)
 	}
 
 	targetImg, _, err = ebitenutil.NewImageFromFile("assets/target.png")
