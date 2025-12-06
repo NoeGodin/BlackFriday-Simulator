@@ -11,20 +11,20 @@ import (
 )
 
 func (g *Game) HandleInput() {
-	if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
-		g.CameraY -= 2
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
-		g.CameraY += 2
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
-		g.CameraX -= 2
-	}
-	if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
-		g.CameraX += 2
-	}
+	// if ebiten.IsKeyPressed(ebiten.KeyArrowUp) {
+	// 	g.CameraY -= 2
+	// }
+	// if ebiten.IsKeyPressed(ebiten.KeyArrowDown) {
+	// 	g.CameraY += 2
+	// }
+	// if ebiten.IsKeyPressed(ebiten.KeyArrowLeft) {
+	// 	g.CameraX -= 2
+	// }
+	// if ebiten.IsKeyPressed(ebiten.KeyArrowRight) {
+	// 	g.CameraX += 2
+	// }
 
-	// HANDLE MOUS DLICK FOR DEBUGGING
+	// HANDLE MOUSE CLICK FOR DEBUGGING
 	if inpututil.IsMouseButtonJustPressed(ebiten.MouseButtonLeft) {
 		g.handleMouseClick()
 	}

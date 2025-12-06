@@ -105,7 +105,11 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 			//If image not exist, will not render !
 			switch elementType {
 			case constants.WALL:
-				drawImageAt(screen, wallImg, drawX, drawY)
+				if envMap.GetElementType(x, y+1) != constants.WALL {
+					drawImageAt(screen, wallImg, drawX, drawY)
+				} else {
+					drawImageAt(screen, wallCeiling, drawX, drawY)
+				}
 			case constants.SHELF:
 				drawImageAt(screen, itemImg, drawX, drawY)
 			case constants.DOOR:

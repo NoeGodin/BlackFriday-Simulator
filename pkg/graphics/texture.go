@@ -21,12 +21,13 @@ var (
 // Global vars
 var (
 	agtImg        *ebiten.Image
+	wallCeiling   *ebiten.Image
 	wallImg       *ebiten.Image
 	groundImg     *ebiten.Image
 	doorImg       *ebiten.Image
 	itemImg       *ebiten.Image
 	checkoutImg   *ebiten.Image
-	targetImg	  *ebiten.Image
+	targetImg     *ebiten.Image
 	WalkFrameImgs [constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
 )
 
@@ -40,9 +41,15 @@ func initTexture() {
 	if err != nil {
 		log.Printf("Warning: Could not load agt.png: %v", err)
 	}
-	wallImg, _, err = ebitenutil.NewImageFromFile("assets/wall.png")
+
+	wallImg, _, err = ebitenutil.NewImageFromFile("assets/wall_front.png")
 	if err != nil {
-		log.Printf("Warning: Could not load wall.png: %v", err)
+		log.Printf("Warning: Could not load wall_front.png: %v", err)
+	}
+	
+	wallCeiling, _, err = ebitenutil.NewImageFromFile("assets/wall_ceiling.png")
+	if err != nil {
+		log.Printf("Warning: Could not load wall_ceiling.png: %v", err)
 	}
 
 	groundImg, _, err = ebitenutil.NewImageFromFile("assets/ground.png")
@@ -62,7 +69,7 @@ func initTexture() {
 
 	targetImg, _, err = ebitenutil.NewImageFromFile("assets/target.png")
 	if err != nil {
-		log.Printf("Warning: Could not load item.png: %v", err)
+		log.Printf("Warning: Could not load target.png: %v", err)
 	}
 
 	checkoutImg, _, err = ebitenutil.NewImageFromFile("assets/checkout.png")
@@ -85,7 +92,7 @@ func initTexture() {
 		DPI:     96,
 		Hinting: font.HintingFull,
 	})
-	
+
 	if err != nil {
 		panic(err)
 	}
@@ -96,10 +103,10 @@ func initTexture() {
 func initAnimation() {
 	walk, _, err := ebitenutil.NewImageFromFile("assets/walk.png")
 	if err != nil {
-		log.Printf("Warning: Could not load agt.png: %v", err)
+		log.Printf("Warning: Could not load walk.png: %v", err)
 	}
-	for dir := 0; dir < constants.DIRECTIONS; dir++ {
-		for f := 0; f < constants.FRAME_COUNT; f++ {
+	for dir := range constants.DIRECTIONS {
+		for f := range constants.FRAME_COUNT {
 			sx := f * constants.CELL_SIZE
 			sy := dir * constants.CELL_SIZE
 			sub := walk.SubImage(image.Rect(sx, sy, sx+constants.CELL_SIZE, sy+constants.CELL_SIZE)).(*ebiten.Image)
@@ -107,6 +114,7 @@ func initAnimation() {
 		}
 	}
 }
+
 func (g *Game) DrawTexture(screen *ebiten.Image) {
 	initTexture()
 	initAnimation()
