@@ -169,7 +169,7 @@ func (env *Environment) pickRequest() {
 			continue
 		}
 
-		env.Mutex.Lock() // potentiellement à refacto
+		env.Mutex.Lock() //TODO : potentiellement à refacto
 
 		shelf, ok := env.Map.ShelfData[pickRequest.ShelfCoords]
 		if !ok {

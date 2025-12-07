@@ -4,7 +4,6 @@ import (
 	"AI30_-_BlackFriday/pkg/constants"
 	"AI30_-_BlackFriday/pkg/logger"
 	"AI30_-_BlackFriday/pkg/utils"
-	"fmt"
 	"math"
 	"math/rand"
 )
@@ -70,16 +69,16 @@ func FindNearestElementPosition(env *Environment, a Agent, elementType constants
 			}
 		}
 
-	case "C":
-		for _, v := range env.Map.CheckoutZones {
-			tempDist := utils.EuclideanDistance(agentCoords, v)
-			if minDist > tempDist {
-				minDist = tempDist
-				nearestElement = v
-			}
+	case "C", "D":
+		var elementStorage [][2]float64
+
+		if elementType == "C" {
+			elementStorage = env.Map.CheckoutZones
+		} else {
+			elementStorage = env.Map.Doors
 		}
-	case "D":
-		for _, v := range env.Map.Doors {
+
+		for _, v := range elementStorage {
 			tempDist := utils.EuclideanDistance(agentCoords, v)
 			if minDist > tempDist {
 				minDist = tempDist
@@ -96,7 +95,6 @@ func FindNearestElementPosition(env *Environment, a Agent, elementType constants
 		return 0, 0, false
 	}
 
-	fmt.Println(agentCoords, nearestElement)
 	return nearestElement[0], nearestElement[1], true
 }
 
@@ -112,6 +110,6 @@ func FindWalkablePositionNearbyElement(env *Environment, a Agent, elementType co
 	if res != true {
 		logger.Warnf("Cannot find nearest free position around element %s", elementType)
 	}
-	fmt.Printf("Walkable tile : [%.2f %.2f]\n", targetX, targetY)
+	logger.Debugf("Walkable tile : [%.2f %.2f]\n", targetX, targetY)
 	return targetX, targetY, res
 }

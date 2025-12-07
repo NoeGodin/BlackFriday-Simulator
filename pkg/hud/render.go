@@ -81,19 +81,17 @@ func (h *HUD) clearSelection() {
 }
 
 func (h *HUD) getAgentSelectionMessage() string {
-	var prefs []string
+	var prefs []Map.Item
 	for _, item := range h.selectedAgent.ShoppingList() {
-		prefs = append(prefs, item.Name)
+		prefs = append(prefs, item)
 	}
-	
+	msg := fmt.Sprintf("Agent ID: %s\nPosition: (%.2f, %.2f)\nShopping List:\n", h.selectedAgent.ID(), h.TargetPositionX, h.TargetPositionY)
+	for i, item := range prefs {
+		msg += fmt.Sprintf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
+			i+1, item.Name, item.Price, item.Quantity, item.Reduction*100, item.Attractiveness)
+	}
 	// In the future, we can add agent's inventory, its objectives, attitude, status...
-	return fmt.Sprintf(
-		"Agent ID: %s\nPosition: (%.2f, %.2f)\nShopping list: %s",
-		h.selectedAgent.ID(),
-		h.TargetPositionX,
-		h.TargetPositionY,
-		strings.Join(prefs, ", "),
-	)
+	return msg
 }
 
 func (h *HUD) getElementSelectionMessage(items []Map.Item, exists bool) string {
