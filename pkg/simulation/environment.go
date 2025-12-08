@@ -27,12 +27,19 @@ type MoveRequest struct {
 	ResponseChannel chan bool
 }
 
+type ExitRequest struct {
+	Agt Agent
+	//temporaire : structure à définir
+	ResponseChannel chan bool
+}
+
 type Environment struct {
 	Map                  *Map.Map
 	Clients              []*ClientAgent
 	Profit               float64
 	pickChan             chan PickRequest
 	moveChan             chan MoveRequest
+	exitChan             chan ExitRequest
 	deltaTime            float64
 	neighborSearchRadius float64
 	Mutex                sync.RWMutex
@@ -41,10 +48,11 @@ type Environment struct {
 func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64) *Environment {
 	pickChan := make(chan PickRequest)
 	moveChan := make(chan MoveRequest)
-	return &Environment{Map: mapData, Clients: make([]*ClientAgent, 0), pickChan: pickChan, moveChan: moveChan, deltaTime: deltaTime, neighborSearchRadius: searchRadius}
+	exitChan := make(chan ExitRequest)
+	return &Environment{Map: mapData, Clients: make([]*ClientAgent, 0), pickChan: pickChan, moveChan: moveChan, exitChan: exitChan, deltaTime: deltaTime, neighborSearchRadius: searchRadius}
 }
 func (env *Environment) AddClient(agtId string, syncChan chan int) Agent {
-	client := NewClientAgent(agtId, env, env.moveChan, env.pickChan, syncChan)
+	client := NewClientAgent(agtId, env, env.moveChan, env.pickChan, env.exitChan, syncChan)
 	env.Clients = append(env.Clients, client)
 	return client
 }
@@ -204,6 +212,29 @@ func (env *Environment) pickRequest() {
 		env.Mutex.Unlock()
 	}
 }
+
+func remove(name Agent, nations []*ClientAgent) []*ClientAgent {
+	i := 0
+	for idx, item := range nations {
+		if item.ID() != name.ID() {
+			nations[i] = nations[idx]
+			i++
+		}
+	}
+	return nations[:i]
+}
+
+func removeAgentFromClients(agentID AgentID, clients []*ClientAgent) []*ClientAgent {
+    i := 0
+    for _, c := range clients {
+        if c.ID() != agentID {
+            clients[i] = c
+            i++
+        }
+    }
+    return clients[:i]
+}
+
 
 func (env *Environment) Start() {
 	go env.pickRequest()

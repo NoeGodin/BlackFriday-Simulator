@@ -19,12 +19,14 @@ type ClientAgent struct {
 	cart         map[string]*Map.Item
 	pickChan     chan PickRequest
 	moveChan     chan MoveRequest
+	exitChan 	 chan ExitRequest
 
 	syncChan chan int
 	//temporaire
 	moveChanResponse chan bool
 	//rajouter un type action ?
 	pickChanResponse chan PickResponse
+	exitChanResponse chan bool
 
 	// Pathfinding
 	currentPath              *pathfinding.Path
@@ -53,7 +55,7 @@ type ClientAgent struct {
 	visitedShelves map[[2]float64]Map.Shelf
 }
 
-func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, syncChan chan int) *ClientAgent {
+func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, exitChan chan ExitRequest, syncChan chan int) *ClientAgent {
 	startX, startY, found := env.Map.GetRandomFreeCoordinate()
 	if !found {
 		startX, startY = 5, 5 // no free coordinate
@@ -70,9 +72,11 @@ func NewClientAgent(id string, env *Environment, moveChan chan MoveRequest, pick
 		cart:             make(map[string]*Map.Item),
 		pickChan:         pickChan,
 		moveChan:         moveChan,
+		exitChan: 		  exitChan,
 		syncChan:         syncChan,
 		moveChanResponse: make(chan bool),
 		pickChanResponse: make(chan PickResponse),
+		exitChanResponse: make(chan bool),
 		hasDestination:   false,
 		stuckCounter:     0,
 		lastPosition:     utils.Vec2{X: startX, Y: startY},
@@ -93,7 +97,7 @@ func generateShoppingList(env *Environment) []Map.Item {
 		totalAttractiveness += item.Attractiveness
 	}
 
-	for range rand.Intn(4) + 1 {
+	for range rand.Intn(constants.AGENT_MAX_SHOPPING_LIST) + 1 {
 		wantedItem := rand.Float64() * totalAttractiveness
 		cumulative := 0.0
 
@@ -137,14 +141,20 @@ func (ag *ClientAgent) Start() {
 	go func() {
 		var step int
 		for {
-			step = <-ag.syncChan
-			// perception := <-ag.viewChan
+			select {
+			case <-ag.exitChanResponse:
+				logger.Infof("Agent %s finished", ag.id)
+				return
+			default:
+				step = <-ag.syncChan
+				// perception := <-ag.viewChan
 
-			ag.Percept()
-			ag.Deliberate()
-			ag.Act()
-			step++
-			ag.syncChan <- step
+				ag.Percept()
+				ag.Deliberate()
+				ag.Act()
+				step++
+				ag.syncChan <- step
+			}
 		}
 	}()
 }
@@ -321,7 +331,10 @@ func (ag *ClientAgent) Act() {
 
 	case ActionExit:
 		fmt.Println("profit du magasin : ", ag.env.Profit)
-		fmt.Println("exiting....")
+		ag.exitChan <- ExitRequest{
+			Agt: ag,
+			ResponseChannel: ag.exitChanResponse,
+		}
 	}
 }
 

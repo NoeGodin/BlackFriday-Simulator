@@ -40,6 +40,8 @@ func (s *Simulation) AddClient(agtId string) error {
 }
 func (s *Simulation) Run() {
 	s.Env.Start()
+	go s.Env.exitRequest(s)
+
 	for _, agt := range s.agents {
 		go agt.Start()
 
@@ -59,4 +61,23 @@ func (s *Simulation) Run() {
 		}(agt)
 	}
 
+}
+
+func (simu *Simulation) RemoveAgent(agentID AgentID) {
+    newAgents := simu.agents[:0]
+    for _, a := range simu.agents {
+        if a.ID() != agentID {
+            newAgents = append(newAgents, a)
+        }
+    }
+    simu.agents = newAgents
+    simu.Env.Clients = removeAgentFromClients(agentID, simu.Env.Clients)
+    simu.syncChans.Delete(agentID)
+}
+
+func (env *Environment) exitRequest(simu *Simulation) {
+    for exitRequest := range env.exitChan {
+        simu.RemoveAgent(exitRequest.Agt.ID())
+        exitRequest.ResponseChannel <- true
+    }
 }
