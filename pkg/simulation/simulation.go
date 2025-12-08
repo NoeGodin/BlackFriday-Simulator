@@ -1,6 +1,7 @@
 package Simulation
 
 import (
+	"AI30_-_BlackFriday/pkg/logger"
 	Map "AI30_-_BlackFriday/pkg/map"
 	"fmt"
 	"sync"
@@ -15,9 +16,9 @@ type Simulation struct {
 	syncChans sync.Map
 }
 
-func NewSimulation(agentCount int, speed float64, mapData *Map.Map, deltaTime float64, searchRadius float64) (simu *Simulation) {
+func NewSimulation(agentCount int, speed float64, mapData *Map.Map, deltaTime float64, searchRadius float64, mapName string) (simu *Simulation) {
 
-	simu = &Simulation{agents: make([]Agent, agentCount), Env: *NewEnvironment(mapData, deltaTime, searchRadius), Speed: speed}
+	simu = &Simulation{agents: make([]Agent, agentCount), Env: *NewEnvironment(mapData, deltaTime, searchRadius, mapName), Speed: speed}
 	return simu
 }
 
@@ -64,20 +65,27 @@ func (s *Simulation) Run() {
 }
 
 func (simu *Simulation) RemoveAgent(agentID AgentID) {
-    newAgents := simu.agents[:0]
-    for _, a := range simu.agents {
-        if a.ID() != agentID {
-            newAgents = append(newAgents, a)
-        }
-    }
-    simu.agents = newAgents
-    simu.Env.Clients = removeAgentFromClients(agentID, simu.Env.Clients)
-    simu.syncChans.Delete(agentID)
+	newAgents := simu.agents[:0]
+	for _, a := range simu.agents {
+		if a.ID() != agentID {
+			newAgents = append(newAgents, a)
+		}
+	}
+	simu.agents = newAgents
+	simu.Env.Clients = removeAgentFromClients(agentID, simu.Env.Clients)
+	simu.syncChans.Delete(agentID)
 }
 
 func (env *Environment) exitRequest(simu *Simulation) {
-    for exitRequest := range env.exitChan {
-        simu.RemoveAgent(exitRequest.Agt.ID())
-        exitRequest.ResponseChannel <- true
-    }
+	for exitRequest := range env.exitChan {
+		simu.RemoveAgent(exitRequest.Agt.ID())
+		exitRequest.ResponseChannel <- true
+
+		// Export data if nore more agents
+		if len(simu.agents) == 0 {
+			if err := env.ExportSalesData(); err != nil {
+				logger.Errorf("Error during sells data export: %v", err)
+			}
+		}
+	}
 }

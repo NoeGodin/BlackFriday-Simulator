@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 
 	"AI30_-_BlackFriday/pkg/constants"
 	Graphics "AI30_-_BlackFriday/pkg/graphics"
@@ -31,14 +33,16 @@ func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	logger.Info("Loading map...")
-	mapData, err := Map.LoadMapFromFile("maps/store/large_layout.txt")
+	mapPath := "maps/store/large_layout.txt"
+	mapData, err := Map.LoadMapFromFile(mapPath)
 	if err != nil {
 		logger.Errorf("Error loading map: %s", err.Error())
 		panic("Error loading map: " + err.Error())
 	}
 
+	mapName := extractMapName(mapPath)
 	logger.Info("Creating simulation...")
-	simu := Simulation.NewSimulation(0, 100.0, mapData, constants.DELTA_TIME, constants.AGENT_SEARCH_RADIUS)
+	simu := Simulation.NewSimulation(0, 100.0, mapData, constants.DELTA_TIME, constants.AGENT_SEARCH_RADIUS, mapName)
 
 	logger.Info("Adding agents...")
 	for i := 1; i <= constants.NB_AGENTS; i++ {
@@ -49,7 +53,31 @@ func main() {
 	logger.Info("Starting game...")
 	game := Graphics.NewGame(SCREEN_WIDTH, SCREEN_HEIGHT, simu)
 	game.Simulation.Run()
+
+	// launch simulation, generate repport at the end
+	defer func() {
+		logger.Info("Exporting sales data...")
+		if err := game.Simulation.Env.ExportSalesData(); err != nil {
+			logger.Errorf("Error exporting sales data: %v", err)
+		} else {
+			logger.Info("Sales data exported successfully")
+		}
+	}()
+
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func extractMapName(mapPath string) string {
+	filename := filepath.Base(mapPath)
+	name := strings.TrimSuffix(filename, filepath.Ext(filename))
+
+	dir := filepath.Base(filepath.Dir(mapPath))
+
+	if dir != "." && dir != "" {
+		return fmt.Sprintf("%s_%s", dir, name)
+	}
+
+	return name
 }

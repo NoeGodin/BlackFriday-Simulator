@@ -6,8 +6,8 @@ import (
 	"AI30_-_BlackFriday/pkg/utils"
 	"math"
 	"math/rand"
-	"time"
 	"sync"
+	"time"
 )
 
 type PickResponse struct {
@@ -30,7 +30,7 @@ type MoveRequest struct {
 }
 
 type StartRequest struct {
-	Agt Agent
+	Agt             Agent
 	ResponseChannel chan bool
 }
 
@@ -46,14 +46,15 @@ type Environment struct {
 	Profit               float64
 	pickChan             chan PickRequest
 	moveChan             chan MoveRequest
-	startChans			 map[[2]float64]chan StartRequest
+	startChans           map[[2]float64]chan StartRequest
 	exitChan             chan ExitRequest
 	deltaTime            float64
 	neighborSearchRadius float64
 	Mutex                sync.RWMutex
+	SalesTracker         *SalesTracker
 }
 
-func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64) *Environment {
+func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64, mapName string) *Environment {
 	pickChan := make(chan PickRequest)
 	moveChan := make(chan MoveRequest)
 	startChan := make(map[[2]float64]chan StartRequest)
@@ -62,7 +63,20 @@ func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64) *
 	}
 
 	exitChan := make(chan ExitRequest)
-	return &Environment{Map: mapData, Clients: make([]*ClientAgent, 0), pickChan: pickChan, moveChan: moveChan, startChans: startChan, exitChan: exitChan, deltaTime: deltaTime, neighborSearchRadius: searchRadius}
+
+	salesTracker := NewSalesTracker(mapName)
+
+	return &Environment{
+		Map:                  mapData,
+		Clients:              make([]*ClientAgent, 0),
+		pickChan:             pickChan,
+		startChans:           startChan,
+		moveChan:             moveChan,
+		exitChan:             exitChan,
+		deltaTime:            deltaTime,
+		neighborSearchRadius: searchRadius,
+		SalesTracker:         salesTracker,
+	}
 }
 func (env *Environment) AddClient(agtId string, syncChan chan int) Agent {
 	doorCo := env.GetRandomDoor()
@@ -72,14 +86,14 @@ func (env *Environment) AddClient(agtId string, syncChan chan int) Agent {
 	return client
 }
 
-func (env* Environment) getSpawnablePos(co [2]float64) [2]float64 {
+func (env *Environment) getSpawnablePos(co [2]float64) [2]float64 {
 	if co[0] == 0 {
 		co[0] += constants.SPAWN_OFFSET_FROM_DOOR
 	} else if co[1] == 0 {
 		co[1] += constants.SPAWN_OFFSET_FROM_DOOR
-	} else if co[1] == float64(env.Map.Height - 1) {
+	} else if co[1] == float64(env.Map.Height-1) {
 		co[1] -= constants.SPAWN_OFFSET_FROM_DOOR
-	} else if co[0] == float64(env.Map.Width - 1) {
+	} else if co[0] == float64(env.Map.Width-1) {
 		co[0] -= constants.SPAWN_OFFSET_FROM_DOOR
 	}
 
@@ -266,16 +280,15 @@ func remove(name Agent, nations []*ClientAgent) []*ClientAgent {
 }
 
 func removeAgentFromClients(agentID AgentID, clients []*ClientAgent) []*ClientAgent {
-    i := 0
-    for _, c := range clients {
-        if c.ID() != agentID {
-            clients[i] = c
-            i++
-        }
-    }
-    return clients[:i]
+	i := 0
+	for _, c := range clients {
+		if c.ID() != agentID {
+			clients[i] = c
+			i++
+		}
+	}
+	return clients[:i]
 }
-
 
 func (env *Environment) Start() {
 	go env.pickRequest()
@@ -305,6 +318,11 @@ func (env *Environment) ProcessPayment(amout float64) {
 	env.Mutex.Lock()
 	defer env.Mutex.Unlock()
 	env.Profit += amout
+	env.SalesTracker.RecordSale(amout, env.Profit)
+}
+
+func (env *Environment) ExportSalesData() error {
+	return env.SalesTracker.ExportToCSV()
 }
 
 func (env *Environment) GetRandomDoor() [2]float64 {
