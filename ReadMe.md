@@ -14,6 +14,11 @@ go mod download
 go run cmd/blackfriday/main.go
 ```
 
+**Analyse des ventes:** Les simulations enregistrent automatiquement chaque vente avec timestamp dans `stats/sales_tracker.csv`. Pour générer un graphique comparant les performances des différentes maps, utilisez :
+```bash
+./stats/plot.sh
+```
+
 ## Problématique
 
 Point de vue du magasin : Comment faire le plus de ventes ?
