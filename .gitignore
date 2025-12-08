@@ -1,6 +1,13 @@
 # Created by https://www.toptal.com/developers/gitignore/api/macos,webstorm+all,goland+all,visualstudiocode,visualstudio,sublimetext,go,vim,windows,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,webstorm+all,goland+all,visualstudiocode,visualstudio,sublimetext,go,vim,windows,linux
 
+# Python
+venv/
+
+# Sales tracking data and plots
+stats/sales_tracker.csv
+stats/profit_comparison.png
+
 ### Go ###
 # If you prefer the allow list template instead of the deny list, see community template:
 # https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
