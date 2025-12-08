@@ -186,8 +186,14 @@ func (ag *ClientAgent) Deliberate() {
 	switch ag.state {
 	case StateWandering:
 
-		// Agent has finished shopping
-		if len(ag.GetMissingItems()) == 0 {
+		// Agent has finished shopping (either if he has collected all his shopping list, or if he couldnt find more items)
+		if (len(ag.visitedShelves) >= len(ag.env.Map.ShelfData)) || (len(ag.GetMissingItems()) == 0) {
+			if len(ag.cart) == 0 {
+				ag.state = StateMovingToExit
+				ag.nextAction = ActionWait
+				break
+			}
+
 			destX, destY, res := FindWalkablePositionNearbyElement(ag.env, ag, "C")
 			if !res {
 				logger.Warnf("No walkable position nearby element")
@@ -248,7 +254,7 @@ func (ag *ClientAgent) Deliberate() {
 		ag.nextAction = ActionPick
 
 	case StateMovingToCheckout:
-		if len(ag.GetMissingItems()) != 0 { // si vol d'items ? (à implémenter plus tard)
+		if (len(ag.GetMissingItems()) != 0) && (len(ag.visitedShelves) < len(ag.env.Map.ShelfData)) { // si vol d'items ? (à implémenter plus tard)
 			ag.state = StateWandering
 			ag.nextAction = ActionWait
 			break
