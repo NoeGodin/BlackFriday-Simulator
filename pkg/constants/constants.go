@@ -18,7 +18,7 @@ const (
 	MARGIN         = 20
 
 	// Simulation constants
-	BASE_AGENT_SPEED = 0.2
+	BASE_AGENT_SPEED = 0.2	
 	// StuckDistanceThreshold minimum distance to be considered moving
 	StuckDistanceThreshold = 0.1
 	// StuckCounterThreshold number of frames to consider an agent stuck (~1 second at 30 FPS)
@@ -33,6 +33,8 @@ const (
 
 	DELTA_TIME          = 1.0 / 60.0
 	AGENT_SEARCH_RADIUS = 5.0
+
+	AGENT_MAX_SHOPPING_LIST = 4
 
 	//SFC
 	SOCIAL_STRENGTH   = 1.0
