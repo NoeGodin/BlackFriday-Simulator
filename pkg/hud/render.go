@@ -5,6 +5,7 @@ import (
 	Map "AI30_-_BlackFriday/pkg/map"
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
 	"fmt"
+	"sort"
 	"strings"
 
 	"image/color"
@@ -81,19 +82,34 @@ func (h *HUD) clearSelection() {
 }
 
 func (h *HUD) getAgentSelectionMessage() string {
-	var prefs []Map.Item
-	msg := fmt.Sprintf("Agent ID: %s\nPosition: (%.2f, %.2f)\nShopping List:\n", h.selectedAgent.ID(), h.TargetPositionX, h.TargetPositionY)
+	var cart []*Map.Item
 	clientAgent, ok := h.selectedAgent.(*Simulation.ClientAgent)
 	if !ok {
 		return msg
 	}
-	for _, item := range clientAgent.ShoppingList() {
-		prefs = append(prefs, item)
+	m := clientAgent.Cart()
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
 	}
-	for i, item := range prefs {
+	
+	sort.Strings(keys)
+	for _, k := range keys {
+		cart = append(cart, m[k])
+	}
+
+	msg := fmt.Sprintf("Agent ID: %s\nPosition: (%.2f, %.2f)\nStatus: %s\nShopping List:\n", h.selectedAgent.ID(), h.TargetPositionX, h.TargetPositionY, h.selectedAgent.State())
+	for i, item := range h.selectedAgent.ShoppingList() {
 		msg += fmt.Sprintf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
 			i+1, item.Name, item.Price, item.Quantity, item.Reduction*100, item.Attractiveness)
 	}
+
+	msg += fmt.Sprintf("Cart:\n")
+	for i, item := range cart {
+		msg += fmt.Sprintf("  [%d] %s - Quantity: %d\n",
+			i+1, item.Name, item.Quantity)
+	}
+
 	// In the future, we can add agent's inventory, its objectives, attitude, status...
 	return msg
 }
