@@ -712,4 +712,6 @@ FodyWeavers.xsd
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 perso
+
+maps/generated_maps/**
 # End of https://www.toptal.com/developers/gitignore/api/macos,webstorm+all,goland+all,visualstudiocode,visualstudio,sublimetext,go,vim,windows,linux
