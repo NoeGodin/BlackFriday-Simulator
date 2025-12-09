@@ -23,11 +23,14 @@ func (g *Game) mapToDrawCoords(mapX float64, mapY float64, offsetX, offsetY int)
 }
 
 // Draw image at the right position with the right scale
-func drawImageAt(screen *ebiten.Image, img *ebiten.Image, x, y float64) {
+func drawImageAt(screen *ebiten.Image, img *ebiten.Image, x, y float64, colorScale *ebiten.ColorScale) {
 	if img == nil {
 		return
 	}
 	options := &ebiten.DrawImageOptions{}
+	if colorScale != nil {
+		options.ColorScale = *colorScale
+	}
 	options.GeoM.Scale(float64(constants.CELL_SIZE)/float64(img.Bounds().Dx()),
 		float64(constants.CELL_SIZE)/float64(img.Bounds().Dy()))
 	options.GeoM.Translate(float64(x), float64(y))
@@ -88,7 +91,7 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 	for y := 0.0; y < float64(envMap.Height); y++ {
 		for x := 0.0; x < float64(envMap.Width); x++ {
 			drawX, drawY := g.mapToDrawCoords(x, y, offsetX, offsetY)
-			drawImageAt(screen, groundImg, drawX, drawY)
+			drawImageAt(screen, groundImg, drawX, drawY, nil)
 		}
 	}
 
@@ -106,16 +109,16 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 			switch elementType {
 			case constants.WALL:
 				if envMap.GetElementType(x, y+1) != constants.WALL {
-					drawImageAt(screen, wallImg, drawX, drawY)
+					drawImageAt(screen, wallImg, drawX, drawY, nil)
 				} else {
-					drawImageAt(screen, wallCeiling, drawX, drawY)
+					drawImageAt(screen, wallCeiling, drawX, drawY, nil)
 				}
 			case constants.SHELF:
-				drawImageAt(screen, itemImg, drawX, drawY)
+				drawImageAt(screen, itemImg, drawX, drawY, nil)
 			case constants.DOOR:
-				drawImageAt(screen, doorImg, drawX, drawY)
+				drawImageAt(screen, doorImg, drawX, drawY, nil)
 			case constants.CHECKOUT:
-				drawImageAt(screen, checkoutImg, drawX, drawY)
+				drawImageAt(screen, checkoutImg, drawX, drawY, nil)
 			}
 		}
 	}
@@ -127,10 +130,13 @@ func (g *Game) DrawAgents(screen *ebiten.Image) {
 	offsetX := MARGIN
 	offsetY := MARGIN
 	for _, agt := range g.Simulation.Agents() {
-		if !agt.HasSpawned() { continue }
+		if !agt.HasSpawned() {
+			continue
+		}
 		agtCoords := agt.Coordinate()
 		drawX, drawY := g.mapToDrawCoords(agtCoords.X, agtCoords.Y, offsetX, offsetY)
-		drawImageAt(screen, g.AgentAnimator.AnimationFrame(agt), drawX, drawY)
+		colorScale := g.AgentAnimator.getColorScale(agt)
+		drawImageAt(screen, g.AgentAnimator.AnimationFrame(agt), drawX, drawY, colorScale)
 	}
 }
 
@@ -247,7 +253,7 @@ func (g *Game) DrawHUD(screen *ebiten.Image) {
 	}
 
 	targetX, targetY := g.mapToDrawCoords(g.Hud.TargetPositionX, g.Hud.TargetPositionY, offsetX, offsetY)
-	drawImageAt(screen, targetImg, targetX, targetY)
+	drawImageAt(screen, targetImg, targetX, targetY, nil)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {

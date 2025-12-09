@@ -21,11 +21,12 @@ const (
 	VOID     ElementType = " "
 
 	// Graphics constants
-	CELL_SIZE      = 32
-	FRAME_DURATION = 10
-	FRAME_COUNT    = 4
-	DIRECTIONS     = 4
-	MARGIN         = 20
+	CELL_SIZE            = 32
+	FRAME_DURATION       = 10
+	FRAME_COUNT          = 4
+	DIRECTIONS           = 4
+	MARGIN               = 20
+	AGENT_STATE_DURATION = time.Second * 2
 
 	// StuckDistanceThreshold minimum distance to be considered moving (calculated as agent speed / 2)
 	// StuckDistanceThreshold = BASE_AGENT_SPEED / 2
