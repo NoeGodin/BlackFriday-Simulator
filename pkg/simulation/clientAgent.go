@@ -4,48 +4,21 @@ import (
 	"AI30_-_BlackFriday/pkg/constants"
 	"AI30_-_BlackFriday/pkg/logger"
 	Map "AI30_-_BlackFriday/pkg/map"
-	"AI30_-_BlackFriday/pkg/pathfinding"
 	"AI30_-_BlackFriday/pkg/utils"
 	"fmt"
+	"math"
 )
 
 type ClientAgent struct {
-	id           AgentID
-	Speed        float64
-	env          *Environment
-	coordinate   utils.Vec2
-	dx, dy       float64
+	*BaseAgent
 	shoppingList []Map.Item
 	cart         map[string]*Map.Item
-	hasSpawned   bool
-	pickChan     chan PickRequest
-	moveChan     chan MoveRequest
-	startChan    chan StartRequest
-	exitChan     chan ExitRequest
 
-	syncChan chan int
-	//temporaire
-	moveChanResponse chan bool
-	//rajouter un type action ?
+	pickChan chan PickRequest
+
 	pickChanResponse  chan PickResponse
 	startChanResponse chan bool
 	exitChanResponse  chan bool
-
-	// Pathfinding
-	currentPath              *pathfinding.Path
-	moveTargetX, moveTargetY float64
-	hasDestination           bool
-
-	// Anti-blocage
-	stuckCounter int
-	lastPosition utils.Vec2
-
-	velocity        utils.Vec2
-	desiredVelocity utils.Vec2
-
-	// Gestionnaires
-	movementManager *MovementManager
-	stuckDetector   *StuckDetector
 
 	// Behavior
 	state                            AgentState
@@ -53,44 +26,21 @@ type ClientAgent struct {
 	itemsToPick                      []Map.Item
 	interactTargetX, interactTargetY float64
 
-	// Manage vision and agent memory
-	visionManager  *VisionManager
 	visitedShelves map[[2]float64]Map.Shelf
 }
 
 func NewClientAgent(id string, pos [2]float64, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int, agentIndex int) *ClientAgent {
-	// startX, startY, found := env.Map.GetRandomFreeCoordinate()
-	// if !found {
-	// 	startX, startY = 5, 5 // no free coordinate
-	// }
 
 	agent := &ClientAgent{
-		id:                AgentID(id),
-		Speed:             constants.BASE_AGENT_SPEED,
-		env:               env,
-		coordinate:        utils.Vec2{X: pos[0], Y: pos[1]},
-		dx:                0,
-		dy:                0,
-		shoppingList:      env.GenerateShoppingListDeterministic(agentIndex),
-		cart:              make(map[string]*Map.Item),
-		pickChan:          pickChan,
-		moveChan:          moveChan,
-		startChan:         startChan,
-		exitChan:          exitChan,
-		syncChan:          syncChan,
-		moveChanResponse:  make(chan bool),
-		pickChanResponse:  make(chan PickResponse),
-		startChanResponse: make(chan bool),
-		exitChanResponse:  make(chan bool),
-		hasDestination:    false,
-		stuckCounter:      0,
-		visitedShelves:    make(map[[2]float64]Map.Shelf),
-		lastPosition:      utils.Vec2{X: pos[0], Y: pos[1]},
-		hasSpawned:        false,
+		BaseAgent:        NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan),
+		shoppingList:     env.GenerateShoppingListDeterministic(agentIndex),
+		cart:             make(map[string]*Map.Item),
+		pickChan:         pickChan,
+		pickChanResponse: make(chan PickResponse),
+		state:            StateWandering,
+		visitedShelves:   make(map[[2]float64]Map.Shelf),
 	}
-	agent.movementManager = NewMovementManager(agent)
-	agent.stuckDetector = NewStuckDetector(agent)
-	agent.visionManager = NewVisionManager(agent)
+	agent.agentBehavior = &ClientAgentBehavior{ag: agent}
 
 	return agent
 }
@@ -103,75 +53,154 @@ func (ag *ClientAgent) NextAction() ActionType {
 	return ag.nextAction
 }
 
-func (ag *ClientAgent) ID() AgentID {
-	return ag.id
+func (ag *ClientAgent) ShoppingList() []Map.Item {
+	return ag.shoppingList
 }
 
-func (ag *ClientAgent) Move() {
-	ag.coordinate.X += ag.velocity.X
-	ag.coordinate.Y += ag.velocity.Y
-}
-func (ag *ClientAgent) DryRunMove() utils.Vec2 {
-	coordinate := ag.coordinate
-	coordinate.X += ag.velocity.X
-	coordinate.Y += ag.velocity.Y
-	return coordinate
-}
+func (ag *ClientAgent) findWantedItemLocation() (float64, float64, bool) {
+	missingItems := ag.GetMissingItems()
 
-func (ag *ClientAgent) Start() {
-	ag.startChan <- StartRequest{Agt: ag, ResponseChannel: ag.startChanResponse}
-	ag.hasSpawned = <-ag.startChanResponse
-
-	logger.Infof("Agent %s starting at position (%.1f, %.1f)", ag.id, ag.coordinate.X, ag.coordinate.Y)
-
-	go func() {
-		var step int
-		for {
-			select {
-			case <-ag.exitChanResponse:
-				logger.Infof("Agent %s finished", ag.id)
-				return
-			default:
-				step = <-ag.syncChan
-				// perception := <-ag.viewChan
-
-				ag.Percept()
-				ag.Deliberate()
-				ag.Act()
-				step++
-				ag.syncChan <- step
+	for k, shelf := range ag.visitedShelves {
+		for _, item := range shelf.Items {
+			for _, wantedItem := range missingItems {
+				if (item.Name == wantedItem.Name) && (item.Quantity > 0) {
+					return k[0], k[1], true
+				}
 			}
 		}
-	}()
+	}
+	return 0, 0, false
 }
 
-func (ag *ClientAgent) Coordinate() utils.Vec2 {
-	return ag.coordinate
+func (ag *ClientAgent) chooseItemToPickFromTargetedShelf(env *Environment) {
+	ag.itemsToPick = []Map.Item{}
+	shelfCoords := [2]float64{ag.interactTargetX, ag.interactTargetY}
+
+	env.Mutex.RLock()
+	defer env.Mutex.RUnlock()
+
+	shelf, ok := env.Map.ShelfData[shelfCoords]
+
+	if !ok {
+		logger.Warnf("Shelf (%.2f %.2f) does not exist in the current environment", shelfCoords[0], shelfCoords[1])
+		return
+	}
+
+	missingItems := ag.GetMissingItems()
+
+	for _, shelfItem := range shelf.Items {
+		for _, agentNeed := range missingItems {
+			if (shelfItem.Name == agentNeed.Name) && (shelfItem.Quantity > 0) {
+				ag.itemsToPick = append(ag.itemsToPick, agentNeed)
+			}
+		}
+	}
 }
 
-func (ag *ClientAgent) DesiredVelocity() *utils.Vec2 {
-	return &ag.desiredVelocity
+func (ag *ClientAgent) GetMissingItems() []Map.Item {
+	missing := []Map.Item{}
+
+	for _, targetItem := range ag.shoppingList {
+		have := 0
+		if cartItem, ok := ag.cart[targetItem.Name]; ok {
+			have = cartItem.Quantity
+		}
+
+		need := targetItem.Quantity - have
+
+		if need > 0 {
+			missing = append(missing, Map.Item{
+				Name:           targetItem.Name,
+				Price:          targetItem.Price,
+				Reduction:      targetItem.Reduction,
+				Attractiveness: targetItem.Attractiveness,
+				Quantity:       need,
+			})
+		}
+	}
+	return missing
 }
 
-func (ag *ClientAgent) Velocity() *utils.Vec2 {
-	return &ag.velocity
+func (ag *ClientAgent) CalculateCartValue() float64 {
+	var amount float64
+	for _, item := range ag.cart {
+		amount = amount + ((item.Price - item.Price*item.Reduction) * float64(item.Quantity))
+	}
+	return amount
 }
 
-func (ag *ClientAgent) Direction() utils.Direction {
-	return ag.movementManager.CalculateDirection()
+func (ag *ClientAgent) UpdateFOVRays(dx, dy float64, numRays int, env *Environment) {
+	ax := ag.coordinate.X + constants.CENTER_OF_CELL
+	ay := ag.coordinate.Y + constants.CENTER_OF_CELL
+	v := ag.visionManager
+	v.RaysEndPoints = make([]utils.Vec2, numRays)
+
+	fovAngle := constants.ANGLE_VISION * math.Pi / 180.0
+	halfFOV := fovAngle / 2
+
+	// Angle direction
+	baseAngle := math.Atan2(dy, dx)
+	for i := 0; i < numRays; i++ {
+		angle := baseAngle - halfFOV + (float64(i)/float64(numRays-1))*fovAngle
+		rayX, rayY := ax, ay
+		step := 0.1
+
+		for d := 0.0; d < v.visionDistance; d += step {
+			rayX = math.Ceil(ax + math.Cos(angle)*d)
+			rayY = math.Ceil(ay + math.Sin(angle)*d)
+
+			if env.IsObstacleAt(rayX, rayY) {
+				break
+			}
+
+			if env.IsShelfAt(rayX, rayY) {
+				coords := [2]float64{rayX, rayY}
+				if shelf, ok := env.Map.ShelfData[coords]; ok {
+					ag.visitedShelves[coords] = shelf
+				}
+			}
+		}
+
+		v.RaysEndPoints[i] = utils.Vec2{X: rayX, Y: rayY}
+	}
 }
 
-func (ag *ClientAgent) HasSpawned() bool {
-	return ag.hasSpawned
+func (ag *ClientAgent) DetectShelvesInFOV(env *Environment) {
+	// Keep in comment in case we want to know the items and shelves percepted by the agent
+	// shelves := []Map.Shelf{}
+
+	for coords := range env.Map.ShelfData {
+
+		cx := float64(coords[0]) + constants.CENTER_OF_CELL
+		cy := float64(coords[1]) + constants.CENTER_OF_CELL
+
+		p := utils.Vec2{X: cx, Y: cy}
+		v := ag.visionManager
+		if v.areCoordinatesIntersectingFOV(p) {
+			ag.visitedShelves[coords] = env.Map.ShelfData[coords]
+			// shelves = append(shelves, shelf)
+		}
+	}
+	// for _, s := range shelves {
+	//     for _, i := range s.Items {
+	// 			fmt.Println(i.Name)
+	//     }
+	// }
 }
 
-func (ag *ClientAgent) Percept() {
-	// ag.visionManager.UpdateFOVRays(ag.dx, ag.dy, 10, ag.env)
+type ClientAgentBehavior struct {
+	ag *ClientAgent
+}
+
+func (bh *ClientAgentBehavior) Percept() {
+	ag := bh.ag
+	// ag.UpdateFOVRays(ag.dx, ag.dy, 10, ag.env)
 	ag.visionManager.UpdateFOV(ag.dx, ag.dy)
-	ag.visionManager.DetectShelvesInFOV(ag.env)
+	ag.DetectShelvesInFOV(ag.env)
 }
 
-func (ag *ClientAgent) Deliberate() {
+func (bh *ClientAgentBehavior) Deliberate() {
+	ag := bh.ag
 	ag.stuckDetector.DetectAndResolve()
 
 	switch ag.state {
@@ -199,6 +228,7 @@ func (ag *ClientAgent) Deliberate() {
 
 		// Agent tries to find a wanted item from a visited shelf
 		if shelfX, shelfY, exists := ag.findWantedItemLocation(); exists {
+
 			moveTargetX, moveTargetY, found := FindNearestFreePosition(ag.env, shelfX, shelfY)
 			if !found {
 				logger.Warnf("No path found to a location near this destination (%.2f %.2f) ", shelfX, shelfY)
@@ -278,7 +308,8 @@ func (ag *ClientAgent) Deliberate() {
 	}
 }
 
-func (ag *ClientAgent) Act() {
+func (bh *ClientAgentBehavior) Act() {
+	ag := bh.ag
 	switch ag.nextAction {
 	case ActionMove:
 		ag.moveChan <- MoveRequest{Agt: ag, ResponseChannel: ag.moveChanResponse}
@@ -333,99 +364,4 @@ func (ag *ClientAgent) Act() {
 			ResponseChannel: ag.exitChanResponse,
 		}
 	}
-}
-
-func (ag *ClientAgent) GetCurrentPath() *pathfinding.Path {
-	return ag.currentPath
-}
-
-func (ag *ClientAgent) ShoppingList() []Map.Item {
-	return ag.shoppingList
-}
-
-func (ag *ClientAgent) VisionManager() VisionManager {
-	return *ag.visionManager
-}
-
-func (ag *ClientAgent) findWantedItemLocation() (float64, float64, bool) {
-	missingItems := ag.GetMissingItems()
-
-	for k, shelf := range ag.visitedShelves {
-		for _, item := range shelf.Items {
-			for _, wantedItem := range missingItems {
-				if (item.Name == wantedItem.Name) && (item.Quantity > 0) {
-					return k[0], k[1], true
-				}
-			}
-		}
-	}
-	return 0, 0, false
-}
-
-func (ag *ClientAgent) processPathMovement() {
-	// If path, follow it
-	if ag.currentPath != nil && !ag.currentPath.IsComplete() {
-		ag.movementManager.FollowPath()
-	} else {
-		// Stop movement
-		ag.dx = 0
-		ag.dy = 0
-	}
-}
-
-func (ag *ClientAgent) chooseItemToPickFromTargetedShelf(env *Environment) {
-	ag.itemsToPick = []Map.Item{}
-	shelfCoords := [2]float64{ag.interactTargetX, ag.interactTargetY}
-
-	env.Mutex.RLock()
-	defer env.Mutex.RUnlock()
-
-	shelf, ok := env.Map.ShelfData[shelfCoords]
-
-	if !ok {
-		logger.Warnf("Shelf (%.2f %.2f) does not exist in the current environment", shelfCoords[0], shelfCoords[1])
-		return
-	}
-
-	missingItems := ag.GetMissingItems()
-
-	for _, shelfItem := range shelf.Items {
-		for _, agentNeed := range missingItems {
-			if (shelfItem.Name == agentNeed.Name) && (shelfItem.Quantity > 0) {
-				ag.itemsToPick = append(ag.itemsToPick, agentNeed)
-			}
-		}
-	}
-}
-
-func (ag *ClientAgent) GetMissingItems() []Map.Item {
-	missing := []Map.Item{}
-
-	for _, targetItem := range ag.shoppingList {
-		have := 0
-		if cartItem, ok := ag.cart[targetItem.Name]; ok {
-			have = cartItem.Quantity
-		}
-
-		need := targetItem.Quantity - have
-
-		if need > 0 {
-			missing = append(missing, Map.Item{
-				Name:           targetItem.Name,
-				Price:          targetItem.Price,
-				Reduction:      targetItem.Reduction,
-				Attractiveness: targetItem.Attractiveness,
-				Quantity:       need,
-			})
-		}
-	}
-	return missing
-}
-
-func (ag *ClientAgent) CalculateCartValue() float64 {
-	var amount float64
-	for _, item := range ag.cart {
-		amount = amount + ((item.Price - item.Price*item.Reduction) * float64(item.Quantity))
-	}
-	return amount
 }

@@ -7,7 +7,7 @@ import (
 )
 
 type VisionManager struct {
-	agent *ClientAgent
+	agent *BaseAgent
 
 	// Don't directly use the constant for Distance and Height in case we can
 	// to add agents obstruction (with walls or other agents)
@@ -17,7 +17,7 @@ type VisionManager struct {
 	RaysEndPoints  []utils.Vec2
 }
 
-func NewVisionManager(ag *ClientAgent) *VisionManager {
+func NewVisionManager(ag *BaseAgent) *VisionManager {
 	return &VisionManager{
 		agent:          ag,
 		visionDistance: constants.VISION_DISTANCE,
@@ -26,40 +26,6 @@ func NewVisionManager(ag *ClientAgent) *VisionManager {
 }
 
 // Update for Raycast FOV
-func (v *VisionManager) UpdateFOVRays(dx, dy float64, numRays int, env *Environment) {
-	ax := v.agent.Coordinate().X + constants.CENTER_OF_CELL
-	ay := v.agent.Coordinate().Y + constants.CENTER_OF_CELL
-	v.RaysEndPoints = make([]utils.Vec2, numRays)
-
-	fovAngle := constants.ANGLE_VISION * math.Pi / 180.0
-	halfFOV := fovAngle / 2
-
-	// Angle direction
-	baseAngle := math.Atan2(dy, dx)
-	for i := 0; i < numRays; i++ {
-		angle := baseAngle - halfFOV + (float64(i)/float64(numRays-1))*fovAngle
-		rayX, rayY := ax, ay
-		step := 0.1
-
-		for d := 0.0; d < v.visionDistance; d += step {
-			rayX = math.Ceil(ax + math.Cos(angle)*d)
-			rayY = math.Ceil(ay + math.Sin(angle)*d)
-
-			if env.IsObstacleAt(rayX, rayY) {
-				break
-			}
-
-			if env.IsShelfAt(rayX, rayY) {
-				coords := [2]float64{rayX, rayY}
-				if shelf, ok := env.Map.ShelfData[coords]; ok {
-					v.agent.visitedShelves[coords] = shelf
-				}
-			}
-		}
-
-		v.RaysEndPoints[i] = utils.Vec2{X: rayX, Y: rayY}
-	}
-}
 
 // Update for rectangle FOV
 func (v *VisionManager) UpdateFOV(dx, dy float64) {
@@ -108,27 +74,4 @@ func pointInTriangle(p, a, b, c utils.Vec2) bool {
 func (v *VisionManager) areCoordinatesIntersectingFOV(p utils.Vec2) bool {
 	return pointInTriangle(p, v.P1, v.P2, v.P3) ||
 		pointInTriangle(p, v.P1, v.P3, v.P4)
-}
-
-func (v *VisionManager) DetectShelvesInFOV(env *Environment) {
-	// Keep in comment in case we want to know the items and shelves percepted by the agent
-	// shelves := []Map.Shelf{}
-
-	for coords := range env.Map.ShelfData {
-
-		cx := float64(coords[0]) + constants.CENTER_OF_CELL
-		cy := float64(coords[1]) + constants.CENTER_OF_CELL
-
-		p := utils.Vec2{X: cx, Y: cy}
-
-		if v.areCoordinatesIntersectingFOV(p) {
-			v.agent.visitedShelves[coords] = env.Map.ShelfData[coords]
-			// shelves = append(shelves, shelf)
-		}
-	}
-	// for _, s := range shelves {
-	//     for _, i := range s.Items {
-	// 			fmt.Println(i.Name)
-	//     }
-	// }
 }

@@ -7,7 +7,7 @@ import (
 )
 
 // https://pedestriandynamics.org/models/social_force_model/ refer to
-func CalculateSocialForces(agt *ClientAgent, neighbors []*ClientAgent) utils.Vec2 {
+func CalculateSocialForces(agt Agent, neighbors []Agent) utils.Vec2 {
 	socialForce := utils.Vec2{
 		X: 0.0,
 		Y: 0.0,
@@ -46,8 +46,8 @@ func CalculateSocialForces(agt *ClientAgent, neighbors []*ClientAgent) utils.Vec
 			// tangent vector
 			t := utils.Vec2{X: -n.Y, Y: n.X}
 			// speed vector
-			agtV := agt.velocity
-			neighborV := neighbor.velocity
+			agtV := agt.Velocity()
+			neighborV := neighbor.Velocity()
 			vi := utils.Vec2{X: agtV.X - neighborV.X, Y: agtV.Y - neighborV.Y}
 			deltaVT := vi.X*t.X + vi.Y*t.Y
 			frictionMag := -constants.FRICTION_COEF * overlap * deltaVT
@@ -60,7 +60,7 @@ func CalculateSocialForces(agt *ClientAgent, neighbors []*ClientAgent) utils.Vec
 	return socialForce
 }
 
-func CalculateObstacleForces(agent *ClientAgent, obstacles []utils.Vec2) utils.Vec2 {
+func CalculateObstacleForces(agent Agent, obstacles []utils.Vec2) utils.Vec2 {
 	totalForce := utils.Vec2{X: 0.0, Y: 0.0}
 	coords := agent.Coordinate()
 
@@ -91,40 +91,40 @@ func CalculateObstacleForces(agent *ClientAgent, obstacles []utils.Vec2) utils.V
 			// tangent vector
 			t := utils.Vec2{X: -n.Y, Y: n.X}
 			// speed vector
-			agtV := agent.velocity
+			agtV := agent.Velocity()
 			deltaVT := agtV.X*t.X + agtV.Y*t.Y
 			frictionMag := -constants.FRICTION_COEF * overlap * deltaVT
 			totalForce.X += t.X * frictionMag
 			totalForce.Y += t.Y * frictionMag
 
 			correctionFactor := overlap + 0.000
-			agent.coordinate.X += n.X * correctionFactor
-			agent.coordinate.Y += n.Y * correctionFactor
+			agent.Coordinate().X += n.X * correctionFactor
+			agent.Coordinate().Y += n.Y * correctionFactor
 		}
 	}
 
 	return totalForce
 }
 
-func ApplySocialForce(agt *ClientAgent, socialForce utils.Vec2, dt float64) {
+func ApplySocialForce(agt Agent, socialForce utils.Vec2, dt float64) {
 
 	goalForce := utils.Vec2{
-		X: (agt.desiredVelocity.X - agt.velocity.X) * constants.RELAXATION_FACTOR,
-		Y: (agt.desiredVelocity.Y - agt.velocity.Y) * constants.RELAXATION_FACTOR,
+		X: (agt.DesiredVelocity().X - agt.Velocity().X) * constants.RELAXATION_FACTOR,
+		Y: (agt.DesiredVelocity().Y - agt.Velocity().Y) * constants.RELAXATION_FACTOR,
 	}
 
 	totalAccX := goalForce.X + socialForce.X
 	totalAccY := goalForce.Y + socialForce.Y
 
-	agt.velocity.X = agt.velocity.X + totalAccX*dt
-	agt.velocity.Y = agt.velocity.Y + totalAccY*dt
+	agt.Velocity().X = agt.Velocity().X + totalAccX*dt
+	agt.Velocity().Y = agt.Velocity().Y + totalAccY*dt
 
-	currentSpeed := math.Sqrt(agt.velocity.X*agt.velocity.X + agt.velocity.Y*agt.velocity.Y)
-	maxSpeed := agt.Speed * constants.SPEED_MULTIPLIER
+	currentSpeed := math.Sqrt(agt.Velocity().X*agt.Velocity().X + agt.Velocity().Y*agt.Velocity().Y)
+	maxSpeed := agt.Speed() * constants.SPEED_MULTIPLIER
 
 	if currentSpeed > maxSpeed {
 		scale := maxSpeed / currentSpeed
-		agt.velocity.X *= scale
-		agt.velocity.Y *= scale
+		agt.Velocity().X *= scale
+		agt.Velocity().Y *= scale
 	}
 }
