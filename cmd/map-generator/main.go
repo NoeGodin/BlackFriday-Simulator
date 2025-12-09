@@ -159,29 +159,6 @@ func removeWallAround(mapLayout [][]string, x, y int) {
 	}
 }
 
-func checkDiagonalsAreEmpty(mapLayout [][]string, x, y int) bool {
-    height := len(mapLayout)
-    width := len(mapLayout[0])
-
-    diagonals := [][2]int{
-        {-1, -1}, {1, -1},
-        {-1, 1},  {1, 1},
-    }
-
-    for _, d := range diagonals {
-        nx := x + d[0]
-        ny := y + d[1]
-
-        if nx >= 0 && nx < width && ny >= 0 && ny < height {
-            if mapLayout[ny][nx] != "" {
-                return false
-            }
-        }
-    }
-
-    return true
-}
-
 func isCloseToDoor(mapLayout [][]string, x, y int) bool {
 	flag := false
 	if y != 0 {
@@ -251,22 +228,33 @@ func generateWalls(mapLayout [][]string, nbWalls int) {
         if canPlaceObstacle(mapLayout, x, y) {
             mapLayout[y][x] = "W"
         } else {
-            i-- // réessaye
+            i--
         }
     }
 }
 
 func canPlaceObstacle(mapLayout [][]string, x, y int) bool {
-    if mapLayout[y][x] != "" { return false }
+    if mapLayout[y][x] != "" {
+		return false
+	}
+	
     if isBlockingCorridor(mapLayout, x, y) || isCloseToDoor(mapLayout, x, y) {
         return false
     }
 
     freeSides := 0
-    if y>0                    && mapLayout[y-1][x] != "W" { freeSides++ }
-    if y<len(mapLayout)-1     && mapLayout[y+1][x] != "W" { freeSides++ }
-    if x>0                    && mapLayout[y][x-1] != "W" { freeSides++ }
-    if x<len(mapLayout[0])-1  && mapLayout[y][x+1] != "W" { freeSides++ }
+    if y > 0 && mapLayout[y-1][x] != "W" {
+		freeSides++
+	}
+    if y < len(mapLayout) - 1 && mapLayout[y+1][x] != "W" {
+		freeSides++
+	}
+    if x > 0 && mapLayout[y][x-1] != "W" { 
+		freeSides++
+	}
+    if x < len(mapLayout[0]) - 1 && mapLayout[y][x+1] != "W" {
+		freeSides++
+	}
 
     return freeSides >= 2
 }
