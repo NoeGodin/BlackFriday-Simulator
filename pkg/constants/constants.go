@@ -11,7 +11,7 @@ import (
 type ElementType string
 
 const (
-	NB_AGENTS 		= 50
+	NB_AGENTS = 50
 
 	// Map element types
 	WALL     ElementType = "W"
@@ -27,8 +27,8 @@ const (
 	DIRECTIONS     = 4
 	MARGIN         = 20
 
-	// StuckDistanceThreshold minimum distance to be considered moving
-	StuckDistanceThreshold = 0.1
+	// StuckDistanceThreshold minimum distance to be considered moving (calculated as agent speed / 2)
+	// StuckDistanceThreshold = BASE_AGENT_SPEED / 2
 	// StuckCounterThreshold number of frames to consider an agent stuck (~1 second at 30 FPS)
 	StuckCounterThreshold = 30
 	// WaypointReachedThreshold distance threshold to consider a waypoint reached
@@ -50,6 +50,7 @@ const (
 	AGT_RADIUS        = 0.3
 	FRICTION_COEF     = 10.0
 	RELAXATION_FACTOR = 30.0
+	SPEED_MULTIPLIER  = 1.1
 
 	VISION_DISTANCE = 10
 	VISION_HEIGHT   = 6
@@ -58,7 +59,7 @@ const (
 	CENTER_OF_CELL = 0.5
 
 	AGENT_SPAWN_INTERVAL_MS = 200
-	SPAWN_OFFSET_FROM_DOOR = 0.5 // Avoid spawning behind a door
+	SPAWN_OFFSET_FROM_DOOR  = 0.5 // Avoid spawning behind a door
 )
 
 // loaded from .env using autoload
@@ -66,7 +67,6 @@ var (
 	NUMBER_OF_AGENTS        = envInt("NUMBER_OF_AGENTS", 75)
 	BASE_AGENT_SPEED        = envFloat("BASE_AGENT_SPEED", 0.2)
 	AGENT_MAX_SHOPPING_LIST = envInt("AGENT_MAX_SHOPPING_LIST", 4)
-	SPEED_MULTIPLIER        = envFloat("SFC_SPEED_MULTIPLIER", 1.1)
 	SALES_EXPORT_INTERVAL   = time.Duration(envInt("SALES_EXPORT_INTERVAL_SECONDS", 30)) * time.Second
 	MAX_QUANTITY_PER_ITEM   = envInt("MAX_QUANTITY_PER_ITEM", 5)
 )
@@ -83,6 +83,11 @@ func envFloat(key string, def float64) float64 {
 		return v
 	}
 	return def
+}
+
+// StuckDistanceThreshold returns the minimum distance to be considered moving (agent speed / 2)
+func StuckDistanceThreshold() float64 {
+	return BASE_AGENT_SPEED / 2
 }
 
 // MovementDirections all possible movement directions

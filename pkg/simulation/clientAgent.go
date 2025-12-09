@@ -7,8 +7,8 @@ import (
 	"AI30_-_BlackFriday/pkg/pathfinding"
 	"AI30_-_BlackFriday/pkg/utils"
 	"fmt"
-	"math/rand"
 )
+
 type ClientAgent struct {
 	id           AgentID
 	Speed        float64
@@ -21,15 +21,15 @@ type ClientAgent struct {
 	pickChan     chan PickRequest
 	moveChan     chan MoveRequest
 	startChan    chan StartRequest
-	exitChan 	 chan ExitRequest
+	exitChan     chan ExitRequest
 
 	syncChan chan int
 	//temporaire
 	moveChanResponse chan bool
 	//rajouter un type action ?
-	pickChanResponse chan PickResponse
+	pickChanResponse  chan PickResponse
 	startChanResponse chan bool
-	exitChanResponse chan bool
+	exitChanResponse  chan bool
 
 	// Pathfinding
 	currentPath              *pathfinding.Path
@@ -71,17 +71,17 @@ func NewClientAgent(id string, pos [2]float64, env *Environment, moveChan chan M
 		coordinate:        utils.Vec2{X: pos[0], Y: pos[1]},
 		dx:                0,
 		dy:                0,
-		shoppingList:      generateShoppingListDeterministic(env, agentIndex),
+		shoppingList:      env.GenerateShoppingListDeterministic(agentIndex),
 		cart:              make(map[string]*Map.Item),
 		pickChan:          pickChan,
 		moveChan:          moveChan,
 		startChan:         startChan,
-		exitChan: 		   exitChan,
+		exitChan:          exitChan,
 		syncChan:          syncChan,
 		moveChanResponse:  make(chan bool),
 		pickChanResponse:  make(chan PickResponse),
 		startChanResponse: make(chan bool),
-		exitChanResponse: make(chan bool),
+		exitChanResponse:  make(chan bool),
 		hasDestination:    false,
 		stuckCounter:      0,
 		visitedShelves:    make(map[[2]float64]Map.Shelf),
@@ -95,41 +95,6 @@ func NewClientAgent(id string, pos [2]float64, env *Environment, moveChan chan M
 	return agent
 }
 
-func generateShoppingList(env *Environment) []Map.Item {
-	totalAttractiveness := 0.0
-	shopList := []Map.Item{}
-	for _, item := range env.Map.Items {
-		totalAttractiveness += item.Attractiveness
-	}
-
-	for range rand.Intn(constants.AGENT_MAX_SHOPPING_LIST) + 1 {
-		wantedItem := rand.Float64() * totalAttractiveness
-		cumulative := 0.0
-
-		for _, item := range env.Map.Items {
-			cumulative += item.Attractiveness
-			if wantedItem <= cumulative {
-				shopList = append(shopList, item)
-				break
-			}
-		}
-	}
-
-	return shopList
-}
-
-func generateShoppingListDeterministic(env *Environment, agentIndex int) []Map.Item {
-	// If list, loading it
-	if env.ShoppingListLoader != nil {
-		predefList := env.ShoppingListLoader.GetShoppingList(agentIndex)
-		if len(predefList) > 0 {
-			return predefList
-		}
-	}
-
-	// Random option if not loaded
-	return generateShoppingList(env)
-}
 func (ag *ClientAgent) State() AgentState {
 	return ag.state
 }

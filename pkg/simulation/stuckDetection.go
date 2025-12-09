@@ -21,7 +21,7 @@ func (sd *StuckDetector) DetectAndResolve() {
 	distanceMoved := math.Sqrt(dx*dx + dy*dy)
 
 	//TODO:peut-être adapté le threshold avec base speed mais en même temps s'il est stuck...
-	if distanceMoved < constants.StuckDistanceThreshold && sd.agent.hasDestination {
+	if distanceMoved < constants.StuckDistanceThreshold() && sd.agent.hasDestination {
 		sd.agent.stuckCounter++
 		logger.Debugf("Agent %s: Potentially stuck (counter: %d, distance moved: %.3f)",
 			sd.agent.id, sd.agent.stuckCounter, distanceMoved)
