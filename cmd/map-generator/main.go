@@ -1,0 +1,297 @@
+package main
+
+import (
+	"fmt"
+	"math/rand"
+	"os"
+)
+
+func main() {
+	nbMaps := 5
+	width := 30
+	height := 20
+	nbDoors := 2
+	nbShelves := 25
+	nbCashiers := 3
+	nbWalls := 100
+
+	mapLayout := make([][]string, height)
+	for y := range height {
+		mapLayout[y] = make([]string, width)
+	}
+	
+	err := os.MkdirAll("maps/generated_maps", os.ModePerm)
+	if err != nil {
+		fmt.Printf("unable to create directories: %v\n", err)
+		return
+	}
+
+	for i := range nbMaps {
+		cleanMapLayout(mapLayout)
+
+		fillRow(mapLayout, 0)
+		fillRow(mapLayout, len(mapLayout)-1)
+		fillColumn(mapLayout, 0)
+		fillColumn(mapLayout, len(mapLayout[0])-1)
+		generateDoors(mapLayout, nbDoors)
+		generateShelves(mapLayout, nbShelves)
+		generateCashiers(mapLayout, nbCashiers)
+		generateWalls(mapLayout, nbWalls)
+	
+		mapStr := writeMap(mapLayout)
+	
+		err = os.WriteFile("maps/generated_maps/map" + fmt.Sprint(i+1) + ".txt", []byte(mapStr), 0644)
+		if err != nil {
+			fmt.Printf("unable to write file: %v", err)
+		}
+	}
+}
+
+func cleanMapLayout(mapLayout [][]string) {
+	for y := range mapLayout {
+		for x := range mapLayout[y] {
+			mapLayout[y][x] = ""
+		}
+	}
+}
+
+func fillColumn(mapLayout [][]string, x int) {
+	for i := range len(mapLayout) {
+		mapLayout[i][x] = "W"
+	}
+}
+
+func fillRow(mapLayout [][]string, y int) {
+	for i := range len(mapLayout[y]) {
+		mapLayout[y][i] = "W"
+	}
+}
+
+func writeMap(mapLayout [][]string) string {
+	mapStr := ""
+
+	for y := range len(mapLayout) {
+		for x := range len(mapLayout[y]) {
+			if(mapLayout[y][x] == "") {
+				mapStr += " "
+			} 
+			mapStr += mapLayout[y][x]
+		}
+		mapStr += "\n"
+	}
+
+	return mapStr
+}
+
+func generateDoors(mapLayout [][]string, nbDoors int) {
+	for i := 0; i < nbDoors; i++ {
+		isVertical := rand.Intn(2)
+		if isVertical == 0 {
+			posY := rand.Intn(len(mapLayout) - 2) + 1
+			isFirstColumn := rand.Intn(2)
+			
+			if isFirstColumn == 0 {
+				if isAlreadyDoor(mapLayout, 0, posY) {
+					i--
+					continue
+				}
+
+				mapLayout[posY][0] = "D"
+				removeWallAround(mapLayout, 0, posY)
+			} else {
+				if isAlreadyDoor(mapLayout, len(mapLayout[0]) - 1, posY) {
+					i--
+					continue
+				}
+
+				mapLayout[posY][len(mapLayout[0]) - 1] = "D"
+				removeWallAround(mapLayout, len(mapLayout[0]) - 1, posY)
+			}
+		} else {
+			posX := rand.Intn(len(mapLayout[0]) - 2) + 1
+			isFirstRow := rand.Intn(2)
+			if isFirstRow == 0 {
+				if isAlreadyDoor(mapLayout, posX, 0) {
+					i--
+					continue
+				}
+
+				mapLayout[0][posX] = "D"
+				removeWallAround(mapLayout, posX, 0)
+			} else {
+				if isAlreadyDoor(mapLayout, posX, len(mapLayout) - 1) {
+					i--
+					continue
+				}
+
+				mapLayout[len(mapLayout) - 1][posX] = "D"
+				removeWallAround(mapLayout, posX, len(mapLayout) - 1)
+			}
+		}
+	}
+}
+
+func isAlreadyDoor(mapLayout [][]string, x, y int) bool {
+	return mapLayout[y][x] == "D"
+}
+
+func removeWallAround(mapLayout [][]string, x, y int) {
+	if y != 0 {
+		if mapLayout[y-1][x] == "W" {
+			mapLayout[y-1][x] = ""
+		}
+	}
+	if y != len(mapLayout) - 1 {
+		if mapLayout[y+1][x] == "W" {
+			mapLayout[y+1][x] = ""
+		}
+	}
+
+	if x != 0 {
+		if mapLayout[y][x-1] == "W" {
+			mapLayout[y][x-1] = ""
+		}
+	}
+	if x != len(mapLayout[0]) - 1 {
+		if mapLayout[y][x+1] == "W" {
+			mapLayout[y][x+1] = ""
+		}
+	}
+}
+
+func checkDiagonalsAreEmpty(mapLayout [][]string, x, y int) bool {
+    height := len(mapLayout)
+    width := len(mapLayout[0])
+
+    diagonals := [][2]int{
+        {-1, -1}, {1, -1},
+        {-1, 1},  {1, 1},
+    }
+
+    for _, d := range diagonals {
+        nx := x + d[0]
+        ny := y + d[1]
+
+        if nx >= 0 && nx < width && ny >= 0 && ny < height {
+            if mapLayout[ny][nx] != "" {
+                return false
+            }
+        }
+    }
+
+    return true
+}
+
+func isCloseToDoor(mapLayout [][]string, x, y int) bool {
+	flag := false
+	if y != 0 {
+		flag = flag || mapLayout[y-1][x] == "D"
+	}
+	if y != len(mapLayout) - 1 {
+		flag = flag || mapLayout[y+1][x] == "D"
+	}
+
+	if x != 0 {
+		flag = flag || mapLayout[y][x-1] == "D"
+	}
+	if x != len(mapLayout[0]) - 1 {
+		flag = flag || mapLayout[y][x+1] == "D"
+	}
+
+	if y != 0 && x != 0 {
+		flag = flag || mapLayout[y-1][x-1] == "D"
+	}
+	if y != len(mapLayout) - 1 && x != 0 {
+		flag = flag || mapLayout[y+1][x-1] == "D"
+	}
+	if y != 0 && x != len(mapLayout[0]) - 1 {
+		flag = flag || mapLayout[y-1][x+1] == "D"
+	}
+	if y != len(mapLayout) - 1 && x != len(mapLayout[0]) - 1 {
+		flag = flag || mapLayout[y+1][x+1] == "D"
+	}
+
+	return flag 
+}
+
+func generateShelves(mapLayout [][]string, nbShelves int) {
+	for i := 0; i < nbShelves; i++ {
+		letter := string(rune('a' + i))
+		x := rand.Intn(len(mapLayout[0]) - 2) + 1
+		y := rand.Intn(len(mapLayout) - 2) + 1
+
+		if mapLayout[y][x] != "" || isCloseToDoor(mapLayout, x, y) {
+			i--
+			continue
+		}
+
+		mapLayout[y][x] = letter
+	}
+}
+
+func generateCashiers(mapLayout [][]string, nbCashiers int) {
+	for i := 0; i < nbCashiers; i++ {
+		x := rand.Intn(len(mapLayout[0]) - 2) + 1
+		y := rand.Intn(len(mapLayout) - 2) + 1
+
+		if mapLayout[y][x] != "" || isCloseToDoor(mapLayout, x, y) {
+			i--
+			continue
+		}
+
+		mapLayout[y][x] = "C"
+	}
+}
+
+func generateWalls(mapLayout [][]string, nbWalls int) {
+    for i := 0; i < nbWalls; i++ {
+        x := rand.Intn(len(mapLayout[0]) - 2) + 1
+        y := rand.Intn(len(mapLayout) - 2) + 1
+
+        if canPlaceObstacle(mapLayout, x, y) {
+            mapLayout[y][x] = "W"
+        } else {
+            i-- // réessaye
+        }
+    }
+}
+
+func canPlaceObstacle(mapLayout [][]string, x, y int) bool {
+    if mapLayout[y][x] != "" { return false }
+    if isBlockingCorridor(mapLayout, x, y) || isCloseToDoor(mapLayout, x, y) {
+        return false
+    }
+
+    freeSides := 0
+    if y>0                    && mapLayout[y-1][x] != "W" { freeSides++ }
+    if y<len(mapLayout)-1     && mapLayout[y+1][x] != "W" { freeSides++ }
+    if x>0                    && mapLayout[y][x-1] != "W" { freeSides++ }
+    if x<len(mapLayout[0])-1  && mapLayout[y][x+1] != "W" { freeSides++ }
+
+    return freeSides >= 2
+}
+
+func isBlockingCorridor(mapLayout [][]string, x, y int) bool {
+    dirs := [][]int{
+        {0, 0}, {1, 0}, {0, 1}, {1, 1},
+        {-1,0},{0,-1},{-1,-1},{-1,1},{1,-1},
+    }
+
+    for _, d := range dirs {
+        cx := x + d[0]
+        cy := y + d[1]
+
+        if cx < 0 || cy < 0 || cx+1 >= len(mapLayout[0]) || cy+1 >= len(mapLayout) {
+            continue
+        }
+
+        if (mapLayout[cy][cx] == "W" || (cx==x && cy==y)) &&
+           mapLayout[cy][cx+1] == "W" &&
+           mapLayout[cy+1][cx] == "W" &&
+           mapLayout[cy+1][cx+1] == "W" {
+            return true
+        }
+    }
+
+    return false
+}
