@@ -58,7 +58,7 @@ type ClientAgent struct {
 	visitedShelves map[[2]float64]Map.Shelf
 }
 
-func NewClientAgent(id string, pos [2]float64, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int) *ClientAgent {
+func NewClientAgent(id string, pos [2]float64, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int, agentIndex int) *ClientAgent {
 	// startX, startY, found := env.Map.GetRandomFreeCoordinate()
 	// if !found {
 	// 	startX, startY = 5, 5 // no free coordinate
@@ -71,7 +71,7 @@ func NewClientAgent(id string, pos [2]float64, env *Environment, moveChan chan M
 		coordinate:        utils.Vec2{X: pos[0], Y: pos[1]},
 		dx:                0,
 		dy:                0,
-		shoppingList:      generateShoppingList(env),
+		shoppingList:      generateShoppingListDeterministic(env, agentIndex),
 		cart:              make(map[string]*Map.Item),
 		pickChan:          pickChan,
 		moveChan:          moveChan,
@@ -118,6 +118,18 @@ func generateShoppingList(env *Environment) []Map.Item {
 	return shopList
 }
 
+func generateShoppingListDeterministic(env *Environment, agentIndex int) []Map.Item {
+	// If list, loading it
+	if env.ShoppingListLoader != nil {
+		predefList := env.ShoppingListLoader.GetShoppingList(agentIndex)
+		if len(predefList) > 0 {
+			return predefList
+		}
+	}
+
+	// Random option if not loaded
+	return generateShoppingList(env)
+}
 func (ag *ClientAgent) State() AgentState {
 	return ag.state
 }
@@ -143,8 +155,8 @@ func (ag *ClientAgent) DryRunMove() utils.Vec2 {
 
 func (ag *ClientAgent) Start() {
 	ag.startChan <- StartRequest{Agt: ag, ResponseChannel: ag.startChanResponse}
-	ag.hasSpawned = <-ag.startChanResponse 
-	
+	ag.hasSpawned = <-ag.startChanResponse
+
 	logger.Infof("Agent %s starting at position (%.1f, %.1f)", ag.id, ag.coordinate.X, ag.coordinate.Y)
 
 	go func() {
@@ -352,7 +364,7 @@ func (ag *ClientAgent) Act() {
 	case ActionExit:
 		fmt.Println("profit du magasin : ", ag.env.Profit)
 		ag.exitChan <- ExitRequest{
-			Agt: ag,
+			Agt:             ag,
 			ResponseChannel: ag.exitChanResponse,
 		}
 	}

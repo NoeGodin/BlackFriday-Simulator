@@ -3,6 +3,7 @@ package Simulation
 import (
 	"AI30_-_BlackFriday/pkg/constants"
 	Map "AI30_-_BlackFriday/pkg/map"
+	"AI30_-_BlackFriday/pkg/shopping"
 	"AI30_-_BlackFriday/pkg/utils"
 	"math"
 	"math/rand"
@@ -52,9 +53,11 @@ type Environment struct {
 	neighborSearchRadius float64
 	Mutex                sync.RWMutex
 	SalesTracker         *SalesTracker
+	ShoppingListLoader   *shopping.ShoppingListLoader
+	AgentCounter         int
 }
 
-func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64, mapName string) *Environment {
+func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) *Environment {
 	pickChan := make(chan PickRequest)
 	moveChan := make(chan MoveRequest)
 	startChan := make(map[[2]float64]chan StartRequest)
@@ -66,6 +69,13 @@ func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64, m
 
 	salesTracker := NewSalesTracker(mapName)
 
+	// Load shoppingList
+	shoppingListLoader, err := shopping.NewShoppingListLoader(shoppingListsPath)
+	if err != nil {
+		// If file doesn't exist, loading old methods
+		shoppingListLoader = nil
+	}
+
 	return &Environment{
 		Map:                  mapData,
 		Clients:              make([]*ClientAgent, 0),
@@ -76,13 +86,16 @@ func NewEnvironment(mapData *Map.Map, deltaTime float64, searchRadius float64, m
 		deltaTime:            deltaTime,
 		neighborSearchRadius: searchRadius,
 		SalesTracker:         salesTracker,
+		ShoppingListLoader:   shoppingListLoader,
+		AgentCounter:         0,
 	}
 }
 func (env *Environment) AddClient(agtId string, syncChan chan int) Agent {
 	doorCo := env.GetRandomDoor()
 
-	client := NewClientAgent(agtId, env.getSpawnablePos(doorCo), env, env.moveChan, env.pickChan, env.startChans[doorCo], env.exitChan, syncChan)
+	client := NewClientAgent(agtId, env.getSpawnablePos(doorCo), env, env.moveChan, env.pickChan, env.startChans[doorCo], env.exitChan, syncChan, env.AgentCounter)
 	env.Clients = append(env.Clients, client)
+	env.AgentCounter++
 	return client
 }
 
@@ -293,7 +306,6 @@ func removeAgentFromClients(agentID AgentID, clients []*ClientAgent) []*ClientAg
 func (env *Environment) Start() {
 	go env.pickRequest()
 	go env.moveRequest()
-	env.startRequests()
 }
 
 func (env *Environment) IsObstacleAt(x, y float64) bool {
