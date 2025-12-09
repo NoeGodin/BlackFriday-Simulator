@@ -7,10 +7,10 @@ import (
 )
 
 type StuckDetector struct {
-	agent *ClientAgent
+	agent *BaseAgent
 }
 
-func NewStuckDetector(agent *ClientAgent) *StuckDetector {
+func NewStuckDetector(agent *BaseAgent) *StuckDetector {
 	return &StuckDetector{agent: agent}
 }
 

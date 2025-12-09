@@ -145,13 +145,13 @@ func (env *Environment) checkAgentCollisions(agt Agent) []*ClientAgent {
 	return collidingAgents
 }
 
-func (env *Environment) getNearbyAgents(agt Agent, radius float64) []*ClientAgent {
-	nearbyAgents := make([]*ClientAgent, 0)
+func (env *Environment) getNearbyAgents(agt Agent, radius float64) []Agent {
+	nearbyAgents := make([]Agent, 0)
 	for _, neighbor := range env.Clients {
 		if agt.ID() == neighbor.ID() {
 			continue
 		}
-		if agt.Coordinate().Distance(neighbor.Coordinate()) <= radius {
+		if agt.Coordinate().Distance(*neighbor.Coordinate()) <= radius {
 			nearbyAgents = append(nearbyAgents, neighbor)
 		}
 	}
@@ -161,7 +161,7 @@ func (env *Environment) getNearbyAgents(agt Agent, radius float64) []*ClientAgen
 func (env *Environment) getNearbyCollisables(agt Agent, radius float64) []utils.Vec2 {
 	nearbyCollisables := make([]utils.Vec2, 0)
 	for _, collisable := range env.Map.GetCollisables() {
-		point := ClosestPointToObstacle(agt.Coordinate(), utils.Vec2{X: float64(collisable[0]), Y: float64(collisable[1])})
+		point := ClosestPointToObstacle(*agt.Coordinate(), utils.Vec2{X: float64(collisable[0]), Y: float64(collisable[1])})
 		if agt.Coordinate().Distance(point) <= radius {
 			nearbyCollisables = append(nearbyCollisables, point)
 		}
@@ -195,17 +195,7 @@ func ClosestPointToObstacle(agentPos utils.Vec2, obstacle utils.Vec2) (pos utils
 // demande pour bouger (peut être refuser si une personne où un objet n'est plus dispo)
 func (env *Environment) moveRequest() {
 	for moveRequest := range env.moveChan {
-		clientAgent, ok := moveRequest.Agt.(*ClientAgent)
-		if !ok {
-			isWallCollision := env.isCollision(moveRequest.Agt)
-			if isWallCollision {
-				moveRequest.ResponseChannel <- true
-				continue
-			}
-			moveRequest.Agt.Move()
-			moveRequest.ResponseChannel <- false
-			continue
-		}
+		clientAgent := moveRequest.Agt
 
 		neighbors := env.getNearbyAgents(clientAgent, env.neighborSearchRadius)
 		collisables := env.getNearbyCollisables(clientAgent, env.neighborSearchRadius*2)
@@ -215,7 +205,6 @@ func (env *Environment) moveRequest() {
 		socialForces.X += obstaclesForces.X
 		socialForces.Y += obstaclesForces.Y
 		ApplySocialForce(clientAgent, socialForces, env.deltaTime)
-
 		clientAgent.Move()
 		moveRequest.ResponseChannel <- true
 	}
