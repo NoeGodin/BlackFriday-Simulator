@@ -68,6 +68,7 @@ var (
 	AGENT_MAX_SHOPPING_LIST = envInt("AGENT_MAX_SHOPPING_LIST", 4)
 	SPEED_MULTIPLIER        = envFloat("SFC_SPEED_MULTIPLIER", 1.1)
 	SALES_EXPORT_INTERVAL   = time.Duration(envInt("SALES_EXPORT_INTERVAL_SECONDS", 30)) * time.Second
+	MAX_QUANTITY_PER_ITEM   = envInt("MAX_QUANTITY_PER_ITEM", 5)
 )
 
 func envInt(key string, def int) int {
