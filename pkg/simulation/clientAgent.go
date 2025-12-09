@@ -126,6 +126,13 @@ func (ag *ClientAgent) CalculateCartValue() float64 {
 	}
 	return amount
 }
+func (ag *ClientAgent) CalculateCartQuantity() int {
+	var amount int
+	for _, item := range ag.cart {
+		amount += item.Quantity
+	}
+	return amount
+}
 
 func (ag *ClientAgent) UpdateFOVRays(dx, dy float64, numRays int, env *Environment) {
 	ax := ag.coordinate.X + constants.CENTER_OF_CELL
