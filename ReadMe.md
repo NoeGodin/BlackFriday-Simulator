@@ -8,6 +8,12 @@ sudo apt install -y libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libx
 sudo apt install -y libgl1-mesa-dev xorg-dev
 ```
 
+**Configuration :**
+```bash
+cp .env.example .env
+# Modifier .env selon vos besoins (nombre d'agents, vitesse, etc.)
+```
+
 **Exécution:**
 ```bash
 go mod download

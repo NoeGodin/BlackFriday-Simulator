@@ -1,6 +1,7 @@
 package Simulation
 
 import (
+	"AI30_-_BlackFriday/pkg/constants"
 	"encoding/csv"
 	"fmt"
 	"os"
@@ -33,15 +34,14 @@ func NewSalesTracker(mapName string) *SalesTracker {
 		records:      make([]SaleRecord, 0),
 	}
 
-	// Every 30 seconds automatically export
-	//TODO: add to constant
+	// Auto-export based on config interval
 	go func() {
-		ticker := time.NewTicker(30 * time.Second)
+		ticker := time.NewTicker(constants.SALES_EXPORT_INTERVAL)
 		defer ticker.Stop()
 
 		for range ticker.C {
 			if len(tracker.records) > 0 {
-				fmt.Printf("### AUTO-EXPORT: %d sells ###\n", len(tracker.records))
+				fmt.Printf("### AUTO-EXPORT: %d sells (interval: %v) ###\n", len(tracker.records), constants.SALES_EXPORT_INTERVAL)
 				tracker.ExportToCSV()
 			}
 		}
