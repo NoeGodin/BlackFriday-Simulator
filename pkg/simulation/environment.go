@@ -306,6 +306,7 @@ func removeAgentFromClients(agentID AgentID, clients []*ClientAgent) []*ClientAg
 func (env *Environment) Start() {
 	go env.pickRequest()
 	go env.moveRequest()
+	env.startRequests()
 }
 
 func (env *Environment) IsObstacleAt(x, y float64) bool {
