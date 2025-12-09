@@ -34,14 +34,19 @@ type Agent interface {
 type BaseAgent struct {
 	MovableEntity
 
-	id                       AgentID
-	env                      *Environment
-	agentBehavior            AgentBehavior
-	moveChan                 chan MoveRequest
-	syncChan                 chan int
-	startChan                chan StartRequest
-	exitChan                 chan ExitRequest
-	moveChanResponse         chan bool
+	id            AgentID
+	env           *Environment
+	agentBehavior AgentBehavior
+
+	moveChan  chan MoveRequest
+	syncChan  chan int
+	startChan chan StartRequest
+	exitChan  chan ExitRequest
+
+	moveChanResponse  chan bool
+	startChanResponse chan bool
+	exitChanResponse  chan bool
+
 	currentPath              *pathfinding.Path
 	moveTargetX, moveTargetY float64
 	hasDestination           bool
@@ -64,8 +69,12 @@ func NewBaseAgent(id string, pos [2]float64, env *Environment, moveChan chan Mov
 			dy:           0,
 			lastPosition: utils.Vec2{X: pos[0], Y: pos[1]},
 		},
-		moveChan:         moveChan,
-		syncChan:         syncChan,
+		moveChan: moveChan,
+		syncChan: syncChan,
+
+		startChanResponse: make(chan bool),
+		exitChanResponse:  make(chan bool),
+
 		moveChanResponse: make(chan bool),
 		hasDestination:   false,
 		hasSpawned:       false,
@@ -90,17 +99,27 @@ func (ag *BaseAgent) HasSpawned() bool {
 
 func (ag *BaseAgent) Start() {
 	ag.startChan <- StartRequest{Agt: ag, ResponseChannel: ag.startChanResponse}
+	ag.hasSpawned = <-ag.startChanResponse
+
 	logger.Infof("Agent %s starting at position (%.1f, %.1f)", ag.id, ag.coordinate.X, ag.coordinate.Y)
 
 	go func() {
 		var step int
 		for {
-			step = <-ag.syncChan
-			ag.Percept()
-			ag.Deliberate()
-			ag.Act()
-			step++
-			ag.syncChan <- step
+			select {
+			case <-ag.exitChanResponse:
+				logger.Infof("Agent %s finished", ag.id)
+				return
+			default:
+				step = <-ag.syncChan
+				// perception := <-ag.viewChan
+
+				ag.Percept()
+				ag.Deliberate()
+				ag.Act()
+				step++
+				ag.syncChan <- step
+			}
 		}
 	}()
 }

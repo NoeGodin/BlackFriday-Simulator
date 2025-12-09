@@ -16,9 +16,7 @@ type ClientAgent struct {
 
 	pickChan chan PickRequest
 
-	pickChanResponse  chan PickResponse
-	startChanResponse chan bool
-	exitChanResponse  chan bool
+	pickChanResponse chan PickResponse
 
 	// Behavior
 	state                            AgentState
@@ -228,7 +226,6 @@ func (bh *ClientAgentBehavior) Deliberate() {
 
 		// Agent tries to find a wanted item from a visited shelf
 		if shelfX, shelfY, exists := ag.findWantedItemLocation(); exists {
-
 			moveTargetX, moveTargetY, found := FindNearestFreePosition(ag.env, shelfX, shelfY)
 			if !found {
 				logger.Warnf("No path found to a location near this destination (%.2f %.2f) ", shelfX, shelfY)
@@ -275,7 +272,7 @@ func (bh *ClientAgentBehavior) Deliberate() {
 		ag.nextAction = ActionPick
 
 	case StateMovingToCheckout:
-		if (len(ag.GetMissingItems()) != 0) && (len(ag.visitedShelves) < len(ag.env.Map.ShelfData)) { // si vol d'items ? (à implémenter plus tard)
+		if (len(ag.GetMissingItems()) != 0) && (len(ag.visitedShelves) < len(ag.env.Map.ShelfData)) { // si vol d'items ? (� impl�menter plus tard)
 			ag.state = StateWandering
 			ag.nextAction = ActionWait
 			break
@@ -285,7 +282,7 @@ func (bh *ClientAgentBehavior) Deliberate() {
 			ag.state = StateCheckingOut
 			ag.nextAction = ActionWait
 		}
-	case StateCheckingOut: // fait pas grand chose, peut-être voir pour refacto
+	case StateCheckingOut: // fait pas grand chose, peut-�tre voir pour refacto
 		ag.state = StateMovingToExit
 		ag.nextAction = ActionCheckout
 
