@@ -25,6 +25,12 @@ go run cmd/blackfriday/main.go
 ./stats/plot.sh
 ```
 
+**Listes de courses déterministes:** Pour des comparaisons équitables entre différentes configurations de magasin, générez des listes de courses prédéfinies basées sur les stocks :
+```bash
+go run cmd/generate_shopping_lists_from_stocks/main.go
+```
+Cela crée un fichier `maps/store/shopping_lists.json` avec des listes déterministes pour chaque agent, garantissant que tous les agents auront les mêmes listes à chaque simulation.
+
 ## Problématique
 
 Point de vue du magasin : Comment faire le plus de ventes ?
