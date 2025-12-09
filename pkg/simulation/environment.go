@@ -342,3 +342,39 @@ func (env *Environment) GetRandomDoor() [2]float64 {
 	idx := rand.Intn(len(env.Map.Doors))
 	return env.Map.Doors[idx]
 }
+
+func (env *Environment) GenerateShoppingListDeterministic(agentIndex int) []Map.Item {
+	// If list, loading it
+	if env.ShoppingListLoader != nil {
+		predefList := env.ShoppingListLoader.GetShoppingList(agentIndex)
+		if len(predefList) > 0 {
+			return predefList
+		}
+	}
+
+	// Random option if not loaded
+	return env.generateShoppingList()
+}
+
+func (env *Environment) generateShoppingList() []Map.Item {
+	totalAttractiveness := 0.0
+	shopList := []Map.Item{}
+	for _, item := range env.Map.Items {
+		totalAttractiveness += item.Attractiveness
+	}
+
+	for range rand.Intn(constants.AGENT_MAX_SHOPPING_LIST) + 1 {
+		wantedItem := rand.Float64() * totalAttractiveness
+		cumulative := 0.0
+
+		for _, item := range env.Map.Items {
+			cumulative += item.Attractiveness
+			if wantedItem <= cumulative {
+				shopList = append(shopList, item)
+				break
+			}
+		}
+	}
+
+	return shopList
+}
