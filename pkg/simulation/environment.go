@@ -5,6 +5,7 @@ import (
 	Map "AI30_-_BlackFriday/pkg/map"
 	"AI30_-_BlackFriday/pkg/shopping"
 	"AI30_-_BlackFriday/pkg/utils"
+	"fmt"
 	"math"
 	"math/rand"
 	"sync"
@@ -44,6 +45,7 @@ type ExitRequest struct {
 type Environment struct {
 	Map                  *Map.Map
 	Clients              []*ClientAgent
+	Guards               []*GuardAgent
 	Profit               float64
 	pickChan             chan PickRequest
 	moveChan             chan MoveRequest
@@ -97,6 +99,17 @@ func (env *Environment) AddClient(agtId string, syncChan chan int) Agent {
 	env.Clients = append(env.Clients, client)
 	env.AgentCounter++
 	return client
+}
+func (env *Environment) AddGuard(agtId string, syncChan chan int) (Agent, error) {
+	x, y, freePostion := env.Map.GetRandomFreeCoordinate()
+	if !freePostion {
+		return nil, fmt.Errorf("Error generating agent %s, no spawnable position", agtId)
+	}
+	pos := [2]float64{x, y}
+	guard := NewGuardAgent(agtId, pos, env, env.moveChan, nil, env.exitChan, syncChan, env.AgentCounter)
+	env.Guards = append(env.Guards, guard)
+	env.AgentCounter++
+	return guard, nil
 }
 
 func (env *Environment) getSpawnablePos(co [2]float64) [2]float64 {
