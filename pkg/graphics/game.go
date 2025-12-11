@@ -9,6 +9,7 @@ type Game struct {
 	ScreenWidth, ScreenHeight int
 	CameraX, CameraY          int
 	AgentAnimator             *AgentAnimator
+	ShelfAnimator             *ShelfAnimator
 	Simulation                *Simulation.Simulation
 	Hud                       Hud.HUD
 }
@@ -21,7 +22,8 @@ func NewGame(screenWidth, screenHeight int, simu *Simulation.Simulation) *Game {
 		CameraX:       0,
 		CameraY:       0,
 		AgentAnimator: NewAgentAnimator(),
+		ShelfAnimator: NewShelfAnimator(),
 		Simulation:    simu,
-		Hud:		   *Hud.NewHud(),
+		Hud:           *Hud.NewHud(),
 	}
 }
