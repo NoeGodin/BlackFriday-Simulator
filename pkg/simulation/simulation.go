@@ -39,6 +39,22 @@ func (s *Simulation) AddClient(agtId string) error {
 	s.NClients++
 	return nil
 }
+func (s *Simulation) AddGuard(agtId string) error {
+	_, ok := s.syncChans.Load(AgentID(agtId))
+	if ok {
+		return fmt.Errorf("Agent with id %s was already loaded", agtId)
+	}
+
+	syncChan := make(chan int)
+	s.syncChans.Store(AgentID(agtId), syncChan)
+	agt, err := s.Env.AddGuard(agtId, syncChan)
+	if err != nil {
+		return err
+	}
+	s.agents = append(s.agents, agt)
+	s.NClients++
+	return nil
+}
 func (s *Simulation) Run() {
 	s.Env.Start()
 	go s.Env.exitRequest(s)
