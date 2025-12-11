@@ -151,13 +151,11 @@ func (g *Game) DrawPaths(screen *ebiten.Image) {
 	offsetY := MARGIN
 
 	for _, agt := range g.Simulation.Agents() {
-		if clientAgent, ok := agt.(*Simulation.ClientAgent); ok {
-			g.drawAgentPath(screen, clientAgent, offsetX, offsetY)
-		}
+		g.drawAgentPath(screen, agt, offsetX, offsetY)
 	}
 }
 
-func (g *Game) drawAgentPath(screen *ebiten.Image, agent *Simulation.ClientAgent, offsetX, offsetY int) {
+func (g *Game) drawAgentPath(screen *ebiten.Image, agent Simulation.Agent, offsetX, offsetY int) {
 	path := agent.GetCurrentPath()
 	if path == nil {
 		return

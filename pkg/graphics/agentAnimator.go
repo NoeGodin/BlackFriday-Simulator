@@ -26,7 +26,7 @@ var (
 )
 
 type AnimationState struct {
-	animationFrames *[constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
+	animationFrames WalkAnimation
 	step            int
 	agentState      AgentState
 	itemCount       int
@@ -36,14 +36,17 @@ type AgentAnimator struct {
 	agentStates map[Simulation.AgentID]*AnimationState
 }
 
-func (animator *AgentAnimator) agentState(id Simulation.AgentID) (*AnimationState, bool) {
-	state, ok := animator.agentStates[id]
+func (animator *AgentAnimator) agentState(agt Simulation.Agent) (*AnimationState, bool) {
+	state, ok := animator.agentStates[agt.ID()]
 	if !ok {
 		// si on implémente de nouveaux spites on pourrait décider aléatoirement de quel sprite attribuer à l'agent
-		newState := &AnimationState{animationFrames: &WalkFrameImgs, step: 0, agentState: None, itemCount: 0}
-		animator.agentStates[id] = newState
+		newState := &AnimationState{animationFrames: getWalkAnimation(agt.Type()), step: 0, agentState: None, itemCount: 0}
+		animator.agentStates[agt.ID()] = newState
 		return newState, true
 	} else {
+		if state.animationFrames[0][0] == nil {
+			state.animationFrames = getWalkAnimation(agt.Type())
+		}
 		return state, false
 	}
 }
@@ -64,7 +67,7 @@ func (animator *AgentAnimator) AnimationFrame(agt Simulation.Agent) *ebiten.Imag
 		direction = 3
 
 	}
-	state, new := animator.agentState(agt.ID())
+	state, new := animator.agentState(agt)
 	if new {
 		return state.animationFrames[direction][0]
 	}
@@ -83,12 +86,15 @@ func NewAgentAnimator() *AgentAnimator {
 }
 
 func (animator *AgentAnimator) getColorScale(agt Simulation.Agent) *ebiten.ColorScale {
+	if agt.Type() != Simulation.CLIENT {
+		return &ebiten.ColorScale{}
+	}
 	client, ok := agt.(*Simulation.ClientAgent)
 	if !ok {
 		return &ebiten.ColorScale{}
 	}
 
-	state, _ := animator.agentState(agt.ID())
+	state, _ := animator.agentState(agt)
 	currentQuantity := client.CalculateCartQuantity()
 
 	if state.itemCount < currentQuantity {
