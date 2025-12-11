@@ -3,6 +3,7 @@ package Graphics
 import (
 	"AI30_-_BlackFriday/pkg/constants"
 	Hud "AI30_-_BlackFriday/pkg/hud"
+	Simulation "AI30_-_BlackFriday/pkg/simulation"
 	"image"
 	"log"
 	"os"
@@ -18,6 +19,8 @@ var (
 	textureInitialized bool
 )
 
+type WalkAnimation [constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
+
 // Global vars
 var (
 	wallCeiling        *ebiten.Image
@@ -31,7 +34,8 @@ var (
 	itemEmptyImg       *ebiten.Image
 	checkoutImg        *ebiten.Image
 	targetImg          *ebiten.Image
-	WalkFrameImgs      [constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
+	BaseFrameImgs      WalkAnimation
+	WalkFrameImgs      = make(map[Simulation.AgenType]WalkAnimation)
 )
 
 func initTexture() {
@@ -65,18 +69,6 @@ func initTexture() {
 	if err != nil {
 		log.Printf("Warning: Could not load item.png: %v", err)
 	}
-	itemAlmostFullImg, _, err = ebitenutil.NewImageFromFile("assets/item_almost_full.png")
-	if err != nil {
-		log.Printf("Warning: Could not load item.png: %v", err)
-	}
-	itemHalfEmptyImg, _, err = ebitenutil.NewImageFromFile("assets/item_half_empty.png")
-	if err != nil {
-		log.Printf("Warning: Could not load item.png: %v", err)
-	}
-	itemAlmostEmptyImg, _, err = ebitenutil.NewImageFromFile("assets/item_almost_empty.png")
-	if err != nil {
-		log.Printf("Warning: Could not load item.png: %v", err)
-	}
 
 	itemEmptyImg, _, err = ebitenutil.NewImageFromFile("assets/item_empty.png")
 	if err != nil {
@@ -92,6 +84,18 @@ func initTexture() {
 	if err != nil {
 		log.Printf("Warning: Could not load checkout.png: %v", err)
 	}
+
+	BaseFrameImgs, err = initAnimation("assets/walk.png")
+	if err != nil {
+		log.Fatalf("Error: Could not load walk.png: %v", err)
+	}
+	WalkFrameImgs[Simulation.CLIENT] = BaseFrameImgs
+
+	GuardAnimation, err := initAnimation("assets/walk_guard.png")
+	if err != nil {
+		log.Fatalf("Error: Could not load walk_guard.png: %v", err)
+	}
+	WalkFrameImgs[Simulation.GUARD] = GuardAnimation
 
 	fontBytes, err := os.ReadFile("assets/fonts/Monaco.ttf")
 	if err != nil {
@@ -116,22 +120,31 @@ func initTexture() {
 	textureInitialized = true
 }
 
-func initAnimation() {
-	walk, _, err := ebitenutil.NewImageFromFile("assets/walk.png")
+func initAnimation(path string) (WalkAnimation, error) {
+	walk, _, err := ebitenutil.NewImageFromFile(path)
+	var anim WalkAnimation
+
 	if err != nil {
-		log.Printf("Warning: Could not load walk.png: %v", err)
+		return anim, err
 	}
 	for dir := range constants.DIRECTIONS {
 		for f := range constants.FRAME_COUNT {
 			sx := f * constants.CELL_SIZE
 			sy := dir * constants.CELL_SIZE
 			sub := walk.SubImage(image.Rect(sx, sy, sx+constants.CELL_SIZE, sy+constants.CELL_SIZE)).(*ebiten.Image)
-			WalkFrameImgs[dir][f] = sub
+			anim[dir][f] = sub
 		}
 	}
+	return anim, nil
 }
 
+func getWalkAnimation(agtType Simulation.AgenType) WalkAnimation {
+	walkAnimation, ok := WalkFrameImgs[agtType]
+	if !ok {
+		return BaseFrameImgs
+	}
+	return walkAnimation
+}
 func (g *Game) DrawTexture(screen *ebiten.Image) {
 	initTexture()
-	initAnimation()
 }

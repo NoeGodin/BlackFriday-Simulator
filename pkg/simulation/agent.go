@@ -9,6 +9,13 @@ import (
 
 type AgentID string
 
+type AgenType int
+
+const (
+	CLIENT AgenType = iota
+	GUARD
+)
+
 type AgentBehavior interface {
 	Percept()
 	Deliberate()
@@ -25,12 +32,13 @@ type Agent interface {
 	DesiredVelocity() *utils.Vec2
 	Velocity() *utils.Vec2
 	HasSpawned() bool
-
+	GetCurrentPath() *pathfinding.Path
 	Direction() utils.Direction
 	Move()
 	Speed() float64
 	DryRunMove() utils.Vec2
 	VisionManager() VisionManager
+	Type() AgenType
 }
 
 type BaseAgent struct {
@@ -38,6 +46,7 @@ type BaseAgent struct {
 	utils.ClickableEntity
 
 	id            AgentID
+	agType        AgenType
 	env           *Environment
 	agentBehavior AgentBehavior
 
@@ -60,11 +69,20 @@ type BaseAgent struct {
 	visionManager *VisionManager
 }
 
-func NewBaseAgent(id string, pos [2]float64, env *Environment, moveChan chan MoveRequest, syncChan chan int, startChan chan StartRequest, exitChan chan ExitRequest) *BaseAgent {
+func NewBaseAgent(
+	id string,
+	pos [2]float64,
+	env *Environment,
+	moveChan chan MoveRequest,
+	syncChan chan int,
+	startChan chan StartRequest,
+	exitChan chan ExitRequest,
+	agtType AgenType) *BaseAgent {
 
 	agent := &BaseAgent{
-		id:  AgentID(id),
-		env: env,
+		id:     AgentID(id),
+		env:    env,
+		agType: agtType,
 		MovableEntity: MovableEntity{
 			coordinate:   utils.Vec2{X: pos[0], Y: pos[1]},
 			speed:        constants.BASE_AGENT_SPEED,
@@ -99,10 +117,17 @@ func (ag *BaseAgent) ID() AgentID {
 func (ag *BaseAgent) HasSpawned() bool {
 	return ag.hasSpawned
 }
+func (ag *BaseAgent) Type() AgenType {
+	return ag.agType
+}
 
 func (ag *BaseAgent) Start() {
-	ag.startChan <- StartRequest{Agt: ag, ResponseChannel: ag.startChanResponse}
-	ag.hasSpawned = <-ag.startChanResponse
+	if ag.startChan != nil {
+		ag.startChan <- StartRequest{Agt: ag, ResponseChannel: ag.startChanResponse}
+		ag.hasSpawned = <-ag.startChanResponse
+	} else {
+		ag.hasSpawned = true
+	}
 
 	logger.Infof("Agent %s starting at position (%.1f, %.1f)", ag.id, ag.coordinate.X, ag.coordinate.Y)
 

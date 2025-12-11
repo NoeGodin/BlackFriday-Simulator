@@ -31,7 +31,7 @@ type ClientAgent struct {
 func NewClientAgent(id string, pos [2]float64, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int, agentIndex int) *ClientAgent {
 
 	agent := &ClientAgent{
-		BaseAgent:        NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan),
+		BaseAgent:        NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan, CLIENT),
 		shoppingList:     env.GenerateShoppingListDeterministic(agentIndex),
 		cart:             make(map[string]*Map.Item),
 		pickChan:         pickChan,
