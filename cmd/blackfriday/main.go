@@ -43,7 +43,7 @@ func main() {
 	mapName := extractMapName(mapPath)
 	shoppingListsPath := "maps/store/shopping_lists.json"
 	logger.Info("Creating simulation...")
-	simu := Simulation.NewSimulation(0, 100.0, mapData, constants.DELTA_TIME, constants.AGENT_SEARCH_RADIUS, mapName, shoppingListsPath)
+	simu := Simulation.NewSimulation(0, constants.TIC_DURATION, mapData, constants.DELTA_TIME, constants.AGENT_SEARCH_RADIUS, mapName, shoppingListsPath)
 
 	logger.Info("Adding agents...")
 	logger.Infof("Creating %d agents from config", constants.NUMBER_OF_AGENTS)
