@@ -5,6 +5,7 @@ import (
 	"AI30_-_BlackFriday/pkg/logger"
 	Map "AI30_-_BlackFriday/pkg/map"
 	"AI30_-_BlackFriday/pkg/utils"
+	"sort"
 	"fmt"
 	"math"
 )
@@ -53,6 +54,32 @@ func (ag *ClientAgent) NextAction() ActionType {
 
 func (ag *ClientAgent) ShoppingList() []Map.Item {
 	return ag.shoppingList
+}
+
+func (ag *ClientAgent) GetDisplayData() string {
+	var cart []*Map.Item
+	keys := make([]string, 0, len(ag.cart))
+	for k := range ag.cart {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		cart = append(cart, ag.cart[k])
+	}
+
+	msg := fmt.Sprintf("Agent ID: %s\nPosition: (%.2f, %.2f)\nStatus: %s\nShopping List:\n", ag.ID(), ag.Coordinate().X, ag.Coordinate().Y, ag.state)
+	for i, item := range ag.ShoppingList() {
+		msg += fmt.Sprintf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
+			i+1, item.Name, item.Price, item.Quantity, item.Reduction*100, item.Attractiveness)
+	}
+
+	msg += fmt.Sprintf("Cart:\n")
+	for i, item := range cart {
+		msg += fmt.Sprintf("  [%d] %s - Quantity: %d\n", i+1, item.Name, item.Quantity)
+	}
+
+	return msg
 }
 
 func (ag *ClientAgent) findWantedItemLocation() (float64, float64, bool) {
