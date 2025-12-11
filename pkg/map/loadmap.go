@@ -102,10 +102,29 @@ func (m *Map) LoadStockData(stockData StockData, layoutContent string) {
 				m.ShelfChars[position] = charKey
 				// Store shelf data
 				if shelf, exists := stockData.Stocks[charKey]; exists {
-					m.ShelfData[position] = shelf
-					m.Items = append(m.Items, shelf.Items...)
+					copyShelf := shelf.DeepCopy()
+					m.ShelfData[position] = copyShelf
+					m.Items = append(m.Items, copyShelf.Items...)
 				}
 			}
 		}
 	}
+}
+
+func (s Shelf) DeepCopy() Shelf {
+    copyShelf := s
+
+    if s.Items != nil {
+        itemsCopy := make([]Item, len(s.Items))
+		categoriesCopy := make([]string, len(s.Categories))
+
+        copy(itemsCopy, s.Items)
+		copy(categoriesCopy, s.Categories)
+
+		copyShelf.Element = s.Element
+        copyShelf.Items = itemsCopy
+		copyShelf.Categories = categoriesCopy
+    }
+
+    return copyShelf
 }
