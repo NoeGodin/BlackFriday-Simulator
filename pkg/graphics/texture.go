@@ -20,16 +20,18 @@ var (
 
 // Global vars
 var (
-	agtImg        *ebiten.Image
-	wallCeiling   *ebiten.Image
-	wallImg       *ebiten.Image
-	groundImg     *ebiten.Image
-	doorImg       *ebiten.Image
-	itemImg       *ebiten.Image
-	itemEmptyImg  *ebiten.Image
-	checkoutImg   *ebiten.Image
-	targetImg     *ebiten.Image
-	WalkFrameImgs [constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
+	wallCeiling        *ebiten.Image
+	wallImg            *ebiten.Image
+	groundImg          *ebiten.Image
+	doorImg            *ebiten.Image
+	itemImg            *ebiten.Image
+	itemAlmostFullImg  *ebiten.Image
+	itemHalfEmptyImg   *ebiten.Image
+	itemAlmostEmptyImg *ebiten.Image
+	itemEmptyImg       *ebiten.Image
+	checkoutImg        *ebiten.Image
+	targetImg          *ebiten.Image
+	WalkFrameImgs      [constants.DIRECTIONS][constants.FRAME_COUNT]*ebiten.Image
 )
 
 func initTexture() {
@@ -38,16 +40,12 @@ func initTexture() {
 	}
 
 	var err error
-	agtImg, _, err = ebitenutil.NewImageFromFile("assets/agt.png")
-	if err != nil {
-		log.Printf("Warning: Could not load agt.png: %v", err)
-	}
 
 	wallImg, _, err = ebitenutil.NewImageFromFile("assets/wall_front.png")
 	if err != nil {
 		log.Printf("Warning: Could not load wall_front.png: %v", err)
 	}
-	
+
 	wallCeiling, _, err = ebitenutil.NewImageFromFile("assets/wall_ceiling.png")
 	if err != nil {
 		log.Printf("Warning: Could not load wall_ceiling.png: %v", err)
@@ -67,7 +65,19 @@ func initTexture() {
 	if err != nil {
 		log.Printf("Warning: Could not load item.png: %v", err)
 	}
-	
+	itemAlmostFullImg, _, err = ebitenutil.NewImageFromFile("assets/item_almost_full.png")
+	if err != nil {
+		log.Printf("Warning: Could not load item.png: %v", err)
+	}
+	itemHalfEmptyImg, _, err = ebitenutil.NewImageFromFile("assets/item_half_empty.png")
+	if err != nil {
+		log.Printf("Warning: Could not load item.png: %v", err)
+	}
+	itemAlmostEmptyImg, _, err = ebitenutil.NewImageFromFile("assets/item_almost_empty.png")
+	if err != nil {
+		log.Printf("Warning: Could not load item.png: %v", err)
+	}
+
 	itemEmptyImg, _, err = ebitenutil.NewImageFromFile("assets/item_empty.png")
 	if err != nil {
 		log.Printf("Warning: Could not load item_empty.png: %v", err)

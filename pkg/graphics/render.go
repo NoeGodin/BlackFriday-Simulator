@@ -114,7 +114,12 @@ func (g *Game) DrawMap(screen *ebiten.Image) {
 					drawImageAt(screen, wallCeiling, drawX, drawY, nil)
 				}
 			case constants.SHELF:
-				drawImageAt(screen, itemImg, drawX, drawY, nil)
+				if shelf, ok := envMap.GetShelfData(x, y); ok {
+					img := g.ShelfAnimator.AnimationFrame([2]float64{x, y}, &shelf)
+					drawImageAt(screen, img, drawX, drawY, nil)
+				} else {
+					drawImageAt(screen, itemImg, drawX, drawY, nil)
+				}
 			case constants.DOOR:
 				drawImageAt(screen, doorImg, drawX, drawY, nil)
 			case constants.CHECKOUT:
