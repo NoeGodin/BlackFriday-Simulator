@@ -58,13 +58,13 @@ func GenerateShoppingListsFile(filePath string, numAgents int, items []Map.Item,
 
 	var shoppingLists []PredefShoppingList
 
-	for i := 0; i < numAgents; i++ {
+	for i := 1; i < numAgents+1; i++ {
 		var agentShoppingList []Map.Item
 
 		// Generate a shopping list by considering attractiveness
 		numItemsInList := rng.Intn(constants.AGENT_MAX_SHOPPING_LIST) + 1
 
-		for j := 0; j < numItemsInList; j++ {
+		for len(agentShoppingList) < numItemsInList {
 			wantedItem := rng.Float64() * totalAttractiveness
 			cumulative := 0.0
 
@@ -82,7 +82,11 @@ func GenerateShoppingListsFile(filePath string, numAgents int, items []Map.Item,
 					} else {
 						itemCopy.Quantity = 1
 					}
-					agentShoppingList = append(agentShoppingList, itemCopy)
+
+					if !containsByName(agentShoppingList, itemCopy.Name) {
+						agentShoppingList = append(agentShoppingList, itemCopy)
+					}
+					
 					break
 				}
 			}
@@ -100,4 +104,13 @@ func GenerateShoppingListsFile(filePath string, numAgents int, items []Map.Item,
 	}
 
 	return os.WriteFile(filePath, data, 0644)
+}
+
+func containsByName(list []Map.Item, name string) bool {
+    for _, v := range list {
+        if v.Name == name {
+            return true
+        }
+    }
+    return false
 }
