@@ -58,7 +58,7 @@ func GenerateShoppingListsFile(filePath string, numAgents int, items []Map.Item,
 
 	var shoppingLists []PredefShoppingList
 
-	for i := 1; i < numAgents+1; i++ {
+	for i := 1; i <= numAgents; i++ {
 		var agentShoppingList []Map.Item
 
 		// Generate a shopping list by considering attractiveness
