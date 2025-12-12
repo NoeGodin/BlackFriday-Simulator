@@ -1,6 +1,7 @@
 package main
 
 import (
+	"AI30_-_BlackFriday/pkg/utils"
 	"fmt"
 	"math/rand"
 	"os"
@@ -10,7 +11,7 @@ func main() {
 	nbMaps := 5
 	width := 30
 	height := 20
-	nbDoors := 2
+	nbDoors := 30
 	nbShelves := 25
 	nbCashiers := 3
 	nbWalls := 100
@@ -34,12 +35,13 @@ func main() {
 		fillColumn(mapLayout, 0)
 		fillColumn(mapLayout, len(mapLayout[0])-1)
 		generateDoors(mapLayout, nbDoors)
+		generateWalls(mapLayout, nbWalls+nbCashiers+nbShelves)
+		
 		generateShelves(mapLayout, nbShelves)
 		generateCashiers(mapLayout, nbCashiers)
-		generateWalls(mapLayout, nbWalls)
-	
-		mapStr := writeMap(mapLayout)
-	
+		removeAllDoorsWallsSurrounding(mapLayout)
+
+		mapStr := writeMap(mapLayout)	
 		err = os.WriteFile("maps/generated_maps/map" + fmt.Sprint(i+1) + ".txt", []byte(mapStr), 0644)
 		if err != nil {
 			fmt.Printf("unable to write file: %v", err)
@@ -55,18 +57,21 @@ func cleanMapLayout(mapLayout [][]string) {
 	}
 }
 
+// Create a column of walls
 func fillColumn(mapLayout [][]string, x int) {
 	for i := range len(mapLayout) {
 		mapLayout[i][x] = "W"
 	}
 }
 
+// Create a row of walls
 func fillRow(mapLayout [][]string, y int) {
 	for i := range len(mapLayout[y]) {
 		mapLayout[y][i] = "W"
 	}
 }
 
+// Convert map layout from [][]string to a string for file
 func writeMap(mapLayout [][]string) string {
 	mapStr := ""
 
@@ -85,11 +90,14 @@ func writeMap(mapLayout [][]string) string {
 
 func generateDoors(mapLayout [][]string, nbDoors int) {
 	for i := 0; i < nbDoors; i++ {
+		// Choose between vertical or horizontal walls 
 		isVertical := rand.Intn(2)
 		if isVertical == 0 {
-			posY := rand.Intn(len(mapLayout) - 2) + 1
+			// Cannot be the 2 lasts and firsts walls (avoid out of range + corner + first/last element)
+			posY := rand.Intn(len(mapLayout) - 4) + 2
 			isFirstColumn := rand.Intn(2)
 			
+			// Choose in which column the door will be generated
 			if isFirstColumn == 0 {
 				if isAlreadyDoor(mapLayout, 0, posY) {
 					i--
@@ -97,7 +105,6 @@ func generateDoors(mapLayout [][]string, nbDoors int) {
 				}
 
 				mapLayout[posY][0] = "D"
-				removeWallAround(mapLayout, 0, posY)
 			} else {
 				if isAlreadyDoor(mapLayout, len(mapLayout[0]) - 1, posY) {
 					i--
@@ -105,11 +112,13 @@ func generateDoors(mapLayout [][]string, nbDoors int) {
 				}
 
 				mapLayout[posY][len(mapLayout[0]) - 1] = "D"
-				removeWallAround(mapLayout, len(mapLayout[0]) - 1, posY)
 			}
 		} else {
-			posX := rand.Intn(len(mapLayout[0]) - 2) + 1
+			// Cannot be the 2 lasts and firsts walls (avoid out of range + corner + first/last element)
+			posX := rand.Intn(len(mapLayout[0]) - 4) + 2
 			isFirstRow := rand.Intn(2)
+
+			// Choose in which row the door will be generated
 			if isFirstRow == 0 {
 				if isAlreadyDoor(mapLayout, posX, 0) {
 					i--
@@ -117,7 +126,6 @@ func generateDoors(mapLayout [][]string, nbDoors int) {
 				}
 
 				mapLayout[0][posX] = "D"
-				removeWallAround(mapLayout, posX, 0)
 			} else {
 				if isAlreadyDoor(mapLayout, posX, len(mapLayout) - 1) {
 					i--
@@ -125,7 +133,6 @@ func generateDoors(mapLayout [][]string, nbDoors int) {
 				}
 
 				mapLayout[len(mapLayout) - 1][posX] = "D"
-				removeWallAround(mapLayout, posX, len(mapLayout) - 1)
 			}
 		}
 	}
@@ -135,6 +142,7 @@ func isAlreadyDoor(mapLayout [][]string, x, y int) bool {
 	return mapLayout[y][x] == "D"
 }
 
+// Remove the walls around an x, y position
 func removeWallAround(mapLayout [][]string, x, y int) {
 	if y != 0 {
 		if mapLayout[y-1][x] == "W" {
@@ -159,6 +167,7 @@ func removeWallAround(mapLayout [][]string, x, y int) {
 	}
 }
 
+// Check if (x, y) is near to a door (in the 8 coordinates around)
 func isCloseToDoor(mapLayout [][]string, x, y int) bool {
 	flag := false
 	if y != 0 {
@@ -191,35 +200,26 @@ func isCloseToDoor(mapLayout [][]string, x, y int) bool {
 	return flag 
 }
 
+// Takes walls positions and replace the wall to a shelf
 func generateShelves(mapLayout [][]string, nbShelves int) {
 	for i := 0; i < nbShelves; i++ {
 		letter := string(rune('a' + i))
-		x := rand.Intn(len(mapLayout[0]) - 2) + 1
-		y := rand.Intn(len(mapLayout) - 2) + 1
-
-		if mapLayout[y][x] != "" || isCloseToDoor(mapLayout, x, y) {
-			i--
-			continue
-		}
-
-		mapLayout[y][x] = letter
+		wallPositions := getAllWallsPos(mapLayout)
+		randomPos := wallPositions[rand.Intn(len(wallPositions)-1)]
+		mapLayout[int(randomPos.Y)][int(randomPos.X)] = letter
 	}
 }
 
+// Takes walls positions and replace the wall to a cashier
 func generateCashiers(mapLayout [][]string, nbCashiers int) {
 	for i := 0; i < nbCashiers; i++ {
-		x := rand.Intn(len(mapLayout[0]) - 2) + 1
-		y := rand.Intn(len(mapLayout) - 2) + 1
-
-		if mapLayout[y][x] != "" || isCloseToDoor(mapLayout, x, y) {
-			i--
-			continue
-		}
-
-		mapLayout[y][x] = "C"
+		wallPositions := getAllWallsPos(mapLayout)
+		randomPos := wallPositions[rand.Intn(len(wallPositions)-1)]
+		mapLayout[int(randomPos.Y)][int(randomPos.X)] = "C"
 	}
 }
 
+// Generate randomly walls and try to avoid creating blocked zones
 func generateWalls(mapLayout [][]string, nbWalls int) {
     for i := 0; i < nbWalls; i++ {
         x := rand.Intn(len(mapLayout[0]) - 2) + 1
@@ -273,13 +273,37 @@ func isBlockingCorridor(mapLayout [][]string, x, y int) bool {
             continue
         }
 
-        if (mapLayout[cy][cx] == "W" || (cx==x && cy==y)) &&
-           mapLayout[cy][cx+1] == "W" &&
-           mapLayout[cy+1][cx] == "W" &&
-           mapLayout[cy+1][cx+1] == "W" {
+        if (mapLayout[cy][cx] == "W" || (cx == x && cy == y)) &&
+           (mapLayout[cy][cx+1] == "W" || cx+2 >= len(mapLayout[0])) &&
+           (mapLayout[cy+1][cx] == "W" || cy+2 >= len(mapLayout)) &&
+           (mapLayout[cy+1][cx+1] == "W" || cy+2 >= len(mapLayout) || cx+2 >= len(mapLayout[0])) {
             return true
         }
     }
 
     return false
+}
+
+func getAllWallsPos(mapLayout [][]string) []utils.Vec2 {
+	var allWallsPos []utils.Vec2
+
+	for y := 1; y < len(mapLayout)-1; y++ {
+		for x := 1; x < len(mapLayout[0])-1; x++ {
+			if mapLayout[y][x] == "W" {
+				allWallsPos = append(allWallsPos, utils.Vec2{X: float64(x), Y: float64(y)})
+			}
+		}
+	}
+
+	return allWallsPos
+}
+
+func removeAllDoorsWallsSurrounding(mapLayout [][]string) {
+	for y := range len(mapLayout) {
+		for x := range len(mapLayout[0]) {
+			if mapLayout[y][x] == "D" {
+				removeWallAround(mapLayout, x, y)
+			}
+		}
+	}
 }
