@@ -14,7 +14,7 @@ func main() {
 	nbDoors := 5
 	nbShelves := 25
 	nbCashiers := 3
-	nbWalls := 100
+	nbWalls := 140
 
 	mapLayout := mapgenerator.NewMapLayout(width, height)
 	
@@ -32,7 +32,7 @@ func main() {
 	}
 
 
-	for i := range nbMaps {
+	for i := 0; i < nbMaps; i++ {
 		mapLayout.CleanMapLayout()
 
 		mapLayout.FillRow(0)
@@ -47,6 +47,14 @@ func main() {
 		mapLayout.RemoveAllDoorsWallsSurrounding()
 
 		mapStr := mapLayout.ToString()
+
+		if mapLayout.IsMapValid() {
+			fmt.Println("OK")
+		} else {
+			fmt.Println("Not valid map, regenerating...")
+			i--
+			continue
+		}
 		
 		err = os.WriteFile("maps/generated_maps/map" + fmt.Sprint(i+1) + ".txt", []byte(mapStr), 0644)
 		if err != nil {
