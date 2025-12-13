@@ -26,9 +26,9 @@ func main() {
 
 	err = utils.CopyFile("maps/store/stocks.json", "maps/generated_maps/stocks.json")
 	if err != nil {
-		fmt.Println("Erreur :", err)
+		fmt.Println("Unable to copy maps/store/stocks.json :", err)
 	} else {
-		fmt.Println("Copie réussie !")
+		fmt.Println("Copy of maps/store/stocks.json was successfull")
 	}
 
 
