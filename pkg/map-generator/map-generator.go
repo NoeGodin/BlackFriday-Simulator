@@ -236,7 +236,7 @@ func (m *MapLayout) getAllWallsPos() []utils.Vec2 {
 func (m *MapLayout) RemoveAllDoorsWallsSurrounding() {
 	for y := range m.height {
 		for x := range m.width {
-			if m.mapLayout[y][x] == "D" {
+			if m.isAlreadyDoor(x, y) {
 				m.RemoveWallAround(x, y)
 			}
 		}
@@ -258,6 +258,7 @@ func (m *MapLayout) canGoToAllShelves(doorPos utils.IntVec2) bool {
 	shelvesPos := m.getShelves()
 	visitedShelvesPos := []utils.IntVec2{}
 	walkablePositions := make(map[utils.IntVec2]bool)
+	cashierFound := false
 
 	if doorPos.Y > 0 {
 		walkablePositions[utils.IntVec2{X: doorPos.X, Y: doorPos.Y - 1}] = false
@@ -286,6 +287,8 @@ func (m *MapLayout) canGoToAllShelves(doorPos utils.IntVec2) bool {
 					if !containsPos(visitedShelvesPos, x, y - 1) {
 						visitedShelvesPos = append(visitedShelvesPos, utils.IntVec2{X: x, Y: y - 1})
 					}
+				} else if m.mapLayout[y-1][x] == "C" {
+					cashierFound = true
 				} else if m.isEmptyPos(x, y - 1) {
 					pos := utils.IntVec2{X: x, Y: y - 1}
 					if _, exists := walkablePositions[pos]; !exists {
@@ -298,6 +301,8 @@ func (m *MapLayout) canGoToAllShelves(doorPos utils.IntVec2) bool {
 					if !containsPos(visitedShelvesPos, x, y + 1) {
 						visitedShelvesPos = append(visitedShelvesPos, utils.IntVec2{X: x, Y: y + 1})
 					}
+				} else if m.mapLayout[y+1][x] == "C" {
+					cashierFound = true
 				} else if m.isEmptyPos(x, y + 1) {
 					pos := utils.IntVec2{X: x, Y: y + 1}
 					if _, exists := walkablePositions[pos]; !exists {
@@ -310,6 +315,8 @@ func (m *MapLayout) canGoToAllShelves(doorPos utils.IntVec2) bool {
 					if !containsPos(visitedShelvesPos, x - 1, y) {
 						visitedShelvesPos = append(visitedShelvesPos, utils.IntVec2{X: x - 1, Y: y})
 					}
+				} else if m.mapLayout[y][x-1] == "C" {
+					cashierFound = true
 				} else if m.isEmptyPos(x - 1, y) {
 					pos := utils.IntVec2{X: x - 1, Y: y}
 					if _, exists := walkablePositions[pos]; !exists {
@@ -322,6 +329,8 @@ func (m *MapLayout) canGoToAllShelves(doorPos utils.IntVec2) bool {
 					if !containsPos(visitedShelvesPos, x + 1, y) {
 						visitedShelvesPos = append(visitedShelvesPos, utils.IntVec2{X: x + 1, Y: y})
 					}
+				} else if m.mapLayout[y][x+1] == "C" {
+					cashierFound = true
 				} else if m.isEmptyPos(x + 1, y) {
 					pos := utils.IntVec2{X: x + 1, Y: y}
 					if _, exists := walkablePositions[pos]; !exists {
@@ -333,7 +342,7 @@ func (m *MapLayout) canGoToAllShelves(doorPos utils.IntVec2) bool {
 	}
 
 	if samePositions(visitedShelvesPos, shelvesPos) {
-		return true
+		return true && cashierFound
 	} else {
 		return false
 	}
@@ -369,45 +378,6 @@ func (m *MapLayout) getShelves() []utils.IntVec2 {
 
 func (m *MapLayout) isShelf(x, y int) bool {
 	return (m.mapLayout[y][x] >= "a" && m.mapLayout[y][x] <= "z") || (m.mapLayout[y][x] >= "1" && m.mapLayout[y][x] <= "9")
-}
-
-func containsPos(slice []utils.IntVec2, x, y int) bool {
-	for _, pos := range slice {
-		if pos.X == x && pos.Y == y {
-			return true
-		}
-	}
-	return false
-}
-
-func samePositions(a, b []utils.IntVec2) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	for _, posA := range a {
-		found := false
-		for _, posB := range b {
-			if posA.X == posB.X && posA.Y == posB.Y {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-
-	return true
-}
-
-func hasFalse(m map[utils.IntVec2]bool) bool {
-    for _, v := range m {
-        if !v {
-            return true
-        }
-    }
-    return false
 }
 
 func (m *MapLayout) isEmptyPos(x, y int) bool {
