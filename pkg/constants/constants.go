@@ -40,8 +40,9 @@ const (
 	HUD_POS_X float64 = 10.0
 	HUD_POS_Y float64 = 10.0
 
-	DELTA_TIME          = 1.0 / 60.0
-	AGENT_SEARCH_RADIUS = 5.0
+	DELTA_TIME                   = 1.0 / 60.0
+	AGENT_SEARCH_RADIUS          = 5.0
+	AGENT_AGRESSIVENESS_TRESHOLD = 1.0
 
 	//SFC
 	SOCIAL_STRENGTH   = 1.0

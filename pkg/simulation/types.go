@@ -10,6 +10,7 @@ const ( // enumeration
 	StateCheckingOut
 	StateMovingToExit
 	StateLeaving
+	StateChasingAgent
 )
 
 var agentStateName = map[AgentState]string{
@@ -34,6 +35,7 @@ const (
 	ActionWait
 	ActionCheckout
 	ActionExit
+	ActionStealAgent
 )
 
 var actionTypeName = map[ActionType]string{
