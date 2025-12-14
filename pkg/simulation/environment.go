@@ -25,6 +25,12 @@ type PickRequest struct { // une pick request par item
 	ResponseChannel chan PickResponse
 }
 
+type StealRequest struct {
+	Stealer         *ClientAgent
+	Victim          *ClientAgent
+	itemName        string
+	ResponseChannel chan bool
+}
 type MoveRequest struct {
 	Agt Agent
 	//temporaire : structure à définir
@@ -46,9 +52,11 @@ type Environment struct {
 	Map                  *Map.Map
 	Clients              []*ClientAgent
 	Guards               []*GuardAgent
+	Agents               []Agent
 	Profit               float64
 	pickChan             chan PickRequest
 	moveChan             chan MoveRequest
+	stealChan            chan StealRequest
 	startChans           map[[2]float64]chan StartRequest
 	exitChan             chan ExitRequest
 	ticDuration          int
@@ -63,6 +71,7 @@ type Environment struct {
 func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) *Environment {
 	pickChan := make(chan PickRequest)
 	moveChan := make(chan MoveRequest)
+	stealChan := make(chan StealRequest)
 	startChan := make(map[[2]float64]chan StartRequest)
 	for _, co := range mapData.Doors {
 		startChan[co] = make(chan StartRequest)
@@ -82,10 +91,12 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 	return &Environment{
 		Map:                  mapData,
 		Clients:              make([]*ClientAgent, 0),
+		Agents:               make([]Agent, 0),
 		pickChan:             pickChan,
 		startChans:           startChan,
 		moveChan:             moveChan,
 		exitChan:             exitChan,
+		stealChan:            stealChan,
 		ticDuration:          ticDuration,
 		deltaTime:            deltaTime,
 		neighborSearchRadius: searchRadius,
@@ -97,8 +108,9 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 func (env *Environment) AddClient(agtId string, syncChan chan int) Agent {
 	doorCo := env.GetRandomDoor()
 
-	client := NewClientAgent(agtId, env.getSpawnablePos(doorCo), env, env.moveChan, env.pickChan, env.startChans[doorCo], env.exitChan, syncChan, env.AgentCounter)
+	client := NewClientAgent(agtId, env.getSpawnablePos(doorCo), env, env.moveChan, env.pickChan, env.stealChan, env.startChans[doorCo], env.exitChan, syncChan, env.AgentCounter)
 	env.Clients = append(env.Clients, client)
+	env.Agents = append(env.Agents, client)
 	env.AgentCounter++
 	return client
 }
@@ -110,6 +122,7 @@ func (env *Environment) AddGuard(agtId string, syncChan chan int) (Agent, error)
 	pos := [2]float64{x, y}
 	guard := NewGuardAgent(agtId, pos, env, env.moveChan, nil, env.exitChan, syncChan, env.AgentCounter)
 	env.Guards = append(env.Guards, guard)
+	env.Agents = append(env.Agents, guard)
 	env.AgentCounter++
 	return guard, nil
 }
@@ -142,16 +155,16 @@ func (env *Environment) isCollision(agt Agent) bool {
 	return false
 }
 
-func (env *Environment) checkAgentCollisions(agt Agent) []*ClientAgent {
+func (env *Environment) checkAgentCollisions(agt Agent) []Agent {
 	coords := agt.DryRunMove()
-	collidingAgents := make([]*ClientAgent, 0)
+	collidingAgents := make([]Agent, 0)
 
-	for _, neighbor := range env.Clients {
+	for _, neighbor := range env.Agents {
 		if agt.ID() == neighbor.ID() {
 			continue
 		}
-		offsetX := math.Abs(neighbor.coordinate.X - coords.X)
-		offsetY := math.Abs(neighbor.coordinate.Y - coords.Y)
+		offsetX := math.Abs(neighbor.Coordinate().X - coords.X)
+		offsetY := math.Abs(neighbor.Coordinate().Y - coords.Y)
 
 		if offsetX < constants.AgentToAgentHitbox && offsetY < constants.AgentToAgentHitbox {
 			collidingAgents = append(collidingAgents, neighbor)
@@ -162,6 +175,18 @@ func (env *Environment) checkAgentCollisions(agt Agent) []*ClientAgent {
 
 func (env *Environment) getNearbyAgents(agt Agent, radius float64) []Agent {
 	nearbyAgents := make([]Agent, 0)
+	for _, neighbor := range env.Agents {
+		if agt.ID() == neighbor.ID() {
+			continue
+		}
+		if agt.Coordinate().Distance(*neighbor.Coordinate()) <= radius {
+			nearbyAgents = append(nearbyAgents, neighbor)
+		}
+	}
+	return nearbyAgents
+}
+func (env *Environment) getNearbyClients(agt Agent, radius float64) []*ClientAgent {
+	nearbyAgents := make([]*ClientAgent, 0)
 	for _, neighbor := range env.Clients {
 		if agt.ID() == neighbor.ID() {
 			continue
@@ -222,6 +247,34 @@ func (env *Environment) moveRequest() {
 		ApplySocialForce(clientAgent, socialForces, env.deltaTime)
 		clientAgent.Move()
 		moveRequest.ResponseChannel <- true
+	}
+}
+
+func (env *Environment) StealRequest() {
+	for stealRequest := range env.stealChan {
+		victim := stealRequest.Victim
+		stealer := stealRequest.Stealer
+		item := victim.getCartItemByName(stealer.targetItemName)
+		if item == nil || item.Quantity == 0 {
+			stealRequest.ResponseChannel <- false
+			continue
+		}
+		victim.aggressiveness = constants.AGENT_AGRESSIVENESS_TRESHOLD
+		StealQuantity := int(math.Min(float64(item.Quantity), float64(stealer.getDesiredQuantity(item.Name))))
+		item.Quantity -= StealQuantity
+		stealerItem := stealer.getCartItemByName(item.Name)
+		if stealerItem == nil {
+			stealerItem := &Map.Item{
+				Name:           item.Name,
+				Reduction:      item.Reduction,
+				Attractiveness: item.Attractiveness,
+				Quantity:       StealQuantity,
+			}
+			stealer.cart[stealerItem.Name] = stealerItem
+		} else {
+			stealerItem.Quantity += StealQuantity
+		}
+		stealRequest.ResponseChannel <- true
 	}
 }
 
@@ -310,6 +363,7 @@ func removeAgentFromClients(agentID AgentID, clients []*ClientAgent) []*ClientAg
 func (env *Environment) Start() {
 	go env.pickRequest()
 	go env.moveRequest()
+	go env.StealRequest()
 	env.startRequests()
 }
 

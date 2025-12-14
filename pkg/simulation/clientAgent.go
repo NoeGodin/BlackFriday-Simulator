@@ -5,9 +5,9 @@ import (
 	"AI30_-_BlackFriday/pkg/logger"
 	Map "AI30_-_BlackFriday/pkg/map"
 	"AI30_-_BlackFriday/pkg/utils"
-	"sort"
 	"fmt"
 	"math"
+	"sort"
 )
 
 type ClientAgent struct {
@@ -19,6 +19,11 @@ type ClientAgent struct {
 
 	pickChanResponse chan PickResponse
 
+	target            *ClientAgent
+	targetItemName    string
+	aggressiveness    float64
+	stealChan         chan StealRequest
+	stealChanResponse chan bool
 	// Behavior
 	state                            AgentState
 	nextAction                       ActionType
@@ -28,18 +33,24 @@ type ClientAgent struct {
 	visitedShelves map[[2]float64]Map.Shelf
 }
 
-func NewClientAgent(id string, pos [2]float64, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int, agentIndex int) *ClientAgent {
+func NewClientAgent(id string, pos [2]float64, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, stealChan chan StealRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int, agentIndex int) *ClientAgent {
 
 	agent := &ClientAgent{
-		BaseAgent:        NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan, CLIENT),
-		shoppingList:     env.GenerateShoppingListDeterministic(agentIndex),
-		cart:             make(map[string]*Map.Item),
-		pickChan:         pickChan,
-		pickChanResponse: make(chan PickResponse),
-		state:            StateWandering,
-		visitedShelves:   make(map[[2]float64]Map.Shelf),
+		BaseAgent:         NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan, CLIENT),
+		shoppingList:      env.GenerateShoppingListDeterministic(agentIndex),
+		cart:              make(map[string]*Map.Item),
+		pickChan:          pickChan,
+		pickChanResponse:  make(chan PickResponse),
+		stealChan:         stealChan,
+		stealChanResponse: make(chan bool),
+		state:             StateWandering,
+		visitedShelves:    make(map[[2]float64]Map.Shelf),
 	}
 	agent.agentBehavior = &ClientAgentBehavior{ag: agent}
+	if agent.ID() == AgentID("agent2") {
+		agent.aggressiveness = 1.0
+		agent.shoppingList = env.Clients[0].shoppingList
+	}
 
 	return agent
 }
@@ -97,6 +108,44 @@ func (ag *ClientAgent) findWantedItemLocation() (float64, float64, bool) {
 	return 0, 0, false
 }
 
+func (ag *ClientAgent) findAgentToSteal() (*ClientAgent, string, bool) {
+	missingItems := ag.GetMissingItems()
+
+	for _, neighbor := range ag.env.getNearbyClients(ag, 100) {
+		if name, exists := neighbor.hasOneOfItems(missingItems); exists {
+			return neighbor, name, true
+		}
+	}
+	return nil, "", false
+}
+func (ag *ClientAgent) hasOneOfItems(items []Map.Item) (string, bool) {
+	for _, desired := range items {
+		for _, item := range ag.cart {
+			if (item.Name == desired.Name) && (item.Quantity > 0) {
+				return item.Name, true
+			}
+		}
+	}
+	return "", false
+}
+func (ag *ClientAgent) getCartItemByName(name string) *Map.Item {
+	item, _ := ag.cart[name]
+	return item
+}
+func (ag *ClientAgent) getDesiredQuantity(name string) int {
+	for _, desired := range ag.shoppingList {
+		if desired.Name == name {
+			posseded := ag.getCartItemByName(name)
+			if posseded == nil {
+				return desired.Quantity
+			} else if desired.Quantity > posseded.Quantity {
+				return desired.Quantity - posseded.Quantity
+			}
+			return 0
+		}
+	}
+	return 0
+}
 func (ag *ClientAgent) chooseItemToPickFromTargetedShelf(env *Environment) {
 	ag.itemsToPick = []Map.Item{}
 	shelfCoords := [2]float64{ag.interactTargetX, ag.interactTargetY}
@@ -234,10 +283,8 @@ func (bh *ClientAgentBehavior) Percept() {
 func (bh *ClientAgentBehavior) Deliberate() {
 	ag := bh.ag
 	ag.stuckDetector.DetectAndResolve()
-
 	switch ag.state {
 	case StateWandering:
-
 		// Agent has finished shopping (either if he has collected all his shopping list, or if he couldnt find more items)
 		if (len(ag.visitedShelves) >= len(ag.env.Map.ShelfData)) || (len(ag.GetMissingItems()) == 0) {
 			if len(ag.cart) == 0 {
@@ -259,7 +306,7 @@ func (bh *ClientAgentBehavior) Deliberate() {
 		}
 
 		// Agent tries to find a wanted item from a visited shelf
-		if shelfX, shelfY, exists := ag.findWantedItemLocation(); exists {
+		if shelfX, shelfY, exists := ag.findWantedItemLocation(); exists && ag.id != AgentID("agent2") {
 			moveTargetX, moveTargetY, found := FindNearestFreePosition(ag.env, shelfX, shelfY)
 			if !found {
 				logger.Warnf("No path found to a location near this destination (%.2f %.2f) ", shelfX, shelfY)
@@ -271,6 +318,25 @@ func (bh *ClientAgentBehavior) Deliberate() {
 				ag.nextAction = ActionMove
 			}
 			break
+		}
+		if ag.aggressiveness >= constants.AGENT_AGRESSIVENESS_TRESHOLD {
+			if target, targetItem, exists := ag.findAgentToSteal(); exists {
+				ag.target = target
+				ag.targetItemName = targetItem
+				ag.state = StateChasingAgent
+				if ag.coordinate.Distance(target.coordinate) < 1 {
+					ag.nextAction = ActionStealAgent
+				} else {
+					moveTargetX, moveTargetY, found := FindNearestFreePosition(ag.env, target.coordinate.X, target.coordinate.Y)
+					if !found {
+						logger.Warnf("No path found to a location near this destination (%.2f %.2f) ", target.coordinate.X, target.coordinate.Y)
+						ag.nextAction = ActionWait
+					} else {
+						ag.nextAction = ActionMove
+						ag.movementManager.SetDestination(moveTargetX, moveTargetY)
+					}
+				}
+			}
 		}
 
 		// Agent wanders (visits unvisited nearby shelves)
@@ -316,6 +382,31 @@ func (bh *ClientAgentBehavior) Deliberate() {
 			ag.state = StateCheckingOut
 			ag.nextAction = ActionWait
 		}
+	case StateChasingAgent:
+		if ag.target == nil {
+			ag.state = StateWandering
+			ag.nextAction = ActionWait
+		}
+		_, found := ag.target.hasOneOfItems(ag.GetMissingItems())
+		if !found {
+			ag.state = StateWandering
+			ag.nextAction = ActionWait
+		}
+		if ag.coordinate.Distance(ag.target.coordinate) < 1 {
+			ag.nextAction = ActionStealAgent
+		} else {
+			moveTargetX, moveTargetY, found := FindNearestFreePosition(ag.env, ag.target.coordinate.X, ag.target.coordinate.Y)
+			if !found {
+				logger.Warnf("No path found to a location near this destination (%.2f %.2f) ", ag.coordinate.X, ag.coordinate.Y)
+				ag.nextAction = ActionWait
+				ag.state = StateWandering
+			} else {
+				ag.nextAction = ActionMove
+				ag.movementManager.SetDestination(moveTargetX, moveTargetY)
+				ag.processPathMovement()
+			}
+		}
+
 	case StateCheckingOut: // fait pas grand chose, peut-�tre voir pour refacto
 		ag.state = StateMovingToExit
 		ag.nextAction = ActionCheckout
@@ -375,6 +466,19 @@ func (bh *ClientAgentBehavior) Act() {
 				}
 				ag.cart[item.Name] = &newItem
 			}
+		}
+	case ActionStealAgent:
+		ag.stealChan <- StealRequest{
+			itemName:        ag.targetItemName,
+			Stealer:         ag,
+			Victim:          ag.target,
+			ResponseChannel: ag.stealChanResponse,
+		}
+		result := <-ag.stealChanResponse
+		if result {
+			fmt.Println("OUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
+		} else {
+			fmt.Println("non...")
 		}
 
 	case ActionCheckout:
