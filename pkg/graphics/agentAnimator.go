@@ -14,6 +14,7 @@ type AgentState int
 const (
 	None AgentState = iota
 	WinItem
+	LooseItem
 )
 
 var (
@@ -21,6 +22,11 @@ var (
 	WinItemColorScale = func() ebiten.ColorScale {
 		var cs ebiten.ColorScale
 		cs.Scale(0.8, 2.5, 0.8, 1.0)
+		return cs
+	}()
+	LooseItemColorScale = func() ebiten.ColorScale {
+		var cs ebiten.ColorScale
+		cs.Scale(2.5, 0.3, 0.3, 1.0)
 		return cs
 	}()
 )
@@ -100,12 +106,19 @@ func (animator *AgentAnimator) getColorScale(agt Simulation.Agent) *ebiten.Color
 	if state.itemCount < currentQuantity {
 		state.agentState = WinItem
 		state.stateStart = time.Now()
+	} else if state.itemCount > currentQuantity {
+		state.agentState = LooseItem
+		state.stateStart = time.Now()
 	}
 	state.itemCount = currentQuantity
 
 	// Effet buff temporaire
-	if state.agentState == WinItem && time.Since(state.stateStart) < (constants.AGENT_STATE_DURATION) {
-		return &WinItemColorScale
+	if time.Since(state.stateStart) < (constants.AGENT_STATE_DURATION) {
+		if state.agentState == WinItem {
+			return &WinItemColorScale
+		} else if state.agentState == LooseItem {
+			return &LooseItemColorScale
+		}
 	}
 
 	state.agentState = None
