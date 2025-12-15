@@ -125,6 +125,14 @@ func (ag *ClientAgent) hasOneOfItems(items []Map.Item) (string, bool) {
 	}
 	return "", false
 }
+func (ag *ClientAgent) hasItemByName(name string) bool {
+	for _, item := range ag.cart {
+		if (item.Name == name) && (item.Quantity > 0) {
+			return true
+		}
+	}
+	return false
+}
 func (ag *ClientAgent) getCartItemByName(name string) *Map.Item {
 	item, _ := ag.cart[name]
 	return item
@@ -378,7 +386,7 @@ func (bh *ClientAgentBehavior) Deliberate() {
 			ag.nextAction = ActionWait
 			break
 		}
-		_, found := ag.target.hasOneOfItems(ag.GetMissingItems())
+		found := ag.target.hasItemByName(ag.targetItemName)
 		if !found {
 			ag.state = StateWandering
 			ag.nextAction = ActionWait
