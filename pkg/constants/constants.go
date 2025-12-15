@@ -61,6 +61,8 @@ const (
 
 	AGENT_SPAWN_INTERVAL_MS = 200
 	SPAWN_OFFSET_FROM_DOOR  = 0.5 // Avoid spawning behind a door
+
+	MAX_TIC_DURATION = 150
 )
 
 // loaded from .env using autoload
@@ -68,7 +70,7 @@ var (
 	NUMBER_OF_AGENTS        = envInt("NUMBER_OF_AGENTS", 75)
 	BASE_AGENT_SPEED        = envFloat("BASE_AGENT_SPEED", 0.2)
 	AGENT_MAX_SHOPPING_LIST = envInt("AGENT_MAX_SHOPPING_LIST", 4)
-	TIC_DURATION            = envFloat("TIC_DURATION", 100)
+	TIC_DURATION            = envInt("TIC_DURATION", 100)
 	SALES_EXPORT_INTERVAL   = time.Duration(envInt("SALES_EXPORT_INTERVAL_SECONDS", 30)) * time.Second
 	MAX_QUANTITY_PER_ITEM   = envInt("MAX_QUANTITY_PER_ITEM", 5)
 )

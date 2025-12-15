@@ -11,14 +11,13 @@ import (
 type Simulation struct {
 	NClients  int
 	Env       Environment
-	Speed     float64
 	agents    []Agent
 	syncChans sync.Map
 }
 
-func NewSimulation(agentCount int, speed float64, mapData *Map.Map, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) (simu *Simulation) {
+func NewSimulation(agentCount int, speed int, mapData *Map.Map, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) (simu *Simulation) {
 
-	simu = &Simulation{agents: make([]Agent, agentCount), Env: *NewEnvironment(mapData, deltaTime, searchRadius, mapName, shoppingListsPath), Speed: speed}
+	simu = &Simulation{agents: make([]Agent, agentCount), Env: *NewEnvironment(mapData, speed, deltaTime, searchRadius, mapName, shoppingListsPath)}
 	return simu
 }
 
@@ -55,6 +54,9 @@ func (s *Simulation) AddGuard(agtId string) error {
 	s.NClients++
 	return nil
 }
+func (s *Simulation) SetSpeed(value int) {
+	s.Env.speed = value
+}
 func (s *Simulation) Run() {
 	s.Env.Start()
 	go s.Env.exitRequest(s)
@@ -72,7 +74,7 @@ func (s *Simulation) Run() {
 					return
 				}
 				c.(chan int) <- step
-				time.Sleep(1 * time.Millisecond * time.Duration(s.Speed))
+				time.Sleep(1 * time.Millisecond * time.Duration(s.Env.speed))
 				<-c.(chan int)
 			}
 		}(agt)
