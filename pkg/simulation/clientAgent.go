@@ -15,8 +15,7 @@ type ClientAgent struct {
 	shoppingList []Map.Item
 	cart         map[string]*Map.Item
 
-	pickChan chan PickRequest
-
+	pickChan         chan PickRequest
 	pickChanResponse chan PickResponse
 
 	target            *ClientAgent
@@ -33,7 +32,7 @@ type ClientAgent struct {
 	visitedShelves map[[2]float64]Map.Shelf
 }
 
-func NewClientAgent(id string, pos [2]float64, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, stealChan chan StealRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int, agentIndex int) *ClientAgent {
+func NewClientAgent(id string, pos [2]float64, aggressiveness float64, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, stealChan chan StealRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int, agentIndex int) *ClientAgent {
 
 	agent := &ClientAgent{
 		BaseAgent:         NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan, CLIENT),
@@ -44,13 +43,10 @@ func NewClientAgent(id string, pos [2]float64, env *Environment, moveChan chan M
 		stealChan:         stealChan,
 		stealChanResponse: make(chan bool),
 		state:             StateWandering,
+		aggressiveness:    aggressiveness,
 		visitedShelves:    make(map[[2]float64]Map.Shelf),
 	}
 	agent.agentBehavior = &ClientAgentBehavior{ag: agent}
-	if agent.ID() == AgentID("agent2") {
-		agent.aggressiveness = 1.0
-		agent.shoppingList = env.Clients[0].shoppingList
-	}
 
 	return agent
 }
@@ -89,6 +85,7 @@ func (ag *ClientAgent) GetDisplayData() string {
 	for i, item := range cart {
 		msg += fmt.Sprintf("  [%d] %s - Quantity: %d\n", i+1, item.Name, item.Quantity)
 	}
+	msg += fmt.Sprintf("  agressivité : %f", ag.aggressiveness)
 
 	return msg
 }
@@ -111,7 +108,7 @@ func (ag *ClientAgent) findWantedItemLocation() (float64, float64, bool) {
 func (ag *ClientAgent) findAgentToSteal() (*ClientAgent, string, bool) {
 	missingItems := ag.GetMissingItems()
 
-	for _, neighbor := range ag.env.getNearbyClients(ag, 100) {
+	for _, neighbor := range ag.env.getNearbyClients(ag) {
 		if name, exists := neighbor.hasOneOfItems(missingItems); exists {
 			return neighbor, name, true
 		}
@@ -269,6 +266,10 @@ func (ag *ClientAgent) DetectShelvesInFOV(env *Environment) {
 	// }
 }
 
+func (ag *ClientAgent) Aggressiveness() float64 {
+	return ag.aggressiveness
+}
+
 type ClientAgentBehavior struct {
 	ag *ClientAgent
 }
@@ -319,23 +320,12 @@ func (bh *ClientAgentBehavior) Deliberate() {
 			}
 			break
 		}
-		if ag.aggressiveness >= constants.AGENT_AGRESSIVENESS_TRESHOLD {
+		if ag.aggressiveness >= constants.AGENT_AGGRESSIVENESS_TRESHOLD {
 			if target, targetItem, exists := ag.findAgentToSteal(); exists {
 				ag.target = target
 				ag.targetItemName = targetItem
 				ag.state = StateChasingAgent
-				if ag.coordinate.Distance(target.coordinate) < 1 {
-					ag.nextAction = ActionStealAgent
-				} else {
-					moveTargetX, moveTargetY, found := FindNearestFreePosition(ag.env, target.coordinate.X, target.coordinate.Y)
-					if !found {
-						logger.Warnf("No path found to a location near this destination (%.2f %.2f) ", target.coordinate.X, target.coordinate.Y)
-						ag.nextAction = ActionWait
-					} else {
-						ag.nextAction = ActionMove
-						ag.movementManager.SetDestination(moveTargetX, moveTargetY)
-					}
-				}
+				ag.nextAction = ActionWait
 			}
 		}
 
@@ -386,14 +376,17 @@ func (bh *ClientAgentBehavior) Deliberate() {
 		if ag.target == nil {
 			ag.state = StateWandering
 			ag.nextAction = ActionWait
+			break
 		}
 		_, found := ag.target.hasOneOfItems(ag.GetMissingItems())
 		if !found {
 			ag.state = StateWandering
 			ag.nextAction = ActionWait
+			break
 		}
-		if ag.coordinate.Distance(ag.target.coordinate) < 1 {
+		if ag.coordinate.Distance(ag.target.coordinate) < constants.AGENT_STEAL_RANGE {
 			ag.nextAction = ActionStealAgent
+			ag.state = StateWandering
 		} else {
 			moveTargetX, moveTargetY, found := FindNearestFreePosition(ag.env, ag.target.coordinate.X, ag.target.coordinate.Y)
 			if !found {
@@ -474,12 +467,11 @@ func (bh *ClientAgentBehavior) Act() {
 			Victim:          ag.target,
 			ResponseChannel: ag.stealChanResponse,
 		}
-		result := <-ag.stealChanResponse
-		if result {
-			fmt.Println("OUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
-		} else {
-			fmt.Println("non...")
+		ok := <-ag.stealChanResponse
+		if !ok {
+			ag.aggressiveness = constants.BASE_AGENT_AGGRESSIVENESS
 		}
+		ag.state = StateWandering
 
 	case ActionCheckout:
 		cartValue := ag.CalculateCartValue()

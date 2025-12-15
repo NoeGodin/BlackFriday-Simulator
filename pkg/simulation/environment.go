@@ -105,10 +105,10 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 		AgentCounter:         0,
 	}
 }
-func (env *Environment) AddClient(agtId string, syncChan chan int) Agent {
+func (env *Environment) AddClient(agtId string, aggressiveness float64, syncChan chan int) Agent {
 	doorCo := env.GetRandomDoor()
 
-	client := NewClientAgent(agtId, env.getSpawnablePos(doorCo), env, env.moveChan, env.pickChan, env.stealChan, env.startChans[doorCo], env.exitChan, syncChan, env.AgentCounter)
+	client := NewClientAgent(agtId, env.getSpawnablePos(doorCo), aggressiveness, env, env.moveChan, env.pickChan, env.stealChan, env.startChans[doorCo], env.exitChan, syncChan, env.AgentCounter)
 	env.Clients = append(env.Clients, client)
 	env.Agents = append(env.Agents, client)
 	env.AgentCounter++
@@ -185,13 +185,13 @@ func (env *Environment) getNearbyAgents(agt Agent, radius float64) []Agent {
 	}
 	return nearbyAgents
 }
-func (env *Environment) getNearbyClients(agt Agent, radius float64) []*ClientAgent {
+func (env *Environment) getNearbyClients(agt Agent) []*ClientAgent {
 	nearbyAgents := make([]*ClientAgent, 0)
 	for _, neighbor := range env.Clients {
 		if agt.ID() == neighbor.ID() {
 			continue
 		}
-		if agt.Coordinate().Distance(*neighbor.Coordinate()) <= radius {
+		if agt.Coordinate().Distance(*neighbor.Coordinate()) <= env.neighborSearchRadius {
 			nearbyAgents = append(nearbyAgents, neighbor)
 		}
 	}
@@ -254,12 +254,23 @@ func (env *Environment) StealRequest() {
 	for stealRequest := range env.stealChan {
 		victim := stealRequest.Victim
 		stealer := stealRequest.Stealer
-		item := victim.getCartItemByName(stealer.targetItemName)
-		if item == nil || item.Quantity == 0 {
+		isSeen := false
+		for _, guard := range env.Guards {
+			if guard.canSee(victim) || guard.canSee(stealer) {
+				isSeen = true
+				break
+
+			}
+		}
+		if isSeen {
 			stealRequest.ResponseChannel <- false
 			continue
 		}
-		victim.aggressiveness = constants.AGENT_AGRESSIVENESS_TRESHOLD
+		item := victim.getCartItemByName(stealer.targetItemName)
+		if item == nil || item.Quantity == 0 {
+			stealRequest.ResponseChannel <- true
+			continue
+		}
 		StealQuantity := int(math.Min(float64(item.Quantity), float64(stealer.getDesiredQuantity(item.Name))))
 		item.Quantity -= StealQuantity
 		stealerItem := stealer.getCartItemByName(item.Name)
@@ -274,6 +285,8 @@ func (env *Environment) StealRequest() {
 		} else {
 			stealerItem.Quantity += StealQuantity
 		}
+		victim.aggressiveness += constants.AGENT_AGGRESSIVENESS_INCREASEMENT
+
 		stealRequest.ResponseChannel <- true
 	}
 }
@@ -349,15 +362,24 @@ func remove(name Agent, nations []*ClientAgent) []*ClientAgent {
 	return nations[:i]
 }
 
-func removeAgentFromClients(agentID AgentID, clients []*ClientAgent) []*ClientAgent {
+func (env *Environment) removeClient(agentID AgentID) {
 	i := 0
-	for _, c := range clients {
+	for _, c := range env.Clients {
 		if c.ID() != agentID {
-			clients[i] = c
+			env.Clients[i] = c
 			i++
 		}
 	}
-	return clients[:i]
+	env.Clients = env.Clients[:i]
+
+	j := 0
+	for _, a := range env.Agents {
+		if a.ID() != agentID {
+			env.Agents[j] = a
+			j++
+		}
+	}
+	env.Agents = env.Agents[:j]
 }
 
 func (env *Environment) Start() {

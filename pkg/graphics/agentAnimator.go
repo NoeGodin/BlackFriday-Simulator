@@ -56,6 +56,16 @@ func (animator *AgentAnimator) agentState(agt Simulation.Agent) (*AnimationState
 		return state, false
 	}
 }
+func (animator *AgentAnimator) GetEmotion(agt Simulation.Agent) *ebiten.Image {
+	if agt.Type() == Simulation.CLIENT {
+		if client, ok := agt.(*Simulation.ClientAgent); ok {
+			if client.Aggressiveness() >= constants.AGENT_AGGRESSIVENESS_TRESHOLD {
+				return angryEmotion
+			}
+		}
+	}
+	return nil
+}
 
 // il faudra reset les steps lorsque l'agent n'est pas en déplacement
 func (animator *AgentAnimator) AnimationFrame(agt Simulation.Agent) *ebiten.Image {
@@ -84,6 +94,7 @@ func (animator *AgentAnimator) AnimationFrame(agt Simulation.Agent) *ebiten.Imag
 	if state.step >= constants.FRAME_DURATION*constants.FRAME_COUNT {
 		state.step = 0
 	}
+
 	return image
 }
 

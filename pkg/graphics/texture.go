@@ -34,6 +34,7 @@ var (
 	itemEmptyImg       *ebiten.Image
 	checkoutImg        *ebiten.Image
 	targetImg          *ebiten.Image
+	angryEmotion       *ebiten.Image
 	BaseFrameImgs      WalkAnimation
 	WalkFrameImgs      = make(map[Simulation.AgenType]WalkAnimation)
 )
@@ -69,8 +70,20 @@ func initTexture() {
 	if err != nil {
 		log.Printf("Warning: Could not load item.png: %v", err)
 	}
-
 	itemEmptyImg, _, err = ebitenutil.NewImageFromFile("assets/item_empty.png")
+	if err != nil {
+		log.Printf("Warning: Could not load item_empty.png: %v", err)
+	}
+	itemAlmostFullImg, _, err = ebitenutil.NewImageFromFile("assets/item_almost_full.png")
+	if err != nil {
+		log.Printf("Warning: Could not load item_empty.png: %v", err)
+	}
+	itemHalfEmptyImg, _, err = ebitenutil.NewImageFromFile("assets/item_half_empty.png")
+	if err != nil {
+		log.Printf("Warning: Could not load item_empty.png: %v", err)
+	}
+
+	itemAlmostEmptyImg, _, err = ebitenutil.NewImageFromFile("assets/item_almost_empty.png")
 	if err != nil {
 		log.Printf("Warning: Could not load item_empty.png: %v", err)
 	}
@@ -83,6 +96,10 @@ func initTexture() {
 	checkoutImg, _, err = ebitenutil.NewImageFromFile("assets/checkout.png")
 	if err != nil {
 		log.Printf("Warning: Could not load checkout.png: %v", err)
+	}
+	angryEmotion, _, err = ebitenutil.NewImageFromFile("assets/angry.png")
+	if err != nil {
+		log.Printf("Warning: Could not load angry.png: %v", err)
 	}
 
 	BaseFrameImgs, err = initAnimation("assets/walk.png")

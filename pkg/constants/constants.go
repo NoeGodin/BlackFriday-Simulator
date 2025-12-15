@@ -40,9 +40,12 @@ const (
 	HUD_POS_X float64 = 10.0
 	HUD_POS_Y float64 = 10.0
 
-	DELTA_TIME                   = 1.0 / 60.0
-	AGENT_SEARCH_RADIUS          = 5.0
-	AGENT_AGRESSIVENESS_TRESHOLD = 1.0
+	DELTA_TIME                        = 1.0 / 60.0
+	AGENT_SEARCH_RADIUS               = 5.0
+	AGENT_AGGRESSIVENESS_TRESHOLD     = 1.0
+	AGENT_AGGRESSIVENESS_INCREASEMENT = 0.33
+	BASE_AGENT_AGGRESSIVENESS         = 0.33
+	AGENT_STEAL_RANGE                 = 1.0
 
 	//SFC
 	SOCIAL_STRENGTH   = 1.0
@@ -68,12 +71,14 @@ const (
 
 // loaded from .env using autoload
 var (
-	NUMBER_OF_AGENTS        = envInt("NUMBER_OF_AGENTS", 75)
-	BASE_AGENT_SPEED        = envFloat("BASE_AGENT_SPEED", 0.2)
-	AGENT_MAX_SHOPPING_LIST = envInt("AGENT_MAX_SHOPPING_LIST", 4)
-	TIC_DURATION            = envInt("TIC_DURATION", 100)
-	SALES_EXPORT_INTERVAL   = time.Duration(envInt("SALES_EXPORT_INTERVAL_SECONDS", 30)) * time.Second
-	MAX_QUANTITY_PER_ITEM   = envInt("MAX_QUANTITY_PER_ITEM", 5)
+	NUMBER_OF_CLIENTS          = envInt("NUMBER_OF_CLIENTS", 75)
+	NUMBER_OF_GUARDS           = envInt("NUMBER_OF_GUARDS", 2)
+	BASE_AGENT_SPEED           = envFloat("BASE_AGENT_SPEED", 0.2)
+	AGENT_MAX_SHOPPING_LIST    = envInt("AGENT_MAX_SHOPPING_LIST", 4)
+	TIC_DURATION               = envInt("TIC_DURATION", 100)
+	SALES_EXPORT_INTERVAL      = time.Duration(envInt("SALES_EXPORT_INTERVAL_SECONDS", 30)) * time.Second
+	MAX_QUANTITY_PER_ITEM      = envInt("MAX_QUANTITY_PER_ITEM", 5)
+	AGRESSIVE_AGENT_PROPORTION = envFloat("AGRESSIVE_AGENT_PROPORTION", 0)
 )
 
 func envInt(key string, def int) int {

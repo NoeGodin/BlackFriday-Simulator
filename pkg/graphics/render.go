@@ -147,6 +147,7 @@ func (g *Game) DrawAgents(screen *ebiten.Image) {
 		drawX, drawY := g.mapToDrawCoords(agtCoords.X, agtCoords.Y, offsetX, offsetY)
 		colorScale := g.AgentAnimator.getColorScale(agt)
 		drawImageAt(screen, g.AgentAnimator.AnimationFrame(agt), drawX, drawY, colorScale)
+		drawImageAt(screen, g.AgentAnimator.GetEmotion(agt), drawX, drawY, nil)
 	}
 }
 
