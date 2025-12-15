@@ -4,29 +4,29 @@
 
 Le projet que nous avons décidé de développer est une simulation de supermarché dans une période de Black Friday ou de solde. L’objectif principal de cette simulation est de reproduire le comportement des clients dans un contexte de forte affluence.
 
-Pour représenter un supermarché nous avons adopté avec une vue du dessus. Sur notre interface nous avons représenté les éléments suivants : 
+Pour représenter un supermarché nous avons adopté une vue du dessus. Sur notre interface nous avons représenté les éléments suivants : 
 - Des rayons : qui contiennent des produits que les agents vont aller rechercher.
 - Des caisses : pour que notre supermarché puisse enregistrer les produits achetés par nos agents.
 - Des portes : où les agents apparaissent à intervalle régulier et où ils vont une fois qu'ils ont payé leurs produits.
 
 Les agents sont des clients qui vont collecter jusqu'à x objets simultanément et avoir plusieurs comportements :
 - Collaboratifs : ces types d'agents vont aller chercher les produits dont ils ont besoin.
-- Égoïstes : agit comme les agents collaboratifs, s'ils recherchent un produit qu'un agent à proximité possède, ils peuvent voler ses produits.
-**- Rancunier : s'il se fait voler, il va essayer de voler quelqu'un d'autre pour récupérer son produit.**
-- Agent de sécurité : ces types d'agent ont la particularité de se déplacer aléatoirement dans le supermarché et permet de réduire le vol inter-agents autour de lui.
+- Égoïstes : agissent comme les agents collaboratifs, s'ils recherchent un produit qu'un agent à proximité possède, ils peuvent voler ses produits.
+- Rancunier : s'il se fait voler, il va essayer de voler quelqu'un d'autre pour récupérer son produit.
+- Agent de sécurité : ces types d'agents ont la particularité de se déplacer aléatoirement dans le supermarché et permettent de réduire le vol inter-agents autour d'eux.
 
 Dans le but de mieux comprendre les actions qui se déroulent dans notre simulation, en cliquant sur des éléments sur la carte (agents, rayons, ...), des informations liées à celui-ci s'afficheront dans un HUD (Heads up display), de plus, lorsqu'un agent récupère un objet, il est en surbrillance en vert.
 
 ## Question à répondre
 
-La question que nous cherchons à répondre à l'aide de notre simulation est : quel est le meilleur agencement de magasin pour réaliser le plus de profit ?
+La question que nous cherchons à répondre à l'aide de notre simulation est : quel est le meilleur agencement de magasin pour réaliser le plus de profit, le plus rapidement possible?
 
 ## Indicateurs de réponse
 
 Les indicateurs utilisés pour répondre à cette question sont les suivants :
-- Le bénéfice du supermarché sur un agencement : combien peut bénéficier le supermarché dans son magasin à partir d'un stock limité.
-- Le temps que prennent les agents à faire leurs achats : le meilleur agencement passe par le temps que prend les agents pour trouver rapidement leurs produits et à rapidement les payer avant de partir.
-**- Le nombre de collision inter agents (?) : afin de considérer le bien-être des agents, le nombre de collision est un nombre qui affecte négativement l'agencement du magasin (couloir trop serré, accès difficiles aux rayons ou aux caisses)**
+- Le bénéfice du supermarché sur un agencement : combien le supermarché peut bénéficier dans son magasin à partir d'un stock donné.
+- Le temps que prennent les agents à faire leurs achats : le meilleur agencement passe par le temps que prennent les agents pour trouver rapidement leurs produits et les payer rapidement avant de partir.
+- Le nombre de collisions inter-agents : afin de considérer le bien-être des agents, le nombre de collisions est un nombre qui affecte négativement l'agencement du magasin (couloirs trop serrés, accès difficiles aux rayons ou aux caisses).
 
 ## Architecture employée
 
@@ -55,12 +55,12 @@ Concernant l'architecture que nous employons, nous utilisons la bibliothèque gr
 ### Commandes
 
 **cmd/blackfriday** :  lance notre simulation en lisant un fichier pour une carte à générer, une liste JSON pour les stocks et une liste JSON pour la liste d'achat des agents.
-**cmd/generate_shopping_lists_from_stocks** : génère une liste d'achat pour tous les agents à partir des données du stock.
-**cmd/map_generator** : génère aléatoirement des cartes comprenant une taille, un nombre de portes, caisses, rayons, murs données.
+**cmd/generate_shopping_lists_from_stocks** : génère une liste d'achats pour tous les agents à partir des données du stock. Pouvant randre, si l'on le souhaite la liste d'achat déterministe au travers des différentes simulations
+**cmd/map_generator** : génère aléatoirement des cartes comprenant une taille, un nombre de portes, caisses, rayons, murs donnés.
 
 ## Paramètres
 
-Les paramètres que nous proposons de changer sont les suivantes. Celle-ci sont à renseigner dans un fichier `.env`. Un fichier `.env.example` est dans le dépôt avec les dits paramètres :
+Les paramètres que nous proposons de changer sont les suivants. Ceux-ci sont à renseigner dans un fichier `.env`. Un fichier `.env.example` est dans le dépôt avec les dits paramètres :
 - NB_AGENTS (le nombre d'agents)
 - AGENT_SPEED (la vitesse de déplacement des agents)
 - AGENT_MAX_SHOPPING_LIST (le nombre de produits maximum qu'un agent peut vouloir chercher)
@@ -83,7 +83,7 @@ cp .env.example .env
 # Modifier .env selon vos besoins (nombre d'agents, vitesse, etc.)
 
 go run cmd/generate_shopping_lists_from_stocks/main.go
-# Pour générer les listes d'achats pour les agents, dans le but de comparer entre plusieurs simulations avec les mêmes données.
+# Pour générer les listes d'achats pour les agents, dans le but de comparer plusieurs simulations avec les mêmes données.
 ```
 
 #### Exécution
