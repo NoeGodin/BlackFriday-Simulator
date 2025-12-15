@@ -14,6 +14,10 @@ import (
 )
 
 func (h *HUD) GetSelectedAgent() Simulation.Agent {
+	if h.hidden {
+		return nil
+	}
+	
 	return h.selectedAgent
 }
 
