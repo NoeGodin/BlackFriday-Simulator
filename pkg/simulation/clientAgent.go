@@ -307,7 +307,7 @@ func (bh *ClientAgentBehavior) Deliberate() {
 		}
 
 		// Agent tries to find a wanted item from a visited shelf
-		if shelfX, shelfY, exists := ag.findWantedItemLocation(); exists && ag.id != AgentID("agent2") {
+		if shelfX, shelfY, exists := ag.findWantedItemLocation(); exists {
 			moveTargetX, moveTargetY, found := FindNearestFreePosition(ag.env, shelfX, shelfY)
 			if !found {
 				logger.Warnf("No path found to a location near this destination (%.2f %.2f) ", shelfX, shelfY)
