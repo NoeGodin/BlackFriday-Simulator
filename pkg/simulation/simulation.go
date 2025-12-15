@@ -15,9 +15,9 @@ type Simulation struct {
 	syncChans sync.Map
 }
 
-func NewSimulation(agentCount int, speed int, mapData *Map.Map, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) (simu *Simulation) {
+func NewSimulation(agentCount int, ticDuration int, mapData *Map.Map, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) (simu *Simulation) {
 
-	simu = &Simulation{agents: make([]Agent, agentCount), Env: *NewEnvironment(mapData, speed, deltaTime, searchRadius, mapName, shoppingListsPath)}
+	simu = &Simulation{agents: make([]Agent, agentCount), Env: *NewEnvironment(mapData, ticDuration, deltaTime, searchRadius, mapName, shoppingListsPath)}
 	return simu
 }
 
@@ -54,8 +54,8 @@ func (s *Simulation) AddGuard(agtId string) error {
 	s.NClients++
 	return nil
 }
-func (s *Simulation) SetSpeed(value int) {
-	s.Env.speed = value
+func (s *Simulation) SetTicDuration(value int) {
+	s.Env.ticDuration = value
 }
 func (s *Simulation) Run() {
 	s.Env.Start()
@@ -74,7 +74,7 @@ func (s *Simulation) Run() {
 					return
 				}
 				c.(chan int) <- step
-				time.Sleep(1 * time.Millisecond * time.Duration(s.Env.speed))
+				time.Sleep(1 * time.Millisecond * time.Duration(s.Env.ticDuration))
 				<-c.(chan int)
 			}
 		}(agt)

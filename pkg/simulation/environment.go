@@ -51,7 +51,7 @@ type Environment struct {
 	moveChan             chan MoveRequest
 	startChans           map[[2]float64]chan StartRequest
 	exitChan             chan ExitRequest
-	speed                int
+	ticDuration          int
 	deltaTime            float64
 	neighborSearchRadius float64
 	Mutex                sync.RWMutex
@@ -60,7 +60,7 @@ type Environment struct {
 	AgentCounter         int
 }
 
-func NewEnvironment(mapData *Map.Map, speed int, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) *Environment {
+func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) *Environment {
 	pickChan := make(chan PickRequest)
 	moveChan := make(chan MoveRequest)
 	startChan := make(map[[2]float64]chan StartRequest)
@@ -86,7 +86,7 @@ func NewEnvironment(mapData *Map.Map, speed int, deltaTime float64, searchRadius
 		startChans:           startChan,
 		moveChan:             moveChan,
 		exitChan:             exitChan,
-		speed:                speed,
+		ticDuration:          ticDuration,
 		deltaTime:            deltaTime,
 		neighborSearchRadius: searchRadius,
 		SalesTracker:         salesTracker,
@@ -279,7 +279,7 @@ func (env *Environment) startRequests() {
 		go func(startRequest chan StartRequest) {
 			for s := range startRequest {
 				s.ResponseChannel <- true
-				time.Sleep(constants.AGENT_SPAWN_INTERVAL_MS * time.Millisecond * (time.Duration(float64(env.speed / constants.TIC_DURATION))))
+				time.Sleep(time.Duration(float64(constants.AGENT_SPAWN_INTERVAL_MS*time.Millisecond) * float64(env.ticDuration) / float64(constants.TIC_DURATION)))
 			}
 		}(startRequest)
 	}
