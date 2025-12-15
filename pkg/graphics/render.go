@@ -50,7 +50,9 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.White)
 	g.DrawMap(screen)
-	g.DrawPaths(screen)
+	if g.Hud.GetSelectedAgent() != nil {
+		g.DrawPath(screen)
+	}
 	g.DrawAgents(screen)
 	g.DrawTexture(screen)
 	g.DrawHUD(screen)
@@ -151,14 +153,12 @@ func (g *Game) DrawAgents(screen *ebiten.Image) {
 	}
 }
 
-func (g *Game) DrawPaths(screen *ebiten.Image) {
+func (g *Game) DrawPath(screen *ebiten.Image) {
 	MARGIN := constants.MARGIN
 	offsetX := MARGIN
 	offsetY := MARGIN
 
-	for _, agt := range g.Simulation.Agents() {
-		g.drawAgentPath(screen, agt, offsetX, offsetY)
-	}
+	g.drawAgentPath(screen, g.Hud.GetSelectedAgent(), offsetX, offsetY)
 }
 
 func (g *Game) drawAgentPath(screen *ebiten.Image, agent Simulation.Agent, offsetX, offsetY int) {
