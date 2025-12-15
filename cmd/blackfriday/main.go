@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -46,10 +47,14 @@ func main() {
 	simu := Simulation.NewSimulation(0, constants.TIC_DURATION, mapData, constants.DELTA_TIME, constants.AGENT_SEARCH_RADIUS, mapName, shoppingListsPath)
 
 	logger.Info("Adding agents...")
-	logger.Infof("Creating %d agents from config", constants.NUMBER_OF_AGENTS)
-	for i := 1; i <= constants.NUMBER_OF_AGENTS; i++ {
+	logger.Infof("Creating %d agents from config", constants.NUMBER_OF_CLIENTS)
+	for i := 1; i <= constants.NUMBER_OF_CLIENTS; i++ {
 		agentID := fmt.Sprintf("agent%d", i)
-		simu.AddClient(agentID)
+		simu.AddClient(agentID, rand.Float64()*(1+constants.AGRESSIVE_AGENT_PROPORTION))
+	}
+	for i := 1; i <= constants.NUMBER_OF_GUARDS; i++ {
+		agentID := fmt.Sprintf("guard%d", i)
+		simu.AddGuard(agentID)
 	}
 
 	logger.Info("Starting game...")

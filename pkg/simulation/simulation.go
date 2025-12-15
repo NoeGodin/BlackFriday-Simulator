@@ -24,7 +24,7 @@ func NewSimulation(agentCount int, ticDuration int, mapData *Map.Map, deltaTime 
 func (s *Simulation) Agents() []Agent {
 	return s.agents
 }
-func (s *Simulation) AddClient(agtId string) error {
+func (s *Simulation) AddClient(agtId string, aggressiveness float64) error {
 
 	_, ok := s.syncChans.Load(AgentID(agtId))
 	if ok {
@@ -33,7 +33,7 @@ func (s *Simulation) AddClient(agtId string) error {
 
 	syncChan := make(chan int)
 	s.syncChans.Store(AgentID(agtId), syncChan)
-	agt := s.Env.AddClient(agtId, syncChan)
+	agt := s.Env.AddClient(agtId, aggressiveness, syncChan)
 	s.agents = append(s.agents, agt)
 	s.NClients++
 	return nil
@@ -90,7 +90,7 @@ func (simu *Simulation) RemoveAgent(agentID AgentID) {
 		}
 	}
 	simu.agents = newAgents
-	simu.Env.Clients = removeAgentFromClients(agentID, simu.Env.Clients)
+	simu.Env.removeClient(agentID)
 	simu.syncChans.Delete(agentID)
 }
 

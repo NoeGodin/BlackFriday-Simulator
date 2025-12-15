@@ -43,7 +43,7 @@ func main() {
 		filePath = "maps/store/shopping_lists.json"
 	)
 
-	numAgents := constants.NUMBER_OF_AGENTS
+	numAgents := constants.NUMBER_OF_CLIENTS
 
 	fmt.Printf("Generate %d cours list with seed %d from %d items stocks...\n",
 		numAgents, seed, len(allItems))
