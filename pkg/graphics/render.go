@@ -40,6 +40,9 @@ func drawImageAt(screen *ebiten.Image, img *ebiten.Image, x, y float64, colorSca
 func (g *Game) Update() error {
 	g.HandleInput()
 	g.Hud.Update()
+	if g.Hud.GetSelectedAgent() != nil {
+		g.ensureValidHUDAgent()
+	}
 	return nil
 }
 
