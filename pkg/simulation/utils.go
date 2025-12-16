@@ -3,18 +3,20 @@ package Simulation
 import (
 	"AI30_-_BlackFriday/pkg/constants"
 	"AI30_-_BlackFriday/pkg/logger"
+	"AI30_-_BlackFriday/pkg/pathfinding"
 	"AI30_-_BlackFriday/pkg/utils"
 	"math"
 	"math/rand"
 )
 
-// FindNearestFreePosition finds the nearest free position around the given position
-func FindNearestFreePosition(env *Environment, centerX, centerY float64) (float64, float64, bool) {
+func FindNearestReachablePosition(env *Environment, agent Agent, centerX, centerY float64) (float64, float64, bool) {
 	// spiral research around center tile
 	maxRadius := 10 // Limit search to a radius of 10 cells
-	walkableTiles := [][2]float64{}
+	agentX, agentY := agent.Coordinate().X, agent.Coordinate().Y
 
 	for radius := 1; radius <= maxRadius; radius++ {
+		var walkableTiles [][2]float64
+
 		for dx := -radius; dx <= radius; dx++ {
 			for dy := -radius; dy <= radius; dy++ {
 				// Only check the square perimeter (avoid re-checking the center)
@@ -24,24 +26,24 @@ func FindNearestFreePosition(env *Environment, centerX, centerY float64) (float6
 
 				x := centerX + float64(dx)
 				y := centerY + float64(dy)
-
 				// position is within map bounds
-				if x >= 0 && x < float64(env.Map.Width) && y >= 0 && y < float64(env.Map.Height) {
-					if env.Map.IsWalkable(x, y) {
-						walkableTiles = append(walkableTiles, [2]float64{x, y})
-
-					}
+				if env.Map.IsValidAndWalkable(x,y) {
+					walkableTiles = append(walkableTiles, [2]float64{x, y})
 				}
 			}
 		}
-		if len(walkableTiles) > 0 {
-			randomTile := walkableTiles[rand.Intn(len(walkableTiles))]
-			logger.Debugf("Found free position (%.2f,%.2f) at radius %d", randomTile[0], randomTile[0], radius)
-			return randomTile[0], randomTile[1], true
+
+		rand.Shuffle(len(walkableTiles), func(i, j int) {walkableTiles[i], walkableTiles[j] = walkableTiles[j], walkableTiles[i]})
+
+		for _, tile := range walkableTiles {
+			_, found := pathfinding.FindPath(env.Map, agentX, agentY, tile[0], tile[1])
+			if found {
+				return tile[0], tile[1], true
+			}
 		}
 	}
 
-	logger.Warnf("No free position found within radius %d", maxRadius)
+	logger.Warnf("No reachable position found within radius %d", maxRadius)
 	return 0, 0, false
 }
 
@@ -102,13 +104,13 @@ func FindWalkablePositionNearbyElement(env *Environment, a Agent, elementType co
 	nearestElementX, nearestElementY, res := FindNearestElementPosition(env, a, elementType)
 
 	if res != true {
-		logger.Warnf("No position found for this element (%s), cannot find nearest free position", elementType)
+		logger.Warnf("No position found for this element (%s), cannot find nearest reachable position", elementType)
 		return 0, 0, false
 	}
 
-	targetX, targetY, res := FindNearestFreePosition(env, nearestElementX, nearestElementY)
+	targetX, targetY, res := FindNearestReachablePosition(env, a, nearestElementX, nearestElementY)
 	if res != true {
-		logger.Warnf("Cannot find nearest free position around element %s", elementType)
+		logger.Warnf("Cannot find nearest reachable position around element %s", elementType)
 	}
 	logger.Debugf("Walkable tile : [%.2f %.2f]\n", targetX, targetY)
 	return targetX, targetY, res
