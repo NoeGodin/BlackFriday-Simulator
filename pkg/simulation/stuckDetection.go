@@ -59,7 +59,7 @@ func (sd *StuckDetector) resolveStuckState() {
 func (sd *StuckDetector) relocateAgent() {
 	currentX, currentY := sd.agent.coordinate.X, sd.agent.coordinate.Y
 
-	newX, newY, found := FindNearestFreePosition(sd.agent.env, currentX, currentY)
+	newX, newY, found := FindNearestReachablePosition(sd.agent.env, sd.agent, currentX, currentY)
 	if found {
 		logger.Infof("Agent %s: Relocating from (%.2f,%.2f) to (%.2f,%.2f)", sd.agent.id, currentX, currentY, newX, newY)
 		sd.agent.coordinate.X = newX
