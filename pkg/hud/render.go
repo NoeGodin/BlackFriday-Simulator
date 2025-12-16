@@ -17,26 +17,32 @@ func (h *HUD) GetSelectedAgent() Simulation.Agent {
 	return h.selectedAgent
 }
 
-func (h *HUD) SetSelectedElement(posX, posY float64, elementType *Map.ElementType, items []Map.Item, exists bool) {
+func (h *HUD) SetSelectedElement(posX, posY float64, elementType *Map.ElementType, shelf *Map.Shelf, exists bool) {
 	h.selectedElement = elementType
 	h.TargetPositionX = posX
 	h.TargetPositionY = posY
+	h.exists = exists
+	h.shelf = shelf
 }
 
 func (h *HUD) SetSelectedAgent(agent Simulation.Agent) {
 	h.selectedAgent = agent
+	if agent == nil {
+		return
+	}
+	
 	h.TargetPositionX = agent.Coordinate().X
 	h.TargetPositionY = agent.Coordinate().Y
 }
 
-func (h *HUD) SetSelection(posX, posY float64, elementType *Map.ElementType, agent Simulation.Agent, items Map.Shelf, exists bool) {
+func (h *HUD) SetSelection(posX, posY float64, elementType *Map.ElementType, agent Simulation.Agent, shelf *Map.Shelf, exists bool) {
 	h.clearSelection()
 	h.hidden = false
 
 	msg := ""
 	if agent == nil {
-		h.SetSelectedElement(posX, posY, elementType, items.Items, exists)
-		msg = h.getElementSelectionMessage(items.Items, exists)
+		h.SetSelectedElement(posX, posY, elementType, shelf, exists)
+		msg = h.getElementSelectionMessage()
 	} else {
 		h.SetSelectedAgent(agent)
 		msg = h.getAgentSelectionMessage()
@@ -50,10 +56,14 @@ func (h *HUD) Update() {
 	if h.selectedAgent != nil {
 		h.TargetPositionX = h.selectedAgent.Coordinate().X
 		h.TargetPositionY = h.selectedAgent.Coordinate().Y
-
 		msg := h.getAgentSelectionMessage()
 		h.prepareRender(msg)
 	}
+
+	if h.selectedElement != nil {
+		msg := h.getElementSelectionMessage()
+		h.prepareRender(msg)
+	}	
 }
 
 // Determine the width and height the background based on the text
@@ -78,20 +88,21 @@ func (h *HUD) prepareRender(msg string) {
 func (h *HUD) clearSelection() {
 	h.selectedElement = nil
 	h.selectedAgent = nil
+	h.shelf = nil
 }
 
 func (h *HUD) getAgentSelectionMessage() string {
 	return h.selectedAgent.GetDisplayData()
 }
 
-func (h *HUD) getElementSelectionMessage(items []Map.Item, exists bool) string {
+func (h *HUD) getElementSelectionMessage() string {
 	msg := fmt.Sprintf("Position: (%d, %d)\n", int(h.TargetPositionX), int(h.TargetPositionY))
 	msg += fmt.Sprintf("Element Type: %s\n", *h.selectedElement)
-
+	
 	if *h.selectedElement == constants.SHELF {
-		if exists {
-			msg += fmt.Sprintf("Shelf Stock (%d items):\n", len(items))
-			for i, item := range items {
+		if h.exists {
+			msg += fmt.Sprintf("Shelf Stock (%d items):\n", len(h.shelf.Items))
+			for i, item := range h.shelf.Items {
 				msg += fmt.Sprintf("  [%d] %s - Price: %.2f, Quantity: %d, Reduction: %.2f%%, Attractiveness: %.2f\n",
 					i+1, item.Name, item.Price, item.Quantity, item.Reduction*100, item.Attractiveness)
 			}

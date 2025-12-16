@@ -19,6 +19,8 @@ type HUD struct {
 
 	selectedElement *Map.ElementType
 	selectedAgent   Simulation.Agent
+	exists 			bool
+	shelf			*Map.Shelf
 
 	hidden bool
 }
