@@ -2,7 +2,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-df = pd.read_csv('stats/sales_tracker.csv')
+try:
+    df = pd.read_csv('stats/sales_tracker.csv')
+    if list(df.columns) != ['simulation_id', 'map_name', 'temps_relatif_sec', 'timestamp', 'montant_vente', 'profit_total']:
+        print("No correct headers, using them")
+        df = pd.read_csv('stats/sales_tracker.csv', header=None, names=['simulation_id', 'map_name', 'temps_relatif_sec', 'timestamp', 'montant_vente', 'profit_total'])
+except:
+    df = pd.DataFrame(columns=['simulation_id', 'map_name', 'temps_relatif_sec', 'timestamp', 'montant_vente', 'profit_total'])
 plt.figure(figsize=(12, 8))
 
 for map_name in df['map_name'].unique():
