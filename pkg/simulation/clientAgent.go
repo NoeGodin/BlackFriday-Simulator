@@ -396,7 +396,7 @@ func (bh *ClientAgentBehavior) Deliberate() {
 			ag.nextAction = ActionStealAgent
 			ag.state = StateWandering
 		} else {
-			moveTargetX, moveTargetY, found := FindNearestFreePosition(ag.env, ag.target.coordinate.X, ag.target.coordinate.Y)
+			moveTargetX, moveTargetY, found := FindNearestReachablePosition(ag.env, ag, ag.target.coordinate.X, ag.target.coordinate.Y)
 			if !found {
 				logger.Warnf("No path found to a location near this destination (%.2f %.2f) ", ag.coordinate.X, ag.coordinate.Y)
 				ag.nextAction = ActionWait
@@ -498,5 +498,6 @@ func (bh *ClientAgentBehavior) Act() {
 			Agt:             ag,
 			ResponseChannel: ag.exitChanResponse,
 		}
+		<- ag.exitChanResponse
 	}
 }

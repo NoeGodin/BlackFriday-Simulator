@@ -82,7 +82,7 @@ var (
 )
 
 func envInt(key string, def int) int {
-	if v, _ := strconv.Atoi(os.Getenv(key)); v > 0 {
+	if v, _ := strconv.Atoi(os.Getenv(key)); v >= 0 {
 		return v
 	}
 	return def
