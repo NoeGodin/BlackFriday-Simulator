@@ -22,7 +22,8 @@ type HUD struct {
 	exists 			bool
 	shelf			*Map.Shelf
 
-	hidden bool
+	hidden 			  bool
+	DisplayAgentPaths bool
 }
 
 func NewHud() *HUD {
@@ -32,6 +33,7 @@ func NewHud() *HUD {
 		PaddingX:        10,
 		PaddingY:        5,
 		hidden:          true,
+		DisplayAgentPaths: false,
 	}
 }
 
