@@ -6,6 +6,7 @@ import (
 	Simulation "AI30_-_BlackFriday/pkg/simulation"
 	"image"
 	"log"
+	"math/rand"
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -36,7 +37,8 @@ var (
 	targetImg          *ebiten.Image
 	angryEmotion       *ebiten.Image
 	BaseFrameImgs      WalkAnimation
-	WalkFrameImgs      = make(map[Simulation.AgenType]WalkAnimation)
+	GuardFrameImgs     WalkAnimation
+	ClientFrameImgs    []WalkAnimation
 )
 
 func initTexture() {
@@ -102,18 +104,6 @@ func initTexture() {
 		log.Printf("Warning: Could not load angry.png: %v", err)
 	}
 
-	BaseFrameImgs, err = initAnimation("assets/walk.png")
-	if err != nil {
-		log.Fatalf("Error: Could not load walk.png: %v", err)
-	}
-	WalkFrameImgs[Simulation.CLIENT] = BaseFrameImgs
-
-	GuardAnimation, err := initAnimation("assets/walk_guard.png")
-	if err != nil {
-		log.Fatalf("Error: Could not load walk_guard.png: %v", err)
-	}
-	WalkFrameImgs[Simulation.GUARD] = GuardAnimation
-
 	fontBytes, err := os.ReadFile("assets/fonts/Monaco.ttf")
 	if err != nil {
 		panic(err)
@@ -154,14 +144,37 @@ func initAnimation(path string) (WalkAnimation, error) {
 	}
 	return anim, nil
 }
+func initSkins() {
+	var err error
+	BaseFrameImgs, err = initAnimation("assets/walk.png")
+	if err != nil {
+		log.Fatalf("Error: Could not load walk.png: %v", err)
+	}
+	chatonSkin, err := initAnimation("assets/walk_chaton.png")
+	if err != nil {
+		log.Fatalf("Error: Could not load walk_chaton.png: %v", err)
+	}
+	godinSkin, err := initAnimation("assets/walk_godin.png")
+	if err != nil {
+		log.Fatalf("Error: Could not load walk_godin.png: %v", err)
+	}
+	GuardFrameImgs, err = initAnimation("assets/walk_guard.png")
+	if err != nil {
+		log.Fatalf("Error: Could not load walk_guard.png: %v", err)
+	}
+	ClientFrameImgs = append(ClientFrameImgs, BaseFrameImgs, chatonSkin, godinSkin)
+}
 
 func getWalkAnimation(agtType Simulation.AgenType) WalkAnimation {
-	walkAnimation, ok := WalkFrameImgs[agtType]
-	if !ok {
-		return BaseFrameImgs
+	if agtType == Simulation.GUARD {
+		return GuardFrameImgs
 	}
-	return walkAnimation
+	if agtType == Simulation.CLIENT && len(ClientFrameImgs) > 0 {
+		return ClientFrameImgs[rand.Intn(len(ClientFrameImgs))]
+	}
+	return BaseFrameImgs
 }
 func (g *Game) DrawTexture(screen *ebiten.Image) {
 	initTexture()
+	initSkins()
 }
