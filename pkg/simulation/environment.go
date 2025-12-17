@@ -184,7 +184,7 @@ func (env *Environment) checkAgentCollisions(agt Agent) []Agent {
 func (env *Environment) getNearbyAgents(agt Agent, radius float64) []Agent {
 	nearbyAgents := make([]Agent, 0)
 	for _, neighbor := range env.Agents {
-		if agt.ID() == neighbor.ID() {
+		if agt.ID() == neighbor.ID() || !agt.HasSpawned() {
 			continue
 		}
 		if agt.Coordinate().Distance(*neighbor.Coordinate()) <= radius {
@@ -196,7 +196,7 @@ func (env *Environment) getNearbyAgents(agt Agent, radius float64) []Agent {
 func (env *Environment) getNearbyClients(agt Agent) []*ClientAgent {
 	nearbyAgents := make([]*ClientAgent, 0)
 	for _, neighbor := range env.Clients {
-		if agt.ID() == neighbor.ID() {
+		if agt.ID() == neighbor.ID() || !agt.HasSpawned() {
 			continue
 		}
 		if agt.Coordinate().Distance(*neighbor.Coordinate()) <= env.neighborSearchRadius {
@@ -366,7 +366,11 @@ func (env *Environment) startRequests() {
 		go func(startRequest chan StartRequest) {
 			for s := range startRequest {
 				s.ResponseChannel <- true
-				time.Sleep(time.Duration(float64(constants.AGENT_SPAWN_INTERVAL_MS*time.Millisecond) * float64(env.ticDuration) / float64(constants.TIC_DURATION)))
+				sleepTime := time.Duration(float64(constants.AGENT_SPAWN_INTERVAL_MS*time.Millisecond) * float64(env.ticDuration) / float64(constants.BASE_TIC_DURATION))
+				if sleepTime < constants.MIN_SPAWN_DELAY {
+					sleepTime = constants.MIN_SPAWN_DELAY
+				}
+				time.Sleep(sleepTime)
 			}
 		}(startRequest)
 	}

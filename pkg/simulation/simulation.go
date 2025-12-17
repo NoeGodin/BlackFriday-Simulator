@@ -100,7 +100,7 @@ func (env *Environment) exitRequest(simu *Simulation) {
 		exitRequest.ResponseChannel <- true
 
 		// Export data if nore more agents
-		if len(simu.agents) == 0 {
+		if len(simu.Env.Clients) == 0 {
 			if err := env.ExportSalesData(); err != nil {
 				logger.Errorf("Error during sells data export: %v", err)
 			}
