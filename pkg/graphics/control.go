@@ -56,6 +56,10 @@ func (g *Game) HandleInput() {
 	if inpututil.IsKeyJustPressed(ebiten.KeyH) {
 		g.Hud.ToggleHidden()
 	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyA) {
+		g.Hud.DisplayAgentPaths = !g.Hud.DisplayAgentPaths
+	}
 }
 
 func (g *Game) handleMouseClick() {
