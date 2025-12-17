@@ -1,5 +1,7 @@
 package Simulation
 
+import "fmt"
+
 type GuardAgent struct {
 	*BaseAgent
 }
@@ -53,4 +55,9 @@ func (vb *GuardAgentBehavior) Act() {
 	ag.moveChan <- MoveRequest{Agt: ag, ResponseChannel: ag.moveChanResponse}
 	<-ag.moveChanResponse
 
+}
+
+func (vb *GuardAgent) GetDisplayData() string {
+	msg := fmt.Sprintf("Agent guard: %s", vb.id)
+	return msg
 }
