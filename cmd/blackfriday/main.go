@@ -34,7 +34,7 @@ func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	logger.Info("Loading map...")
-	mapPath := "maps/store/large_layout.txt"
+	mapPath := "maps/store/test_layout.txt"
 	mapData, err := Map.LoadMapFromFile(mapPath)
 	if err != nil {
 		logger.Errorf("Error loading map: %s", err.Error())
