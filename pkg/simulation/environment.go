@@ -450,11 +450,34 @@ func (env *Environment) generateShoppingList() []Map.Item {
 		for _, item := range env.Map.Items {
 			cumulative += item.Attractiveness
 			if wantedItem <= cumulative {
-				shopList = append(shopList, item)
+				itemCopy := item
+				maxQuantity := item.Quantity
+				if constants.MAX_QUANTITY_PER_ITEM < maxQuantity {
+					maxQuantity = constants.MAX_QUANTITY_PER_ITEM
+				}
+				if maxQuantity > 1 {
+					itemCopy.Quantity = rand.Intn(maxQuantity) + 1
+				} else {
+					itemCopy.Quantity = 1
+				}
+
+				if !containsByName(shopList, itemCopy.Name) {
+					shopList = append(shopList, itemCopy)
+				}
+
 				break
 			}
 		}
 	}
 
 	return shopList
+}
+
+func containsByName(list []Map.Item, name string) bool {
+	for _, v := range list {
+		if v.Name == name {
+			return true
+		}
+	}
+	return false
 }
