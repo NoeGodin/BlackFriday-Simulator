@@ -48,6 +48,11 @@ type ExitRequest struct {
 	ResponseChannel chan bool
 }
 
+type CheckoutRequest struct {
+	Agt             *ClientAgent
+	ResponseChannel chan bool
+}
+
 type Environment struct {
 	Map                  *Map.Map
 	Clients              []*ClientAgent
@@ -57,6 +62,7 @@ type Environment struct {
 	pickChan             chan PickRequest
 	moveChan             chan MoveRequest
 	stealChan            chan StealRequest
+	checkoutChan         chan CheckoutRequest
 	startChans           map[[2]float64]chan StartRequest
 	exitChan             chan ExitRequest
 	ticDuration          int
@@ -70,6 +76,7 @@ type Environment struct {
 
 func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) *Environment {
 	pickChan := make(chan PickRequest)
+	checkoutChan := make(chan CheckoutRequest)
 	moveChan := make(chan MoveRequest)
 	stealChan := make(chan StealRequest)
 	startChan := make(map[[2]float64]chan StartRequest)
@@ -93,6 +100,7 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 		Clients:              make([]*ClientAgent, 0),
 		Agents:               make([]Agent, 0),
 		pickChan:             pickChan,
+		checkoutChan:         checkoutChan,
 		startChans:           startChan,
 		moveChan:             moveChan,
 		exitChan:             exitChan,
@@ -108,7 +116,7 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 func (env *Environment) AddClient(agtId string, aggressiveness float64, syncChan chan int) Agent {
 	doorCo := env.GetRandomDoor()
 
-	client := NewClientAgent(agtId, env.getSpawnablePos(doorCo), aggressiveness, env, env.moveChan, env.pickChan, env.stealChan, env.startChans[doorCo], env.exitChan, syncChan, env.AgentCounter)
+	client := NewClientAgent(agtId, env.getSpawnablePos(doorCo), aggressiveness, env, env.moveChan, env.pickChan, env.checkoutChan, env.stealChan, env.startChans[doorCo], env.exitChan, syncChan, env.AgentCounter)
 	env.Clients = append(env.Clients, client)
 	env.Agents = append(env.Agents, client)
 	env.AgentCounter++
@@ -291,7 +299,20 @@ func (env *Environment) StealRequest() {
 	}
 }
 
-func (env *Environment) pickRequest() {
+func (env *Environment) CheckoutRequest() {
+	for checkoutRequest := range env.checkoutChan {
+		cartValue := checkoutRequest.Agt.CalculateCartValue()
+		if cartValue <= 0 {
+			checkoutRequest.ResponseChannel <- false
+			continue
+		}
+		env.Profit += cartValue
+		env.SalesTracker.RecordSale(cartValue, env.Profit)
+		checkoutRequest.ResponseChannel <- true
+	}
+}
+
+func (env *Environment) PickRequest() {
 	for pickRequest := range env.pickChan {
 		if pickRequest.ItemName == "" {
 			pickRequest.ResponseChannel <- PickResponse{false, 0}
@@ -383,7 +404,8 @@ func (env *Environment) removeClient(agentID AgentID) {
 }
 
 func (env *Environment) Start() {
-	go env.pickRequest()
+	go env.PickRequest()
+	go env.CheckoutRequest()
 	go env.moveRequest()
 	go env.StealRequest()
 	env.startRequests()
@@ -405,13 +427,6 @@ func (env *Environment) IsShelfAt(x, y float64) bool {
 		}
 	}
 	return false
-}
-
-func (env *Environment) ProcessPayment(amout float64) {
-	env.Mutex.Lock()
-	defer env.Mutex.Unlock()
-	env.Profit += amout
-	env.SalesTracker.RecordSale(amout, env.Profit)
 }
 
 func (env *Environment) ExportSalesData() error {
