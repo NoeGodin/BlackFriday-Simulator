@@ -274,7 +274,7 @@ func (ag *ClientAgent) DetectShelvesInFOV(env *Environment) {
 	// }
 }
 
-func (ag *ClientAgent) chooseExitOrCheckout() {
+func (ag *ClientAgent) ChooseExitOrCheckout() {
 	if len(ag.cart) == 0 {
 		ag.state = StateMovingToExit
 		ag.nextAction = ActionWait
@@ -314,7 +314,7 @@ func (bh *ClientAgentBehavior) Deliberate() {
 	case StateWandering:
 		// Agent has collected all items from his shopping list
 		if len(ag.GetMissingItems()) == 0 {
-			ag.chooseExitOrCheckout()
+			ag.ChooseExitOrCheckout()
 			break
 		}
 
@@ -344,7 +344,7 @@ func (bh *ClientAgentBehavior) Deliberate() {
 
 		// Agent has visited all the map and cannot find wanted items anymore
 		if (len(ag.visitedShelves) >= len(ag.env.Map.ShelfData)) {
-			ag.chooseExitOrCheckout()
+			ag.ChooseExitOrCheckout()
 			break
 		}
 
