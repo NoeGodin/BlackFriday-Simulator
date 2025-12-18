@@ -274,6 +274,24 @@ func (ag *ClientAgent) DetectShelvesInFOV(env *Environment) {
 	// }
 }
 
+func (ag *ClientAgent) chooseExitOrCheckout() {
+	if len(ag.cart) == 0 {
+		ag.state = StateMovingToExit
+		ag.nextAction = ActionWait
+		return
+	}
+
+	destX, destY, res := FindWalkablePositionNearbyElement(ag.env, ag, "C")
+	if !res {
+		logger.Warnf("No walkable position nearby element")
+		ag.nextAction = ActionWait
+	} else {
+		ag.movementManager.SetDestination(destX, destY)
+		ag.state = StateMovingToCheckout
+		ag.nextAction = ActionMove
+	}
+}
+
 func (ag *ClientAgent) Aggressiveness() float64 {
 	return ag.aggressiveness
 }
@@ -294,23 +312,9 @@ func (bh *ClientAgentBehavior) Deliberate() {
 	ag.stuckDetector.DetectAndResolve()
 	switch ag.state {
 	case StateWandering:
-		// Agent has finished shopping (either if he has collected all his shopping list, or if he couldnt find more items)
-		if (len(ag.visitedShelves) >= len(ag.env.Map.ShelfData)) || (len(ag.GetMissingItems()) == 0) {
-			if len(ag.cart) == 0 {
-				ag.state = StateMovingToExit
-				ag.nextAction = ActionWait
-				break
-			}
-
-			destX, destY, res := FindWalkablePositionNearbyElement(ag.env, ag, "C")
-			if !res {
-				logger.Warnf("No walkable position nearby element")
-				ag.nextAction = ActionWait
-			} else {
-				ag.movementManager.SetDestination(destX, destY)
-				ag.state = StateMovingToCheckout
-				ag.nextAction = ActionMove
-			}
+		// Agent has collected all items from his shopping list
+		if len(ag.GetMissingItems()) == 0 {
+			ag.chooseExitOrCheckout()
 			break
 		}
 
@@ -334,10 +338,17 @@ func (bh *ClientAgentBehavior) Deliberate() {
 				ag.targetItemName = targetItem
 				ag.state = StateChasingAgent
 				ag.nextAction = ActionWait
+				break
 			}
 		}
 
-		// Agent wanders (visits unvisited nearby shelves)
+		// Agent has visited all the map and cannot find wanted items anymore
+		if (len(ag.visitedShelves) >= len(ag.env.Map.ShelfData)) {
+			ag.chooseExitOrCheckout()
+			break
+		}
+
+		// Agent wanders (visits unvisited nearby shelves) (default behavior)
 		if !ag.hasDestination || ag.currentPath == nil || ag.currentPath.IsComplete() {
 			destX, destY, res := FindWalkablePositionNearbyElement(ag.env, ag, "shelf")
 			if res != true {
