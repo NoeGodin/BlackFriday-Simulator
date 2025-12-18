@@ -18,11 +18,15 @@ type ClientAgent struct {
 	pickChan         chan PickRequest
 	pickChanResponse chan PickResponse
 
+	checkoutChan         chan CheckoutRequest
+	checkoutChanResponse chan bool
+
 	target            *ClientAgent
 	targetItemName    string
 	aggressiveness    float64
 	stealChan         chan StealRequest
 	stealChanResponse chan bool
+
 	// Behavior
 	state                            AgentState
 	nextAction                       ActionType
@@ -32,19 +36,21 @@ type ClientAgent struct {
 	visitedShelves map[[2]float64]Map.Shelf
 }
 
-func NewClientAgent(id string, pos [2]float64, aggressiveness float64, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, stealChan chan StealRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int, agentIndex int) *ClientAgent {
+func NewClientAgent(id string, pos [2]float64, aggressiveness float64, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, checkoutChan chan CheckoutRequest, stealChan chan StealRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int, agentIndex int) *ClientAgent {
 
 	agent := &ClientAgent{
-		BaseAgent:         NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan, CLIENT),
-		shoppingList:      env.GenerateShoppingListDeterministic(agentIndex),
-		cart:              make(map[string]*Map.Item),
-		pickChan:          pickChan,
-		pickChanResponse:  make(chan PickResponse),
-		stealChan:         stealChan,
-		stealChanResponse: make(chan bool),
-		state:             StateWandering,
-		aggressiveness:    aggressiveness,
-		visitedShelves:    make(map[[2]float64]Map.Shelf),
+		BaseAgent:            NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan, CLIENT),
+		shoppingList:         env.GenerateShoppingListDeterministic(agentIndex),
+		cart:                 make(map[string]*Map.Item),
+		pickChan:             pickChan,
+		pickChanResponse:     make(chan PickResponse),
+		checkoutChan:         checkoutChan,
+		checkoutChanResponse: make(chan bool),
+		stealChan:            stealChan,
+		stealChanResponse:    make(chan bool),
+		state:                StateWandering,
+		aggressiveness:       aggressiveness,
+		visitedShelves:       make(map[[2]float64]Map.Shelf),
 	}
 	agent.agentBehavior = &ClientAgentBehavior{ag: agent}
 
@@ -343,7 +349,7 @@ func (bh *ClientAgentBehavior) Deliberate() {
 		}
 
 		// Agent has visited all the map and cannot find wanted items anymore
-		if (len(ag.visitedShelves) >= len(ag.env.Map.ShelfData)) {
+		if len(ag.visitedShelves) >= len(ag.env.Map.ShelfData) {
 			ag.ChooseExitOrCheckout()
 			break
 		}
@@ -492,12 +498,21 @@ func (bh *ClientAgentBehavior) Act() {
 		}
 		ag.state = StateWandering
 
-	case ActionCheckout:
+	case ActionCheckout: 
 		cartValue := ag.CalculateCartValue()
 		if cartValue > 0 {
-			ag.env.ProcessPayment(cartValue)
+			ag.checkoutChan <- CheckoutRequest{
+				Agt: ag,
+				ResponseChannel: ag.checkoutChanResponse,
+			}
+			ok := <- ag.checkoutChanResponse
+			if ok {
+				ag.cart = make(map[string]*Map.Item)
+			} else {
+				logger.Warnf("Bad request, CheckoutRequest denied for agent %s", ag.id)
+			}
 		}
-		ag.cart = make(map[string]*Map.Item)
+		
 
 	case ActionWait:
 		ag.dx = 0
@@ -509,6 +524,6 @@ func (bh *ClientAgentBehavior) Act() {
 			Agt:             ag,
 			ResponseChannel: ag.exitChanResponse,
 		}
-		<- ag.exitChanResponse
+		<-ag.exitChanResponse
 	}
 }
