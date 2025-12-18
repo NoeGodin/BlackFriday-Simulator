@@ -29,15 +29,16 @@ type Shelf struct {
 }
 
 type Map struct {
-	Width         int
-	Height        int
-	Doors         [][2]float64
-	CheckoutZones [][2]float64
-	Walls         [][2]float64
-	ShelfData     map[[2]float64]Shelf
-	ShelfChars    map[[2]float64]string
-	freeCells     [][2]float64
-	Items         []Item
+	Width           int
+	Height          int
+	Doors           [][2]float64
+	CheckoutZones   [][2]float64
+	Walls           [][2]float64
+	ShelfData       map[[2]float64]Shelf
+	ShelfChars      map[[2]float64]string
+	freeCells       [][2]float64
+	Items           []Item
+	AvailableProfit float64
 }
 
 func (element *Element) Type() ElementType {

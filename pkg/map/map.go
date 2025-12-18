@@ -149,3 +149,13 @@ func (m *Map) IsWalkable(x, y float64) bool {
 func (m *Map) IsValidAndWalkable(x, y float64) bool {
 	return x >= 0 && x < float64(m.Width) && y >= 0 && y < float64(m.Height) && m.IsWalkable(x, y)
 }
+
+func (m *Map) ComputeAvailableProfit() float64 {
+	var amount float64
+	for _, shelf := range m.ShelfData {
+		for _, item := range shelf.Items {
+			amount += ((item.Price - item.Price*item.Reduction) * float64(item.Quantity))
+		}
+	}
+	return amount
+}

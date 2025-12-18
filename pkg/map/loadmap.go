@@ -80,7 +80,6 @@ func LoadMapFromString(content string) (*Map, error) {
 			}
 		}
 	}
-
 	return m, nil
 }
 
@@ -109,6 +108,7 @@ func (m *Map) LoadStockData(stockData StockData, layoutContent string) {
 			}
 		}
 	}
+	m.AvailableProfit = m.ComputeAvailableProfit()
 }
 
 func (s Shelf) DeepCopy() Shelf {
