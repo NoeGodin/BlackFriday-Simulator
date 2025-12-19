@@ -49,7 +49,7 @@ const (
 
 	//SFC
 	SOCIAL_STRENGTH   = 1.0
-	WALL_RESISTANCE   = 3.0
+	WALL_RESISTANCE   = 10.0
 	AGT_RANGE         = 0.2
 	AGT_STRENGTH      = 10.0
 	AGT_RADIUS        = 0.3
@@ -64,9 +64,10 @@ const (
 	CENTER_OF_CELL = 0.5
 
 	AGENT_SPAWN_INTERVAL_MS = 200
-	SPAWN_OFFSET_FROM_DOOR  = 0.5 // Avoid spawning behind a door
+	SPAWN_OFFSET_FROM_DOOR  = 1 // Avoid spawning behind a door
 
 	MAX_TIC_DURATION   = 150
+	MIN_TIC_DURATION   = 10
 	MAX_CLIENTS_NUMBER = 2000
 	MAX_GUARD_NUMBER   = 100
 
