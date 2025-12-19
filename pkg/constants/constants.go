@@ -66,7 +66,13 @@ const (
 	AGENT_SPAWN_INTERVAL_MS = 200
 	SPAWN_OFFSET_FROM_DOOR  = 0.5 // Avoid spawning behind a door
 
-	MAX_TIC_DURATION = 150
+	MAX_TIC_DURATION   = 150
+	MAX_CLIENTS_NUMBER = 2000
+	MAX_GUARD_NUMBER   = 100
+
+	// file system
+	FONT_PATH = "assets/fonts/Monaco.ttf"
+	MAPS_PATH = "maps/store"
 )
 
 // loaded from .env using autoload
