@@ -1,19 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"math/rand"
 	"os"
-	"path/filepath"
 	"runtime"
-	"strings"
 
-	"AI30_-_BlackFriday/pkg/constants"
 	Graphics "AI30_-_BlackFriday/pkg/graphics"
 	"AI30_-_BlackFriday/pkg/logger"
-	Map "AI30_-_BlackFriday/pkg/map"
-	Simulation "AI30_-_BlackFriday/pkg/simulation"
 
 	"github.com/hajimehoshi/ebiten/v2"
 )
@@ -34,32 +27,8 @@ func main() {
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	logger.Info("Loading map...")
-	mapPath := "maps/store/large_layout.txt"
-	mapData, err := Map.LoadMapFromFile(mapPath)
-	if err != nil {
-		logger.Errorf("Error loading map: %s", err.Error())
-		panic("Error loading map: " + err.Error())
-	}
 
-	mapName := extractMapName(mapPath)
-	shoppingListsPath := "maps/store/shopping_lists.json"
-	logger.Info("Creating simulation...")
-	simu := Simulation.NewSimulation(0, constants.TIC_DURATION, mapData, constants.DELTA_TIME, constants.AGENT_SEARCH_RADIUS, mapName, shoppingListsPath)
-
-	logger.Info("Adding agents...")
-	logger.Infof("Creating %d agents from config", constants.NUMBER_OF_CLIENTS)
-	for i := 1; i <= constants.NUMBER_OF_CLIENTS; i++ {
-		agentID := fmt.Sprintf("agent%d", i)
-		simu.AddClient(agentID, rand.Float64()*(1+constants.AGRESSIVE_AGENT_PROPORTION))
-	}
-	for i := 1; i <= constants.NUMBER_OF_GUARDS; i++ {
-		agentID := fmt.Sprintf("guard%d", i)
-		simu.AddGuard(agentID)
-	}
-
-	logger.Info("Starting game...")
-	game := Graphics.NewGame(SCREEN_WIDTH, SCREEN_HEIGHT, simu)
-	game.Simulation.Run()
+	game := Graphics.NewGame(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 	// launch simulation, generate repport at the end
 	defer func() {
@@ -74,17 +43,4 @@ func main() {
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func extractMapName(mapPath string) string {
-	filename := filepath.Base(mapPath)
-	name := strings.TrimSuffix(filename, filepath.Ext(filename))
-
-	dir := filepath.Base(filepath.Dir(mapPath))
-
-	if dir != "." && dir != "" {
-		return fmt.Sprintf("%s_%s", dir, name)
-	}
-
-	return name
 }

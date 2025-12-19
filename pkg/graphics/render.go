@@ -38,6 +38,10 @@ func drawImageAt(screen *ebiten.Image, img *ebiten.Image, x, y float64, colorSca
 }
 
 func (g *Game) Update() error {
+	if g.inMenu {
+		g.startMenu.Update()
+		return nil
+	}
 	g.HandleInput()
 	g.Hud.Update()
 	g.UI.Update()
@@ -48,6 +52,10 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	if g.inMenu {
+		g.startMenu.Draw(screen)
+		return
+	}
 	screen.Fill(color.White)
 	g.DrawMap(screen)
 	if g.Hud.DisplayAgentPaths {
@@ -55,7 +63,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 	if g.Hud.GetSelectedAgent() != nil {
 		g.DrawPath(screen)
-	} 
+	}
 	g.DrawAgents(screen)
 	g.DrawTexture(screen)
 	g.DrawHUD(screen)
@@ -279,6 +287,9 @@ func (g *Game) DrawHUD(screen *ebiten.Image) {
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	if g.inMenu {
+		return g.startMenu.Layout(outsideWidth, outsideHeight)
+	}
 	envMap := g.Simulation.Env.Map
 	// adapt the window size
 	mapWidth := envMap.Width * constants.CELL_SIZE
