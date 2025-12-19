@@ -23,7 +23,7 @@ func createUI(game *Game) *ebitenui.UI {
 			widget.WidgetOpts.MinSize(1, 200),
 		),
 		widget.SliderOpts.Orientation(widget.DirectionVertical),
-		widget.SliderOpts.MinMax(1, constants.MAX_TIC_DURATION),
+		widget.SliderOpts.MinMax(constants.MIN_TIC_DURATION, constants.MAX_TIC_DURATION),
 		widget.SliderOpts.InitialCurrent(constants.TIC_DURATION),
 		widget.SliderOpts.Images(
 			createSliderTrackImage(),
