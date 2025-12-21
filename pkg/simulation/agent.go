@@ -5,6 +5,8 @@ import (
 	"AI30_-_BlackFriday/pkg/logger"
 	"AI30_-_BlackFriday/pkg/pathfinding"
 	"AI30_-_BlackFriday/pkg/utils"
+	"context"
+	"sync"
 )
 
 type AgentID string
@@ -54,6 +56,8 @@ type BaseAgent struct {
 	syncChan  chan int
 	startChan chan StartRequest
 	exitChan  chan ExitRequest
+	stopCtx   context.Context
+	stopWg    *sync.WaitGroup
 
 	moveChanResponse  chan bool
 	startChanResponse chan bool
@@ -77,7 +81,9 @@ func NewBaseAgent(
 	syncChan chan int,
 	startChan chan StartRequest,
 	exitChan chan ExitRequest,
-	agtType AgenType) *BaseAgent {
+	agtType AgenType,
+	stopCtx context.Context,
+	stopWg *sync.WaitGroup) *BaseAgent {
 
 	agent := &BaseAgent{
 		id:     AgentID(id),
@@ -95,6 +101,8 @@ func NewBaseAgent(
 
 		startChanResponse: make(chan bool),
 		exitChanResponse:  make(chan bool),
+		stopCtx:           stopCtx,
+		stopWg:            stopWg,
 
 		moveChanResponse: make(chan bool),
 		hasDestination:   false,
@@ -132,9 +140,12 @@ func (ag *BaseAgent) Start() {
 	logger.Infof("Agent %s starting at position (%.1f, %.1f)", ag.id, ag.coordinate.X, ag.coordinate.Y)
 
 	go func() {
+		defer ag.stopWg.Done()
 		var step int
 		for {
 			select {
+			case <-ag.stopCtx.Done():
+				return
 			case <-ag.exitChanResponse:
 				logger.Infof("Agent %s finished", ag.id)
 				return

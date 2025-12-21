@@ -1,15 +1,29 @@
 package Simulation
 
-import "fmt"
+import (
+	"context"
+	"fmt"
+	"sync"
+)
 
 type GuardAgent struct {
 	*BaseAgent
 }
 
-func NewGuardAgent(id string, pos [2]float64, env *Environment, moveChan chan MoveRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int, agentIndex int) *GuardAgent {
+func NewGuardAgent(
+	id string,
+	pos [2]float64,
+	env *Environment,
+	moveChan chan MoveRequest,
+	startChan chan StartRequest,
+	exitChan chan ExitRequest,
+	syncChan chan int,
+	agentIndex int,
+	stopCtx context.Context,
+	stopWg *sync.WaitGroup) *GuardAgent {
 
 	agent := &GuardAgent{
-		BaseAgent: NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan, GUARD),
+		BaseAgent: NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan, GUARD, stopCtx, stopWg),
 	}
 	agent.agentBehavior = &GuardAgentBehavior{ag: agent}
 

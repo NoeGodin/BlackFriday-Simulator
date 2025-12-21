@@ -32,6 +32,9 @@ func main() {
 
 	// launch simulation, generate repport at the end
 	defer func() {
+		if game.Simulation == nil {
+			return
+		}
 		logger.Info("Exporting sales data...")
 		if err := game.Simulation.Env.ExportSalesData(); err != nil {
 			logger.Errorf("Error exporting sales data: %v", err)

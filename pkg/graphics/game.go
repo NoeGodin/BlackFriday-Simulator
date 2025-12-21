@@ -70,3 +70,10 @@ func (game *Game) startSimulation(p Hud.Properties) {
 	game.inMenu = false
 
 }
+
+func (game *Game) TogglePause() {
+	if game.Simulation == nil {
+		return
+	}
+	game.Simulation.TogglePause()
+}

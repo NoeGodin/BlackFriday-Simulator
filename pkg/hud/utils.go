@@ -27,7 +27,7 @@ func loadButtonImage() (*widget.ButtonImage, error) {
 	}, nil
 }
 
-func loadFont(size float64) (text.Face, error) {
+func LoadFont(size float64) (text.Face, error) {
 	fontData, err := os.ReadFile(constants.FONT_PATH)
 	if err != nil {
 		log.Fatal(err)
@@ -48,7 +48,7 @@ func loadFont(size float64) (text.Face, error) {
 
 func createComboBox(entries []any, f widget.ListComboButtonEntrySelectedHandlerFunc) *widget.Container {
 	buttonImage, _ := loadButtonImage()
-	face, _ := loadFont(20)
+	face, _ := LoadFont(20)
 
 	rootContainer := widget.NewContainer(
 		widget.ContainerOpts.BackgroundImage(image.NewNineSliceColor(color.NRGBA{0x13, 0x1a, 0x22, 0xff})),
@@ -120,7 +120,7 @@ func createComboBox(entries []any, f widget.ListComboButtonEntrySelectedHandlerF
 }
 
 func createSliderWithLabel(label string, min, max, defaultValue int, suffix string, changedHandler widget.SliderChangedHandlerFunc) *widget.Container {
-	fontFace, _ := loadFont(20)
+	fontFace, _ := LoadFont(20)
 	container := widget.NewContainer(
 		widget.ContainerOpts.Layout(widget.NewRowLayout(
 			widget.RowLayoutOpts.Direction(widget.DirectionVertical),
