@@ -2,9 +2,11 @@ package Simulation
 
 import (
 	"AI30_-_BlackFriday/pkg/constants"
+	"AI30_-_BlackFriday/pkg/logger"
 	Map "AI30_-_BlackFriday/pkg/map"
 	"AI30_-_BlackFriday/pkg/shopping"
 	"AI30_-_BlackFriday/pkg/utils"
+	"context"
 	"fmt"
 	"math"
 	"math/rand"
@@ -72,6 +74,12 @@ type Environment struct {
 	SalesTracker         *SalesTracker
 	ShoppingListLoader   *shopping.ShoppingListLoader
 	AgentCounter         int
+	stopCtx              context.Context
+	cancel               context.CancelFunc
+	stopWg               sync.WaitGroup
+	isStopped            bool
+	isPaused             bool
+	pauseWg              sync.WaitGroup
 }
 
 func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) *Environment {
@@ -80,6 +88,7 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 	moveChan := make(chan MoveRequest)
 	stealChan := make(chan StealRequest)
 	startChan := make(map[[2]float64]chan StartRequest)
+	stopCtx, cancel := context.WithCancel(context.Background())
 	for _, co := range mapData.Doors {
 		startChan[co] = make(chan StartRequest)
 	}
@@ -111,24 +120,43 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 		SalesTracker:         salesTracker,
 		ShoppingListLoader:   shoppingListLoader,
 		AgentCounter:         0,
+		stopCtx:              stopCtx,
+		cancel:               cancel,
+		isStopped:            false,
+		isPaused:             false,
 	}
 }
 func (env *Environment) AddClient(agtId string, aggressiveness float64, syncChan chan int) Agent {
+	env.stopWg.Add(1)
 	doorCo := env.GetRandomDoor()
 
-	client := NewClientAgent(agtId, env.getSpawnablePos(doorCo), aggressiveness, env, env.moveChan, env.pickChan, env.checkoutChan, env.stealChan, env.startChans[doorCo], env.exitChan, syncChan, env.AgentCounter)
+	client := NewClientAgent(agtId,
+		env.getSpawnablePos(doorCo),
+		aggressiveness,
+		env,
+		env.moveChan,
+		env.pickChan,
+		env.checkoutChan,
+		env.stealChan,
+		env.startChans[doorCo],
+		env.exitChan,
+		syncChan,
+		env.AgentCounter,
+		env.stopCtx,
+		&env.stopWg)
 	env.Clients = append(env.Clients, client)
 	env.Agents = append(env.Agents, client)
 	env.AgentCounter++
 	return client
 }
 func (env *Environment) AddGuard(agtId string, syncChan chan int) (Agent, error) {
+	env.stopWg.Add(1)
 	x, y, freePostion := env.Map.GetRandomFreeCoordinate()
 	if !freePostion {
 		return nil, fmt.Errorf("Error generating agent %s, no spawnable position", agtId)
 	}
 	pos := [2]float64{x, y}
-	guard := NewGuardAgent(agtId, pos, env, env.moveChan, nil, env.exitChan, syncChan, env.AgentCounter)
+	guard := NewGuardAgent(agtId, pos, env, env.moveChan, nil, env.exitChan, syncChan, env.AgentCounter, env.stopCtx, &env.stopWg)
 	env.Guards = append(env.Guards, guard)
 	env.Agents = append(env.Agents, guard)
 	env.AgentCounter++
@@ -365,10 +393,15 @@ func (env *Environment) startRequests() {
 	for _, startRequest := range env.startChans {
 		go func(startRequest chan StartRequest) {
 			for s := range startRequest {
+				env.pauseWg.Wait()
+
 				s.ResponseChannel <- true
 				sleepTime := time.Duration(float64(constants.AGENT_SPAWN_INTERVAL_MS*time.Millisecond) * float64(env.ticDuration) / float64(constants.BASE_TIC_DURATION))
 				if sleepTime < constants.MIN_SPAWN_DELAY {
 					sleepTime = constants.MIN_SPAWN_DELAY
+				}
+				if env.isStopped == true {
+					continue
 				}
 				time.Sleep(sleepTime)
 			}
@@ -407,11 +440,12 @@ func (env *Environment) removeClient(agentID AgentID) {
 	env.Agents = env.Agents[:j]
 }
 
-func (env *Environment) Start() {
+func (env *Environment) Start(onDelete func(AgentID)) {
 	go env.PickRequest()
 	go env.CheckoutRequest()
 	go env.moveRequest()
 	go env.StealRequest()
+	go env.exitRequest(onDelete)
 	env.startRequests()
 }
 
@@ -499,4 +533,19 @@ func containsByName(list []Map.Item, name string) bool {
 		}
 	}
 	return false
+}
+
+func (env *Environment) exitRequest(onDelete func(AgentID)) {
+	for exitRequest := range env.exitChan {
+		onDelete(exitRequest.Agt.ID())
+		env.removeClient(exitRequest.Agt.ID())
+		exitRequest.ResponseChannel <- true
+		env.stopWg.Done()
+		// Export data if nore more agents
+		if len(env.Clients) == 0 {
+			if err := env.ExportSalesData(); err != nil {
+				logger.Errorf("Error during sells data export: %v", err)
+			}
+		}
+	}
 }

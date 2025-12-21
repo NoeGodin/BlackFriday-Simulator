@@ -84,7 +84,7 @@ func NewStartMenu(onStart OnStartFunc) *StartMenu {
 
 	// Simple button
 	buttonImage, _ := loadButtonImage()
-	fontFace, _ := loadFont(20)
+	fontFace, _ := LoadFont(20)
 	button := widget.NewButton(
 		widget.ButtonOpts.Image(buttonImage),
 		widget.ButtonOpts.Text("Démarrer", &fontFace, &widget.ButtonTextColor{

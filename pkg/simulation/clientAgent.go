@@ -5,9 +5,11 @@ import (
 	"AI30_-_BlackFriday/pkg/logger"
 	Map "AI30_-_BlackFriday/pkg/map"
 	"AI30_-_BlackFriday/pkg/utils"
+	"context"
 	"fmt"
 	"math"
 	"sort"
+	"sync"
 )
 
 type ClientAgent struct {
@@ -36,10 +38,24 @@ type ClientAgent struct {
 	visitedShelves map[[2]float64]Map.Shelf
 }
 
-func NewClientAgent(id string, pos [2]float64, aggressiveness float64, env *Environment, moveChan chan MoveRequest, pickChan chan PickRequest, checkoutChan chan CheckoutRequest, stealChan chan StealRequest, startChan chan StartRequest, exitChan chan ExitRequest, syncChan chan int, agentIndex int) *ClientAgent {
+func NewClientAgent(
+	id string,
+	pos [2]float64,
+	aggressiveness float64,
+	env *Environment,
+	moveChan chan MoveRequest,
+	pickChan chan PickRequest,
+	checkoutChan chan CheckoutRequest,
+	stealChan chan StealRequest,
+	startChan chan StartRequest,
+	exitChan chan ExitRequest,
+	syncChan chan int,
+	agentIndex int,
+	stopCtx context.Context,
+	stopWg *sync.WaitGroup) *ClientAgent {
 
 	agent := &ClientAgent{
-		BaseAgent:            NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan, CLIENT),
+		BaseAgent:            NewBaseAgent(id, pos, env, moveChan, syncChan, startChan, exitChan, CLIENT, stopCtx, stopWg),
 		shoppingList:         env.GenerateShoppingListDeterministic(agentIndex),
 		cart:                 make(map[string]*Map.Item),
 		pickChan:             pickChan,
@@ -498,21 +514,20 @@ func (bh *ClientAgentBehavior) Act() {
 		}
 		ag.state = StateWandering
 
-	case ActionCheckout: 
+	case ActionCheckout:
 		cartValue := ag.CalculateCartValue()
 		if cartValue > 0 {
 			ag.checkoutChan <- CheckoutRequest{
-				Agt: ag,
+				Agt:             ag,
 				ResponseChannel: ag.checkoutChanResponse,
 			}
-			ok := <- ag.checkoutChanResponse
+			ok := <-ag.checkoutChanResponse
 			if ok {
 				ag.cart = make(map[string]*Map.Item)
 			} else {
 				logger.Warnf("Bad request, CheckoutRequest denied for agent %s", ag.id)
 			}
 		}
-		
 
 	case ActionWait:
 		ag.dx = 0

@@ -1,7 +1,6 @@
 package Simulation
 
 import (
-	"AI30_-_BlackFriday/pkg/logger"
 	Map "AI30_-_BlackFriday/pkg/map"
 	"fmt"
 	"sync"
@@ -9,20 +8,20 @@ import (
 )
 
 type Simulation struct {
-	NClients  int
 	Env       Environment
-	agents    []Agent
 	syncChans sync.Map
 }
 
 func NewSimulation(agentCount int, ticDuration int, mapData *Map.Map, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) (simu *Simulation) {
 
-	simu = &Simulation{agents: make([]Agent, agentCount), Env: *NewEnvironment(mapData, ticDuration, deltaTime, searchRadius, mapName, shoppingListsPath)}
+	simu = &Simulation{
+		Env: *NewEnvironment(mapData, ticDuration, deltaTime, searchRadius, mapName, shoppingListsPath),
+	}
 	return simu
 }
 
 func (s *Simulation) Agents() []Agent {
-	return s.agents
+	return s.Env.Agents
 }
 func (s *Simulation) AddClient(agtId string, aggressiveness float64) error {
 
@@ -30,12 +29,9 @@ func (s *Simulation) AddClient(agtId string, aggressiveness float64) error {
 	if ok {
 		return fmt.Errorf("Agent with id %s was already loaded", agtId)
 	}
-
 	syncChan := make(chan int)
 	s.syncChans.Store(AgentID(agtId), syncChan)
-	agt := s.Env.AddClient(agtId, aggressiveness, syncChan)
-	s.agents = append(s.agents, agt)
-	s.NClients++
+	s.Env.AddClient(agtId, aggressiveness, syncChan)
 	return nil
 }
 func (s *Simulation) AddGuard(agtId string) error {
@@ -46,27 +42,26 @@ func (s *Simulation) AddGuard(agtId string) error {
 
 	syncChan := make(chan int)
 	s.syncChans.Store(AgentID(agtId), syncChan)
-	agt, err := s.Env.AddGuard(agtId, syncChan)
+	_, err := s.Env.AddGuard(agtId, syncChan)
 	if err != nil {
 		return err
 	}
-	s.agents = append(s.agents, agt)
-	s.NClients++
 	return nil
 }
 func (s *Simulation) SetTicDuration(value int) {
 	s.Env.ticDuration = value
 }
 func (s *Simulation) Run() {
-	s.Env.Start()
-	go s.Env.exitRequest(s)
-
-	for _, agt := range s.agents {
+	//avoid dependency from env to simulation
+	s.Env.Start(func(agtId AgentID) {
+		s.syncChans.Delete(agtId)
+	})
+	for _, agt := range s.Env.Agents {
 		go agt.Start()
-
 		go func(agt Agent) {
 			step := 0
 			for {
+				s.Env.pauseWg.Wait()
 				step++
 				c, ok := s.syncChans.Load(agt.ID())
 				if !ok {
@@ -82,28 +77,19 @@ func (s *Simulation) Run() {
 
 }
 
-func (simu *Simulation) RemoveAgent(agentID AgentID) {
-	newAgents := simu.agents[:0]
-	for _, a := range simu.agents {
-		if a.ID() != agentID {
-			newAgents = append(newAgents, a)
-		}
+func (s *Simulation) TogglePause() {
+	s.Env.isPaused = !s.Env.isPaused
+	if s.Env.isPaused {
+		s.Env.pauseWg.Add(1)
+	} else {
+		s.Env.pauseWg.Done()
 	}
-	simu.agents = newAgents
-	simu.Env.removeClient(agentID)
-	simu.syncChans.Delete(agentID)
+
 }
+func (s *Simulation) Stop() {
+	// export ?
+	s.Env.isStopped = true
+	s.Env.cancel()
+	s.Env.stopWg.Wait()
 
-func (env *Environment) exitRequest(simu *Simulation) {
-	for exitRequest := range env.exitChan {
-		simu.RemoveAgent(exitRequest.Agt.ID())
-		exitRequest.ResponseChannel <- true
-
-		// Export data if nore more agents
-		if len(simu.Env.Clients) == 0 {
-			if err := env.ExportSalesData(); err != nil {
-				logger.Errorf("Error during sells data export: %v", err)
-			}
-		}
-	}
 }
