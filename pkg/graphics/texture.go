@@ -165,7 +165,7 @@ func initSkins() {
 	ClientFrameImgs = append(ClientFrameImgs, BaseFrameImgs, chatonSkin, godinSkin)
 }
 
-func getWalkAnimation(agtType Simulation.AgenType) WalkAnimation {
+func getWalkAnimation(agtType Simulation.AgentType) WalkAnimation {
 	if agtType == Simulation.GUARD {
 		return GuardFrameImgs
 	}

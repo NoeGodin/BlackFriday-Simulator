@@ -11,10 +11,10 @@ import (
 
 type AgentID string
 
-type AgenType int
+type AgentType int
 
 const (
-	CLIENT AgenType = iota
+	CLIENT AgentType = iota
 	GUARD
 )
 
@@ -40,7 +40,7 @@ type Agent interface {
 	Speed() float64
 	DryRunMove() utils.Vec2
 	VisionManager() VisionManager
-	Type() AgenType
+	Type() AgentType
 }
 
 type BaseAgent struct {
@@ -48,7 +48,7 @@ type BaseAgent struct {
 	utils.ClickableEntity
 
 	id            AgentID
-	agType        AgenType
+	agType        AgentType
 	env           *Environment
 	agentBehavior AgentBehavior
 
@@ -81,7 +81,7 @@ func NewBaseAgent(
 	syncChan chan int,
 	startChan chan StartRequest,
 	exitChan chan ExitRequest,
-	agtType AgenType,
+	agtType AgentType,
 	stopCtx context.Context,
 	stopWg *sync.WaitGroup) *BaseAgent {
 
@@ -125,7 +125,7 @@ func (ag *BaseAgent) ID() AgentID {
 func (ag *BaseAgent) HasSpawned() bool {
 	return ag.hasSpawned
 }
-func (ag *BaseAgent) Type() AgenType {
+func (ag *BaseAgent) Type() AgentType {
 	return ag.agType
 }
 

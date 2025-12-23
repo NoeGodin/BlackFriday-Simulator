@@ -46,6 +46,22 @@ func createUI(game *Game) *ebitenui.UI {
 		}),
 	)
 
+	guardButton := widget.NewButton(
+		widget.ButtonOpts.WidgetOpts(
+			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+				HorizontalPosition: widget.AnchorLayoutPositionStart,
+				VerticalPosition:   widget.AnchorLayoutPositionStart,
+			}),
+			widget.WidgetOpts.MinSize(80, 30),
+		),
+		widget.ButtonOpts.Image(createButtonImage()),
+		widget.ButtonOpts.Text("afficher FOV gardes", &fontFace, &widget.ButtonTextColor{
+			Idle: color.RGBA{255, 255, 255, 255},
+		}),
+		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
+			game.guardsFOV = !game.guardsFOV
+		}),
+	)
 	menuButton := widget.NewButton(
 		widget.ButtonOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
@@ -85,6 +101,7 @@ func createUI(game *Game) *ebitenui.UI {
 		}),
 	)
 
+	buttonsContainer.AddChild(guardButton)
 	buttonsContainer.AddChild(pauseButton)
 	buttonsContainer.AddChild(menuButton)
 	rootContainer.AddChild(buttonsContainer)
