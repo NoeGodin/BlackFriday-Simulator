@@ -161,6 +161,27 @@ func (g *Game) DrawAgents(screen *ebiten.Image) {
 		colorScale := g.AgentAnimator.getColorScale(agt)
 		drawImageAt(screen, g.AgentAnimator.AnimationFrame(agt), drawX, drawY, colorScale)
 		drawImageAt(screen, g.AgentAnimator.GetEmotion(agt), drawX, drawY, nil)
+		if g.guardsFOV && agt.Type() == Simulation.GUARD {
+			p1 := agt.VisionManager().P1
+			p2 := agt.VisionManager().P2
+			p3 := agt.VisionManager().P3
+			p4 := agt.VisionManager().P4
+
+			x1, y1 := g.mapToDrawCoords(p1.X, p1.Y, offsetX, offsetY)
+			x2, y2 := g.mapToDrawCoords(p2.X, p2.Y, offsetX, offsetY)
+			x3, y3 := g.mapToDrawCoords(p3.X, p3.Y, offsetX, offsetY)
+			x4, y4 := g.mapToDrawCoords(p4.X, p4.Y, offsetX, offsetY)
+			var path vector.Path
+			path.MoveTo(float32(x1), float32(y1))
+			path.LineTo(float32(x2), float32(y2))
+			path.LineTo(float32(x3), float32(y3))
+			path.LineTo(float32(x4), float32(y4))
+			path.LineTo(float32(x1), float32(y1))
+			vector.FillPath(screen, &path, nil,
+				&vector.DrawPathOptions{
+					ColorScale: guardsFOVColorScale,
+				})
+		}
 	}
 }
 
@@ -241,7 +262,6 @@ func (g *Game) DrawHUD(screen *ebiten.Image) {
 	if g.Hud.HudBg == nil {
 		return
 	}
-
 	if agt := g.Hud.GetSelectedAgent(); agt != nil {
 		// Draw Raycasts
 		// ax := agt.Coordinate().X + constants.CENTER_OF_CELL

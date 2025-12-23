@@ -22,6 +22,7 @@ type Game struct {
 	UI                        *ebitenui.UI
 	startMenu                 *Hud.StartMenu
 	inMenu                    bool
+	guardsFOV                 bool
 }
 
 func NewGame(screenWidth, screenHeight int) *Game {
@@ -34,6 +35,7 @@ func NewGame(screenWidth, screenHeight int) *Game {
 		ShelfAnimator: NewShelfAnimator(),
 		Hud:           *Hud.NewHud(),
 		inMenu:        true,
+		guardsFOV:     false,
 	}
 	game.startMenu = Hud.NewStartMenu(func(p Hud.Properties) {
 		game.startSimulation(p)

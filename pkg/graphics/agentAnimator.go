@@ -17,20 +17,6 @@ const (
 	LooseItem
 )
 
-var (
-	defaultColorScale = ebiten.ColorScale{}
-	WinItemColorScale = func() ebiten.ColorScale {
-		var cs ebiten.ColorScale
-		cs.Scale(0.8, 2.5, 0.8, 1.0)
-		return cs
-	}()
-	LooseItemColorScale = func() ebiten.ColorScale {
-		var cs ebiten.ColorScale
-		cs.Scale(2.5, 0.3, 0.3, 1.0)
-		return cs
-	}()
-)
-
 type AnimationState struct {
 	animationFrames WalkAnimation
 	step            int
