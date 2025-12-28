@@ -85,17 +85,17 @@ type Environment struct {
 }
 
 func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) *Environment {
-	pickChan := make(chan PickRequest)
-	checkoutChan := make(chan CheckoutRequest)
-	moveChan := make(chan MoveRequest)
-	stealChan := make(chan StealRequest)
-	startChan := make(map[[2]float64]chan StartRequest)
+	pickChan := make(chan PickRequest, constants.BUFFER_CHANNELS)
+	checkoutChan := make(chan CheckoutRequest, constants.BUFFER_CHANNELS)
+	moveChan := make(chan MoveRequest, constants.BUFFER_CHANNELS)
+	stealChan := make(chan StealRequest, constants.BUFFER_CHANNELS)
+	startChan := make(map[[2]float64]chan StartRequest, constants.BUFFER_CHANNELS)
 	stopCtx, cancel := context.WithCancel(context.Background())
 	for _, co := range mapData.Doors {
-		startChan[co] = make(chan StartRequest)
+		startChan[co] = make(chan StartRequest, constants.BUFFER_CHANNELS)
 	}
 
-	exitChan := make(chan ExitRequest)
+	exitChan := make(chan ExitRequest, constants.BUFFER_CHANNELS)
 
 	salesTracker := NewSalesTracker(mapName)
 	collisionTracker := NewCollisionTracker(mapName)
