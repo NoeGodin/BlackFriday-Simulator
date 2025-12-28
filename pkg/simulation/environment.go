@@ -74,6 +74,7 @@ type Environment struct {
 	SalesTracker         *SalesTracker
 	ShoppingListLoader   *shopping.ShoppingListLoader
 	AgentCounter         int
+	currentTick          int
 	stopCtx              context.Context
 	cancel               context.CancelFunc
 	stopWg               sync.WaitGroup
