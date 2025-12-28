@@ -77,7 +77,7 @@ const (
 	FONT_PATH = "assets/fonts/Monaco.ttf"
 	MAPS_PATH = "maps/store"
 
-	BUFFER_CHANNELS    = 10
+	BUFFER_CHANNELS    = 30
 )
 
 // loaded from .env using autoload
