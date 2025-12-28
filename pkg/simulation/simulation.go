@@ -1,6 +1,7 @@
 package Simulation
 
 import (
+	"AI30_-_BlackFriday/pkg/logger"
 	Map "AI30_-_BlackFriday/pkg/map"
 	"fmt"
 	"sync"
@@ -10,6 +11,7 @@ import (
 type Simulation struct {
 	Env       Environment
 	syncChans sync.Map
+	tickCount int
 }
 
 func NewSimulation(agentCount int, ticDuration int, mapData *Map.Map, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) (simu *Simulation) {
@@ -56,8 +58,16 @@ func (s *Simulation) Run() {
 	s.Env.Start(func(agtId AgentID) {
 		s.syncChans.Delete(agtId)
 	})
+	go func() {
+		for {
+			s.tickCount++
+			s.Env.currentTick = s.tickCount
+			time.Sleep(time.Duration(s.Env.ticDuration) * time.Millisecond)
+		}
+	}()
 	for _, agt := range s.Env.Agents {
 		go agt.Start()
+
 		go func(agt Agent) {
 			step := 0
 			for {
@@ -84,6 +94,15 @@ func (s *Simulation) TogglePause() {
 	} else {
 		s.Env.pauseWg.Done()
 	}
+	simu.agents = newAgents
+	simu.Env.removeClient(agentID)
+	simu.syncChans.Delete(agentID)
+}
+
+func (env *Environment) exitRequest(simu *Simulation) {
+	for exitRequest := range env.exitChan {
+		simu.RemoveAgent(exitRequest.Agt.ID())
+		exitRequest.ResponseChannel <- true
 
 }
 func (s *Simulation) Stop() {
