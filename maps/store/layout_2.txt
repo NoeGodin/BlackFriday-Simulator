@@ -12,7 +12,7 @@ W                                      W
 W                                      W
 W                                      W
 W                                      W
-W   stuvqbrq          ppqrqc           W
+W   stuvqbrq          ppqrqcy           W
 W                                      W
 W                                      W
 W                                      W
@@ -21,7 +21,7 @@ W                                      W
 W                                      W
 W                                      W
 W                                      W
-W   aabbccdd          eeffgghhii       W
+W   aabbdrw          eeffgghhii       W
 W                                      W
 W                                      W
 W                                      W
