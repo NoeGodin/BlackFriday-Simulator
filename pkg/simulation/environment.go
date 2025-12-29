@@ -72,6 +72,7 @@ type Environment struct {
 	neighborSearchRadius float64
 	Mutex                sync.RWMutex
 	SalesTracker         *SalesTracker
+	CollisionTracker     *CollisionTracker
 	ShoppingListLoader   *shopping.ShoppingListLoader
 	AgentCounter         int
 	currentTick          int
@@ -97,6 +98,7 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 	exitChan := make(chan ExitRequest)
 
 	salesTracker := NewSalesTracker(mapName)
+	collisionTracker := NewCollisionTracker(mapName)
 
 	// Load shoppingList
 	shoppingListLoader, err := shopping.NewShoppingListLoader(shoppingListsPath)
@@ -119,6 +121,7 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 		deltaTime:            deltaTime,
 		neighborSearchRadius: searchRadius,
 		SalesTracker:         salesTracker,
+		CollisionTracker:     collisionTracker,
 		ShoppingListLoader:   shoppingListLoader,
 		AgentCounter:         0,
 		stopCtx:              stopCtx,
@@ -207,6 +210,12 @@ func (env *Environment) checkAgentCollisions(agt Agent) []Agent {
 			collidingAgents = append(collidingAgents, neighbor)
 		}
 	}
+
+	// Track collisions if any occurred
+	if len(collidingAgents) > 0 {
+		env.CollisionTracker.RecordCollision(len(collidingAgents), env.currentTick)
+	}
+
 	return collidingAgents
 }
 
@@ -282,6 +291,10 @@ func (env *Environment) moveRequest() {
 		socialForces.X += obstaclesForces.X
 		socialForces.Y += obstaclesForces.Y
 		ApplySocialForce(clientAgent, socialForces, env.deltaTime)
+
+		// Check collisions
+		env.checkAgentCollisions(clientAgent)
+
 		clientAgent.Move()
 		moveRequest.ResponseChannel <- true
 	}
@@ -469,7 +482,10 @@ func (env *Environment) IsShelfAt(x, y float64) bool {
 }
 
 func (env *Environment) ExportSalesData() error {
-	return env.SalesTracker.ExportToCSV()
+	if err := env.SalesTracker.ExportToCSV(); err != nil {
+		return err
+	}
+	return env.CollisionTracker.ExportToCSV()
 }
 
 func (env *Environment) GetRandomDoor() [2]float64 {
