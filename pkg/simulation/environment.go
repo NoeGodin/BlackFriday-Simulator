@@ -349,7 +349,7 @@ func (env *Environment) CheckoutRequest() {
 			continue
 		}
 		env.Profit += cartValue
-		env.SalesTracker.RecordSale(cartValue, env.Profit)
+		env.SalesTracker.RecordSale(cartValue, env.Profit, env.currentTick)
 		checkoutRequest.ResponseChannel <- true
 	}
 }
