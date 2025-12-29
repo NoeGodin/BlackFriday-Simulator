@@ -7,6 +7,8 @@ venv/
 # Sales tracking data and plots
 stats/sales_tracker.csv
 stats/profit_comparison.png
+stats/collision_tracker.csv
+stats/collision_comparison.png
 
 # Environment configuration
 .env

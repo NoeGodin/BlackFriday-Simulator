@@ -12,5 +12,8 @@ source venv/bin/activate
 echo "Verifying dependencies..."
 pip install matplotlib pandas > /dev/null 2>&1
 
-echo "Generating graphic..."
-python stats/simple_plot.py
+echo "Generating sales graphic..."
+python stats/plot_sales.py
+
+echo "Generating collisions graphic..."
+python stats/plot_collisions.py
