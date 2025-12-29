@@ -1,7 +1,6 @@
 package Simulation
 
 import (
-	"AI30_-_BlackFriday/pkg/logger"
 	Map "AI30_-_BlackFriday/pkg/map"
 	"fmt"
 	"sync"
@@ -94,17 +93,8 @@ func (s *Simulation) TogglePause() {
 	} else {
 		s.Env.pauseWg.Done()
 	}
-	simu.agents = newAgents
-	simu.Env.removeClient(agentID)
-	simu.syncChans.Delete(agentID)
 }
 
-func (env *Environment) exitRequest(simu *Simulation) {
-	for exitRequest := range env.exitChan {
-		simu.RemoveAgent(exitRequest.Agt.ID())
-		exitRequest.ResponseChannel <- true
-
-}
 func (s *Simulation) Stop() {
 	// export ?
 	s.Env.isStopped = true
