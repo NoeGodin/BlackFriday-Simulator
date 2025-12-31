@@ -83,6 +83,11 @@ func (st *SalesTracker) ExportToCSV() error {
 
 	filename := filepath.Join(statsDir, "sales_tracker.csv")
 
+	fileExists := true
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		fileExists = false
+	}
+
 	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return fmt.Errorf("error opening csv file: %v", err)
@@ -91,6 +96,14 @@ func (st *SalesTracker) ExportToCSV() error {
 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
+
+	// write column name if file dont exist
+	if !fileExists {
+		header := []string{"simulation_id", "map_name", "tick", "montant_vente", "profit_total"}
+		if err := writer.Write(header); err != nil {
+			return fmt.Errorf("error writing columns: %v", err)
+		}
+	}
 
 	// Only writing new records
 	newRecords := st.records[st.lastExported:]

@@ -56,33 +56,32 @@ type CheckoutRequest struct {
 }
 
 type Environment struct {
-	Map                   *Map.Map
-	Clients               []*ClientAgent
-	Guards                []*GuardAgent
-	Agents                []Agent
-	Profit                float64
-	pickChan              chan PickRequest
-	moveChan              chan MoveRequest
-	stealChan             chan StealRequest
-	checkoutChan          chan CheckoutRequest
-	startChans            map[[2]float64]chan StartRequest
-	exitChan              chan ExitRequest
-	ticDuration           int
-	deltaTime             float64
-	neighborSearchRadius  float64
-	Mutex                 sync.RWMutex
-	SalesTracker          *SalesTracker
-	AggressivenessTracker *AggressivenessTracker
-	CollisionTracker      *CollisionTracker
-	ShoppingListLoader    *shopping.ShoppingListLoader
-	AgentCounter          int
-	currentTick           int
-	stopCtx               context.Context
-	cancel                context.CancelFunc
-	stopWg                sync.WaitGroup
-	isStopped             bool
-	isPaused              bool
-	pauseWg               sync.WaitGroup
+	Map                  *Map.Map
+	Clients              []*ClientAgent
+	Guards               []*GuardAgent
+	Agents               []Agent
+	Profit               float64
+	pickChan             chan PickRequest
+	moveChan             chan MoveRequest
+	stealChan            chan StealRequest
+	checkoutChan         chan CheckoutRequest
+	startChans           map[[2]float64]chan StartRequest
+	exitChan             chan ExitRequest
+	ticDuration          int
+	deltaTime            float64
+	neighborSearchRadius float64
+	Mutex                sync.RWMutex
+	SalesTracker         *SalesTracker
+	CollisionTracker     *CollisionTracker
+	ShoppingListLoader   *shopping.ShoppingListLoader
+	AgentCounter         int
+	currentTick          int
+	stopCtx              context.Context
+	cancel               context.CancelFunc
+	stopWg               sync.WaitGroup
+	isStopped            bool
+	isPaused             bool
+	pauseWg              sync.WaitGroup
 }
 
 func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, searchRadius float64, mapName string, shoppingListsPath string) *Environment {
@@ -99,7 +98,6 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 	exitChan := make(chan ExitRequest)
 
 	salesTracker := NewSalesTracker(mapName)
-	AggressivenessTracker := NewAggressivenessTracker(mapName, salesTracker.simulationID)
 	collisionTracker := NewCollisionTracker(mapName)
 
 	// Load shoppingList
@@ -110,35 +108,32 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 	}
 
 	return &Environment{
-		Map:                   mapData,
-		Clients:               make([]*ClientAgent, 0),
-		Agents:                make([]Agent, 0),
-		pickChan:              pickChan,
-		checkoutChan:          checkoutChan,
-		startChans:            startChan,
-		moveChan:              moveChan,
-		exitChan:              exitChan,
-		stealChan:             stealChan,
-		ticDuration:           ticDuration,
-		deltaTime:             deltaTime,
-		neighborSearchRadius:  searchRadius,
-		SalesTracker:          salesTracker,
-		AggressivenessTracker: AggressivenessTracker,
-		CollisionTracker:      collisionTracker,
-		ShoppingListLoader:    shoppingListLoader,
-		AgentCounter:          0,
-		stopCtx:               stopCtx,
-		cancel:                cancel,
-		isStopped:             false,
-		isPaused:              false,
+		Map:                  mapData,
+		Clients:              make([]*ClientAgent, 0),
+		Agents:               make([]Agent, 0),
+		pickChan:             pickChan,
+		checkoutChan:         checkoutChan,
+		startChans:           startChan,
+		moveChan:             moveChan,
+		exitChan:             exitChan,
+		stealChan:            stealChan,
+		ticDuration:          ticDuration,
+		deltaTime:            deltaTime,
+		neighborSearchRadius: searchRadius,
+		SalesTracker:         salesTracker,
+		CollisionTracker:     collisionTracker,
+		ShoppingListLoader:   shoppingListLoader,
+		AgentCounter:         0,
+		stopCtx:              stopCtx,
+		cancel:               cancel,
+		isStopped:            false,
+		isPaused:             false,
 	}
 }
 func (env *Environment) AddClient(agtId string, aggressiveness float64, syncChan chan int) Agent {
 	env.stopWg.Add(1)
 	doorCo := env.GetRandomDoor()
-	if aggressiveness > 1.0 {
-		aggressiveness = 1.0
-	}
+
 	client := NewClientAgent(agtId,
 		env.getSpawnablePos(doorCo),
 		aggressiveness,
@@ -341,21 +336,11 @@ func (env *Environment) StealRequest() {
 			stealerItem.Quantity += StealQuantity
 		}
 		victim.aggressiveness += constants.AGENT_AGGRESSIVENESS_INCREASEMENT
-		if victim.aggressiveness >= 1.0 {
-			victim.aggressiveness = 1.0
-		}
-		stealer.stealCountDown = 10
+
 		stealRequest.ResponseChannel <- true
-		env.AggressivenessTracker.RecordAggressiveness(env.MeanAggressiveness(), env.currentTick)
 	}
 }
-func (env *Environment) MeanAggressiveness() float64 {
-	total := 0.0
-	for _, agt := range env.Clients {
-		total += agt.aggressiveness
-	}
-	return total / float64(len(env.Clients))
-}
+
 func (env *Environment) CheckoutRequest() {
 	for checkoutRequest := range env.checkoutChan {
 		cartValue := checkoutRequest.Agt.CalculateCartValue()
@@ -406,12 +391,12 @@ func (env *Environment) PickRequest() {
 			continue
 		}
 		if itemToPick.Quantity >= pickRequest.WantedAmount {
-			itemToPick.Quantity -= pickRequest.WantedAmount
 			pickRequest.ResponseChannel <- PickResponse{true, pickRequest.WantedAmount}
+			itemToPick.Quantity -= pickRequest.WantedAmount
 
 		} else {
-			itemToPick.Quantity = 0
 			pickRequest.ResponseChannel <- PickResponse{true, itemToPick.Quantity}
+			itemToPick.Quantity = 0
 		}
 		env.Mutex.Unlock()
 	}
@@ -498,9 +483,6 @@ func (env *Environment) IsShelfAt(x, y float64) bool {
 
 func (env *Environment) ExportSalesData() error {
 	if err := env.SalesTracker.ExportToCSV(); err != nil {
-		return err
-	}
-	if err := env.AggressivenessTracker.ExportToCSV(); err != nil {
 		return err
 	}
 	return env.CollisionTracker.ExportToCSV()

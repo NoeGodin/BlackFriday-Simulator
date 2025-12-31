@@ -1,4 +1,4 @@
-*#!/bin/bash
+#!/bin/bash
 
 cd "$(dirname "$0")/.."
 
@@ -17,6 +17,3 @@ python stats/plot_sales.py
 
 echo "Generating collisions graphic..."
 python stats/plot_collisions.py
-
-echo "Generating aggressiveness graphic..."
-python stats/plot_aggressiveness.py
