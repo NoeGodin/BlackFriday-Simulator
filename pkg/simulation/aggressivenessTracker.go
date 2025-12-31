@@ -11,25 +11,24 @@ import (
 	"time"
 )
 
-type SaleRecord struct {
-	Tick        int
-	Amount      float64
-	TotalProfit float64
+type AggressivenessRecord struct {
+	Tick           int
+	Aggressiveness float64
 }
 
-type SalesTracker struct {
+type AggressivenessTracker struct {
 	mapName      string
 	simulationID string
-	records      []SaleRecord
+	records      []AggressivenessRecord
 	mutex        sync.Mutex
 	lastExported int // last export index
 }
 
-func NewSalesTracker(mapName string) *SalesTracker {
-	tracker := &SalesTracker{
+func NewAggressivenessTracker(mapName string, id string) *AggressivenessTracker {
+	tracker := &AggressivenessTracker{
 		mapName:      mapName,
-		simulationID: generateSimulationID(),
-		records:      make([]SaleRecord, 0),
+		simulationID: id,
+		records:      make([]AggressivenessRecord, 0),
 	}
 
 	// Auto-export based on config interval
@@ -39,7 +38,7 @@ func NewSalesTracker(mapName string) *SalesTracker {
 
 		for range ticker.C {
 			if len(tracker.records) > 0 {
-				fmt.Printf("### AUTO-EXPORT: %d sells (interval: %v) ###\n", len(tracker.records), constants.SALES_EXPORT_INTERVAL)
+				fmt.Printf("### AUTO-EXPORT: %d agressivité (interval: %v) ###\n", len(tracker.records), constants.SALES_EXPORT_INTERVAL)
 				tracker.ExportToCSV()
 			}
 		}
@@ -48,26 +47,21 @@ func NewSalesTracker(mapName string) *SalesTracker {
 	return tracker
 }
 
-func generateSimulationID() string {
-	return fmt.Sprintf("sim_%d", time.Now().UnixNano())
-}
-
-func (st *SalesTracker) RecordSale(saleAmount float64, totalProfit float64, tick int) {
+func (st *AggressivenessTracker) RecordAggressiveness(aggressiveness float64, tick int) {
 	st.mutex.Lock()
 	defer st.mutex.Unlock()
 
-	record := SaleRecord{
-		Tick:        tick,
-		Amount:      saleAmount,
-		TotalProfit: totalProfit,
+	record := AggressivenessRecord{
+		Tick:           tick,
+		Aggressiveness: aggressiveness,
 	}
 	st.records = append(st.records, record)
 
-	fmt.Printf("*** TRACKER: Vente enregistrée: %.2f€ au tick %d, Total: %.2f€ (records: %d) ***\n",
-		saleAmount, tick, totalProfit, len(st.records))
+	fmt.Printf("*** TRACKER: agressivité enregistrée: %.2f au tick %d (records: %d) ***\n",
+		aggressiveness, tick, len(st.records))
 }
 
-func (st *SalesTracker) ExportToCSV() error {
+func (st *AggressivenessTracker) ExportToCSV() error {
 	st.mutex.Lock()
 	defer st.mutex.Unlock()
 
@@ -81,7 +75,7 @@ func (st *SalesTracker) ExportToCSV() error {
 		return fmt.Errorf("error creating folkder stats: %v", err)
 	}
 
-	filename := filepath.Join(statsDir, "sales_tracker.csv")
+	filename := filepath.Join(statsDir, "aggressiveness_tracker.csv")
 
 	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -99,8 +93,7 @@ func (st *SalesTracker) ExportToCSV() error {
 			st.simulationID,
 			st.mapName,
 			strconv.Itoa(record.Tick),
-			strconv.FormatFloat(record.Amount, 'f', 2, 64),
-			strconv.FormatFloat(record.TotalProfit, 'f', 2, 64),
+			strconv.FormatFloat(record.Aggressiveness, 'f', 2, 64),
 		}
 		if err := writer.Write(row); err != nil {
 			return fmt.Errorf("error writing a log : %v", err)
@@ -109,20 +102,20 @@ func (st *SalesTracker) ExportToCSV() error {
 
 	// new index
 	st.lastExported = len(st.records)
-	fmt.Printf("### EXPORT FINISHED: %d new sells data (total: %d) ###\n",
+	fmt.Printf("### EXPORT FINISHED: %d new aggressiveness data (total: %d) ###\n",
 		len(newRecords), st.lastExported)
 	return nil
 }
 
-func (st *SalesTracker) GetMapName() string {
+func (st *AggressivenessTracker) GetMapName() string {
 	return st.mapName
 }
 
-func (st *SalesTracker) GetSimulationID() string {
+func (st *AggressivenessTracker) GetSimulationID() string {
 	return st.simulationID
 }
 
-func (st *SalesTracker) GetRecordsCount() int {
+func (st *AggressivenessTracker) GetRecordsCount() int {
 	st.mutex.Lock()
 	defer st.mutex.Unlock()
 	return len(st.records)
