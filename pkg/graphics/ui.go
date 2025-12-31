@@ -97,7 +97,7 @@ func createUI(game *Game) *ebitenui.UI {
 			createSliderButtonImage(),
 		),
 		widget.SliderOpts.ChangedHandler(func(args *widget.SliderChangedEventArgs) {
-			game.Simulation.SetTicDuration(args.Current)
+			game.SetTicDuration(args.Current)
 		}),
 	)
 
