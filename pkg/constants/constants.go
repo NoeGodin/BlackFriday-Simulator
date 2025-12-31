@@ -72,7 +72,6 @@ const (
 	MIN_TIC_DURATION   = 10
 	MAX_CLIENTS_NUMBER = 2000
 	MAX_GUARD_NUMBER   = 100
-	STEAL_COUNTDOWN    = 10
 
 	// file system
 	FONT_PATH = "assets/fonts/Monaco.ttf"
