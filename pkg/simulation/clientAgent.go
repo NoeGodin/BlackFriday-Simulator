@@ -36,6 +36,7 @@ type ClientAgent struct {
 	interactTargetX, interactTargetY float64
 
 	visitedShelves map[[2]float64]Map.Shelf
+	stealCountDown int
 }
 
 func NewClientAgent(
@@ -67,6 +68,7 @@ func NewClientAgent(
 		state:                StateWandering,
 		aggressiveness:       aggressiveness,
 		visitedShelves:       make(map[[2]float64]Map.Shelf),
+		stealCountDown:       0,
 	}
 	agent.agentBehavior = &ClientAgentBehavior{ag: agent}
 
@@ -107,7 +109,7 @@ func (ag *ClientAgent) GetDisplayData() string {
 	for i, item := range cart {
 		msg += fmt.Sprintf("  [%d] %s - Quantity: %d\n", i+1, item.Name, item.Quantity)
 	}
-	msg += fmt.Sprintf("  agressivité : %f", ag.aggressiveness)
+	msg += fmt.Sprintf("agressivité : %f", ag.aggressiveness)
 
 	return msg
 }
@@ -354,7 +356,7 @@ func (bh *ClientAgentBehavior) Deliberate() {
 			}
 			break
 		}
-		if ag.aggressiveness >= constants.AGENT_AGGRESSIVENESS_TRESHOLD {
+		if ag.stealCountDown == 0 && ag.aggressiveness >= constants.AGENT_AGGRESSIVENESS_TRESHOLD {
 			if target, targetItem, exists := ag.findAgentToSteal(); exists {
 				ag.target = target
 				ag.targetItemName = targetItem
@@ -465,7 +467,11 @@ func (bh *ClientAgentBehavior) Deliberate() {
 }
 
 func (bh *ClientAgentBehavior) Act() {
+
 	ag := bh.ag
+	if ag.stealCountDown > 0 {
+		ag.stealCountDown -= 1
+	}
 	switch ag.nextAction {
 	case ActionMove:
 		ag.moveChan <- MoveRequest{Agt: ag, ResponseChannel: ag.moveChanResponse}
@@ -478,7 +484,7 @@ func (bh *ClientAgentBehavior) Act() {
 				Agt:             ag,
 				ItemName:        item.Name,
 				ShelfCoords:     targetShelf,
-				WantedAmount:    item.Quantity,
+				WantedAmount:    ag.getDesiredQuantity(item.Name),
 				ResponseChannel: ag.pickChanResponse,
 			}
 			amount := <-ag.pickChanResponse
