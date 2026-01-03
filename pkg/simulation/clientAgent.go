@@ -116,17 +116,35 @@ func (ag *ClientAgent) GetDisplayData() string {
 
 func (ag *ClientAgent) findWantedItemLocation() (float64, float64, bool) {
 	missingItems := ag.GetMissingItems()
+	var bestX, bestY float64
+	found := false
+	minDist := math.MaxFloat64
 
 	for k, shelf := range ag.visitedShelves {
+		hasItem := false
 		for _, item := range shelf.Items {
 			for _, wantedItem := range missingItems {
 				if (item.Name == wantedItem.Name) && (item.Quantity > 0) {
-					return k[0], k[1], true
+					hasItem = true
+					break
 				}
+			}
+			if hasItem {
+				break
+			}
+		}
+
+		if hasItem {
+			dist := math.Hypot(k[0]-ag.Coordinate().X, k[1]-ag.Coordinate().Y)
+			if dist < minDist {
+				minDist = dist
+				bestX = k[0]
+				bestY = k[1]
+				found = true
 			}
 		}
 	}
-	return 0, 0, false
+	return bestX, bestY, found
 }
 
 func (ag *ClientAgent) findAgentToSteal() (*ClientAgent, string, bool) {
