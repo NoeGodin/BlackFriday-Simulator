@@ -45,7 +45,8 @@ func (g *Game) Update() error {
 	g.HandleInput()
 	g.Hud.Update()
 	g.UI.Update()
-	if g.Hud.GetSelectedAgent() != nil {
+
+	if g.Simulation != nil && g.Hud.GetSelectedAgent() != nil {
 		g.ensureValidHUDAgent()
 	}
 	return nil
