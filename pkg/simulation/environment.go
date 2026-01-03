@@ -575,7 +575,7 @@ func (env *Environment) exitRequest(onDelete func(AgentID)) {
 		onDelete(exitRequest.Agt.ID())
 		env.removeClient(exitRequest.Agt.ID())
 		exitRequest.ResponseChannel <- true
-		env.stopWg.Done()
+		// env.stopWg.Done()
 		// Export data if nore more agents
 		if len(env.Clients) == 0 {
 			if err := env.ExportSalesData(); err != nil {
