@@ -136,6 +136,9 @@ func (g *Game) getHUDAdjacentAgent(direction int) Simulation.Agent {
 }
 
 func (g *Game) ensureValidHUDAgent() {
+	if g.Simulation == nil {
+		return
+	}
 	agents := g.Simulation.Agents()
 
 	if len(agents) == 0 {
