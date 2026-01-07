@@ -74,6 +74,7 @@ type Environment struct {
 	SalesTracker          *SalesTracker
 	AggressivenessTracker *AggressivenessTracker
 	CollisionTracker      *CollisionTracker
+	StealTracker          *StealTracker
 	ShoppingListLoader    *shopping.ShoppingListLoader
 	AgentCounter          int
 	currentTick           int
@@ -101,6 +102,7 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 	salesTracker := NewSalesTracker(mapName)
 	AggressivenessTracker := NewAggressivenessTracker(mapName, salesTracker.simulationID)
 	collisionTracker := NewCollisionTracker(mapName)
+	stealTracker := NewStealTracker(mapName, salesTracker.simulationID)
 
 	// Load shoppingList
 	shoppingListLoader, err := shopping.NewShoppingListLoader(shoppingListsPath)
@@ -125,6 +127,7 @@ func NewEnvironment(mapData *Map.Map, ticDuration int, deltaTime float64, search
 		SalesTracker:          salesTracker,
 		AggressivenessTracker: AggressivenessTracker,
 		CollisionTracker:      collisionTracker,
+		StealTracker:          stealTracker,
 		ShoppingListLoader:    shoppingListLoader,
 		AgentCounter:          0,
 		stopCtx:               stopCtx,
@@ -347,6 +350,9 @@ func (env *Environment) StealRequest() {
 		stealer.stealCountDown = constants.STEAL_COUNTDOWN
 		stealRequest.ResponseChannel <- true
 		env.AggressivenessTracker.RecordAggressiveness(env.MeanAggressiveness(), env.currentTick)
+		if env.StealTracker != nil {
+			env.StealTracker.RecordSteal(string(stealer.ID()), string(victim.ID()), item.Name, env.currentTick)
+		}
 	}
 }
 func (env *Environment) MeanAggressiveness() float64 {
@@ -502,6 +508,11 @@ func (env *Environment) ExportSalesData() error {
 	}
 	if err := env.AggressivenessTracker.ExportToCSV(); err != nil {
 		return err
+	}
+	if env.StealTracker != nil {
+		if err := env.StealTracker.ExportToCSV(); err != nil {
+			return err
+		}
 	}
 	return env.CollisionTracker.ExportToCSV()
 }
