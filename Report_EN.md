@@ -2,7 +2,7 @@
 
 ## Project Description
 
-The project we decided to develop is a supermarket simulation during a Black Friday or sales period. The main objective of this simulation is to reproduce customer behavior in a context of high traffic.
+The project we decided to develop is a supermarket simulation during a Black Friday or sales period. The main goal of this simulation is to reproduce customer behavior in a context of high traffic.
 
 To represent a supermarket, we adopted a top-down view. On our interface, we represented the following elements:
 - Shelves: containing products that agents will go to fetch.

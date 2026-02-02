@@ -39,7 +39,7 @@ Store's point of view: How to maximize sales?
 
 On the graphical interface, one can place:
 - shelves (obstacles)
-- items (objective)
+- items (goal)
 - an entrance / exit
 
 Agents would be customers who could collect up to x items simultaneously and have several behaviors:
